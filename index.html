@@ -722,8 +722,9 @@
   // Set once on first visit: now + 60 days
   function getMatchDate() {
     let stored = localStorage.getItem('matchDate');
-    if (!stored) {
-      const d = new Date();
+    const now  = Date.now();
+    if (!stored || (new Date(stored) - now) < 55 * 864e5) {
+      const d = new Date(now);
       d.setDate(d.getDate() + 60);
       stored = d.toISOString();
       localStorage.setItem('matchDate', stored);
