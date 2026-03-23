@@ -5,33 +5,29 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Samuel's Chess Academy</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟</text></svg>">
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
-      --g900: #192b19;
-      --g800: #243d22;
-      --g700: #2d5a1b;
-      --g600: #3d7525;
-      --g500: #4a8f2e;
-      --g100: #e6f2de;
-      --cream: #faf8f2;
-      --cream2: #f0e9d6;
-      --cream3: #e5dbc8;
-      --gold: #c9a84c;
-      --gold2: #d9bb68;
-      --text: #1c2018;
-      --muted: #68745e;
-      --blue: #2563eb;
-      --blue-bg: #dbeafe;
-      --white: #ffffff;
-      --success: #16a34a;
-      --danger: #dc2626;
-      --sh-sm: 0 2px 8px rgba(25,43,25,.09);
-      --sh-md: 0 4px 20px rgba(25,43,25,.13);
-      --sh-lg: 0 8px 40px rgba(25,43,25,.18);
-      --r: 16px;
-      --r-sm: 10px;
+      --green-dark:  #1a2e1a;
+      --green-mid:   #2d5a2d;
+      --green-light: #3d7a3d;
+      --green-accent:#4e9e4e;
+      --cream:       #faf6ee;
+      --cream2:      #f0e9d6;
+      --cream3:      #e2d5be;
+      --gold:        #c9a84c;
+      --text:        #1c2018;
+      --muted:       #6b7a62;
+      --white:       #ffffff;
+      --success-bg:  #dcfce7;
+      --success-txt: #166534;
+      --error-bg:    #fee2e2;
+      --error-txt:   #991b1b;
+      --radius:      14px;
+      --radius-sm:   8px;
+      --shadow:      0 4px 24px rgba(26,46,26,.15);
     }
 
     html { scroll-behavior: smooth; }
@@ -44,973 +40,369 @@
       line-height: 1.6;
     }
 
-    /* ── HEADER ─────────────────────────────────── */
-    .site-header {
-      background: var(--g900);
-      background-image:
-        linear-gradient(45deg, rgba(255,255,255,.03) 25%, transparent 25%),
-        linear-gradient(-45deg, rgba(255,255,255,.03) 25%, transparent 25%),
-        linear-gradient(45deg, transparent 75%, rgba(255,255,255,.03) 75%),
-        linear-gradient(-45deg, transparent 75%, rgba(255,255,255,.03) 75%);
-      background-size: 20px 20px;
-      background-position: 0 0, 0 10px, 10px -10px, -10px 0;
-      position: sticky;
-      top: 0;
-      z-index: 200;
-      box-shadow: var(--sh-md);
-    }
-    .header-inner {
-      max-width: 700px;
-      margin: 0 auto;
-      padding: 16px 20px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 12px;
-    }
-    .header-inner h1 {
+    /* ── HEADER ──────────────────────────────────────── */
+    .header {
+      background: var(--green-dark);
       color: var(--cream);
-      font-size: clamp(1.05rem, 4.5vw, 1.5rem);
-      font-weight: 700;
-      letter-spacing: -.02em;
-      white-space: nowrap;
+      padding: 20px 16px 18px;
+      text-align: center;
     }
-    .streak-badge {
+
+    .header-title {
+      font-size: clamp(1.4rem, 5vw, 2rem);
+      font-weight: 700;
+      letter-spacing: -.5px;
       display: flex;
       align-items: center;
-      gap: 5px;
-      background: rgba(201,168,76,.15);
-      border: 1.5px solid rgba(201,168,76,.35);
+      justify-content: center;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .header-title .piece { font-size: 1.15em; line-height: 1; }
+
+    .header-stats {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .stat-chip {
+      background: rgba(255,255,255,.1);
+      border: 1px solid rgba(255,255,255,.18);
       border-radius: 999px;
-      padding: 6px 14px;
+      padding: 6px 16px;
       font-size: .85rem;
-      font-weight: 700;
-      color: var(--gold2);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 500;
+    }
+
+    .stat-chip .icon { font-size: 1rem; }
+    .stat-chip .value { color: var(--gold); font-weight: 700; font-size: .95rem; }
+
+    /* ── TABS ────────────────────────────────────────── */
+    .tabs-bar {
+      background: var(--green-mid);
+      display: flex;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    .tabs-bar::-webkit-scrollbar { display: none; }
+
+    .tab-btn {
+      flex: 1;
+      min-width: 100px;
+      padding: 13px 10px;
+      border: none;
+      background: transparent;
+      color: rgba(250,246,238,.65);
+      font-size: .9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s, color .2s;
+      border-bottom: 3px solid transparent;
       white-space: nowrap;
-      flex-shrink: 0;
     }
 
-    /* ── LAYOUT ──────────────────────────────────── */
-    .container {
-      max-width: 700px;
+    .tab-btn:hover { color: var(--cream); background: rgba(255,255,255,.05); }
+
+    .tab-btn.active {
+      color: var(--cream);
+      border-bottom-color: var(--gold);
+      background: rgba(255,255,255,.07);
+    }
+
+    /* ── CONTENT ─────────────────────────────────────── */
+    .content {
+      max-width: 680px;
       margin: 0 auto;
-      padding: 0 16px 56px;
+      padding: 28px 16px 60px;
     }
 
-    /* ── VIEWS ───────────────────────────────────── */
-    .view { display: none; }
-    .view.active { display: block; animation: fadeUp .22s ease; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to   { opacity: 1; transform: translateY(0); }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* coming soon */
+    .coming-soon {
+      text-align: center;
+      padding: 60px 20px;
     }
 
-    /* ── TYPOGRAPHY ──────────────────────────────── */
-    .section-title {
-      font-size: 1.05rem;
-      font-weight: 700;
-      color: var(--g800);
-      margin: 28px 0 14px;
-      padding-bottom: 10px;
-      border-bottom: 2px solid var(--cream3);
+    .coming-soon .cs-icon {
+      font-size: 3.5rem;
+      margin-bottom: 16px;
+    }
+
+    .coming-soon h2 {
+      font-size: 1.5rem;
+      color: var(--green-mid);
+      margin-bottom: 8px;
+    }
+
+    .coming-soon p {
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    /* ── ASK COACH ───────────────────────────────────── */
+    .coach-card {
+      background: var(--white);
+      border: 1px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 28px 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .coach-card h2 {
+      font-size: 1.25rem;
+      color: var(--green-dark);
+      margin-bottom: 6px;
       display: flex;
       align-items: center;
       gap: 8px;
     }
 
-    /* ── STAT CARDS ──────────────────────────────── */
-    .stats-grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      padding: 20px 0 4px;
-    }
-    .stat-card {
-      background: var(--white);
-      border-radius: var(--r-sm);
-      box-shadow: var(--sh-sm);
-      padding: 16px 10px;
-      text-align: center;
-      border-top: 3px solid var(--g600);
-      transition: transform .15s;
-    }
-    .stat-card:hover { transform: translateY(-2px); }
-    .stat-icon { font-size: 1.5rem; margin-bottom: 6px; }
-    .stat-num {
-      font-size: 1.9rem;
-      font-weight: 800;
-      color: var(--g700);
-      line-height: 1;
-    }
-    .stat-label {
-      font-size: .65rem;
+    .coach-card .subtitle {
       color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .07em;
-      margin-top: 5px;
+      font-size: .88rem;
+      margin-bottom: 22px;
     }
 
-    /* ── PROGRESS BAR ─────────────────────────────── */
-    .progress-wrap {
-      background: var(--cream3);
-      border-radius: 999px;
-      height: 7px;
-      margin: 20px 0 24px;
-      overflow: hidden;
-    }
-    .progress-fill {
-      height: 100%;
-      background: linear-gradient(90deg, var(--g600), var(--g500));
-      border-radius: 999px;
-      transition: width .6s cubic-bezier(.4,0,.2,1);
-    }
-
-    /* ── BUTTONS ──────────────────────────────────── */
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 7px;
-      padding: 14px 22px;
-      border-radius: var(--r-sm);
-      font-size: .97rem;
+    label {
+      display: block;
       font-weight: 600;
-      cursor: pointer;
-      border: none;
-      transition: all .18s ease;
-      -webkit-tap-highlight-color: transparent;
-      text-align: center;
-      line-height: 1.3;
+      font-size: .9rem;
+      color: var(--green-dark);
+      margin-bottom: 8px;
     }
-    .btn:active { transform: scale(.97); }
 
-    .btn-primary {
-      background: var(--g700);
-      color: var(--white);
-      box-shadow: 0 4px 14px rgba(45,90,27,.35);
-    }
-    .btn-primary:hover { background: var(--g800); box-shadow: 0 6px 20px rgba(45,90,27,.42); transform: translateY(-1px); }
-
-    .btn-gold {
-      background: var(--gold);
-      color: var(--g900);
-      box-shadow: 0 4px 14px rgba(201,168,76,.35);
-    }
-    .btn-gold:hover { background: var(--gold2); transform: translateY(-1px); }
-
-    .btn-ghost {
-      background: var(--white);
-      color: var(--text);
+    textarea {
+      width: 100%;
+      min-height: 130px;
       border: 1.5px solid var(--cream3);
-      box-shadow: var(--sh-sm);
-    }
-    .btn-ghost:hover { background: var(--cream); }
-    .btn-ghost:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-
-    .btn-success { background: var(--success); color: var(--white); box-shadow: 0 4px 12px rgba(22,163,74,.3); }
-    .btn-success:hover { background: #15803d; transform: translateY(-1px); }
-
-    .btn-danger  { background: var(--danger);  color: var(--white); box-shadow: 0 4px 12px rgba(220,38,38,.3); }
-    .btn-danger:hover  { background: #b91c1c; transform: translateY(-1px); }
-
-    .btn-done {
-      background: var(--success);
-      color: var(--white);
-      box-shadow: 0 4px 12px rgba(22,163,74,.3);
-    }
-
-    .btn-full { width: 100%; }
-
-    .action-row {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      margin-bottom: 4px;
-    }
-    @media (min-width: 520px) {
-      .action-row { flex-direction: row; }
-      .action-row .btn { flex: 1; }
-    }
-
-    /* ── CURRICULUM ───────────────────────────────── */
-    .week-block {
-      background: var(--white);
-      border-radius: var(--r);
-      box-shadow: var(--sh-sm);
-      overflow: hidden;
-      margin-bottom: 14px;
-    }
-    .week-header {
-      background: var(--g700);
-      color: var(--white);
-      padding: 12px 20px;
-      font-size: .8rem;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .07em;
-    }
-    .lesson-row {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      padding: 13px 20px;
-      border-bottom: 1px solid var(--cream2);
-      cursor: pointer;
-      transition: background .13s;
-      -webkit-tap-highlight-color: transparent;
-    }
-    .lesson-row:last-child { border-bottom: none; }
-    .lesson-row:hover { background: var(--cream); }
-
-    .lesson-row.is-today {
-      background: var(--blue-bg);
-      border-left: 3px solid var(--blue);
-      padding-left: 17px;
-    }
-    .lesson-row.is-today .lesson-name { color: var(--blue); font-weight: 600; }
-    .lesson-row.is-done .lesson-name  { text-decoration: line-through; color: var(--muted); }
-
-    .cb {
-      width: 22px; height: 22px;
-      flex-shrink: 0;
-      appearance: none;
-      -webkit-appearance: none;
-      border: 2px solid #c8d0c0;
-      border-radius: 6px;
-      cursor: pointer;
-      position: relative;
-      transition: all .18s;
-      background: var(--white);
-    }
-    .cb:checked { background: var(--g600); border-color: var(--g600); }
-    .cb:checked::after {
-      content: '';
-      position: absolute;
-      left: 4px; top: 1px;
-      width: 10px; height: 6px;
-      border-left: 2px solid #fff;
-      border-bottom: 2px solid #fff;
-      transform: rotate(-45deg);
-    }
-
-    .lesson-meta { flex: 1; min-width: 0; }
-    .lesson-day-lbl {
-      font-size: .65rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .06em;
-    }
-    .lesson-name { font-size: .88rem; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-
-    .today-pill {
-      background: var(--blue);
-      color: #fff;
-      font-size: .62rem;
-      font-weight: 700;
-      padding: 2px 9px;
-      border-radius: 999px;
-      text-transform: uppercase;
-      letter-spacing: .05em;
-      flex-shrink: 0;
-    }
-
-    /* ── LESSON VIEW ──────────────────────────────── */
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      background: none;
-      border: none;
-      color: var(--muted);
-      font-size: .88rem;
-      font-weight: 500;
-      cursor: pointer;
-      padding: 16px 0 6px;
-      transition: color .13s;
-    }
-    .back-btn:hover { color: var(--text); }
-
-    .lesson-meta-row {
-      font-size: .72rem;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .09em;
-      margin-bottom: 6px;
-      margin-top: 4px;
-    }
-    .lesson-view-title {
-      font-size: clamp(1.2rem, 5vw, 1.6rem);
-      font-weight: 700;
-      letter-spacing: -.02em;
-      margin-bottom: 16px;
-    }
-
-    .lesson-desc {
-      background: var(--white);
-      border-radius: var(--r);
-      padding: 20px 22px;
-      margin-bottom: 16px;
-      box-shadow: var(--sh-sm);
-      font-size: .97rem;
-      line-height: 1.75;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      font-size: .95rem;
+      font-family: inherit;
       color: var(--text);
-      border-left: 4px solid var(--g600);
+      background: var(--cream);
+      resize: vertical;
+      transition: border-color .2s, box-shadow .2s;
+      outline: none;
     }
 
-    .board-wrap {
+    textarea:focus {
+      border-color: var(--green-accent);
+      box-shadow: 0 0 0 3px rgba(78,158,78,.15);
       background: var(--white);
-      border-radius: var(--r);
-      padding: 8px;
-      box-shadow: var(--sh-md);
-      margin-bottom: 16px;
-      aspect-ratio: 1 / 1;
-      overflow: hidden;
     }
-    .board-wrap iframe {
+
+    .submit-btn {
+      margin-top: 14px;
       width: 100%;
-      height: 100%;
+      padding: 13px;
+      background: var(--green-mid);
+      color: var(--cream);
       border: none;
-      border-radius: var(--r-sm);
-      display: block;
+      border-radius: var(--radius-sm);
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
     }
 
-    .lesson-nav {
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 10px;
-      align-items: center;
-      margin-top: 10px;
-    }
-    .lesson-nav-pos {
-      text-align: center;
-      font-size: .82rem;
-      color: var(--muted);
-      font-weight: 600;
-    }
+    .submit-btn:hover:not(:disabled) { background: var(--green-light); }
+    .submit-btn:active:not(:disabled) { transform: scale(.98); }
+    .submit-btn:disabled { opacity: .55; cursor: not-allowed; }
 
-    /* ── PUZZLE VIEW ──────────────────────────────── */
-    .puzzle-wrap {
-      background: var(--white);
-      border-radius: var(--r);
-      padding: 8px;
-      box-shadow: var(--sh-md);
-      margin-bottom: 16px;
-      aspect-ratio: 4 / 3;
-      overflow: hidden;
+    .msg {
+      margin-top: 14px;
+      padding: 12px 16px;
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+      font-weight: 500;
+      display: none;
     }
-    .puzzle-wrap iframe {
-      width: 100%;
-      height: 100%;
-      border: none;
-      border-radius: var(--r-sm);
-      display: block;
-    }
-    .puzzle-hint {
-      font-size: .88rem;
-      color: var(--muted);
-      margin-bottom: 14px;
-    }
-    .puzzle-btns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 12px;
-    }
+    .msg.success { display: block; background: var(--success-bg); color: var(--success-txt); }
+    .msg.error   { display: block; background: var(--error-bg);   color: var(--error-txt); }
 
-    /* ── RESPONSIVE ───────────────────────────────── */
-    @media (max-width: 380px) {
-      .stats-grid { gap: 8px; }
-      .stat-card  { padding: 12px 6px; }
-      .stat-num   { font-size: 1.5rem; }
-      .stat-label { font-size: .58rem; }
-      .header-inner { padding: 14px 14px; }
+    /* ── RESPONSIVE ──────────────────────────────────── */
+    @media (max-width: 400px) {
+      .coach-card { padding: 20px 16px; }
     }
-
-    /* ── COMPLETION CARD ──────────────────────────── */
-    .complete-card {
-      background: linear-gradient(135deg, var(--g800), var(--g600));
-      border-radius: var(--r);
-      padding: 28px 24px;
-      text-align: center;
-      margin-bottom: 20px;
-      box-shadow: var(--sh-lg);
-    }
-    .complete-card .big-emoji { font-size: 2.4rem; display: block; margin-bottom: 10px; }
-    .complete-card h2 { color: #fff; margin-bottom: 6px; font-size: 1.3rem; }
-    .complete-card p  { color: rgba(255,255,255,.8); font-size: .9rem; }
   </style>
 </head>
 <body>
 
-<header class="site-header">
-  <div class="header-inner">
-    <h1>♟ Samuel's Chess Academy</h1>
-    <div class="streak-badge">🔥 <span class="streak-count">1</span> day streak</div>
+<!-- HEADER -->
+<header class="header">
+  <div class="header-title">
+    <span class="piece">♟</span>
+    Samuel's Chess Academy
+  </div>
+  <div class="header-stats">
+    <div class="stat-chip">
+      <span class="icon">🔥</span>
+      Streak: <span class="value" id="streakVal">0</span> days
+    </div>
+    <div class="stat-chip">
+      <span class="icon">📅</span>
+      Days remaining: <span class="value" id="daysVal">30</span>
+    </div>
   </div>
 </header>
 
-<!-- ════════════════════════════════════════════
-     VIEW 1 · DASHBOARD
-════════════════════════════════════════════ -->
-<div id="v-dashboard" class="view active">
-  <div class="container">
+<!-- TABS -->
+<nav class="tabs-bar" role="tablist">
+  <button class="tab-btn active" role="tab" data-tab="lessons">Daily Lessons</button>
+  <button class="tab-btn"        role="tab" data-tab="puzzles">Puzzles</button>
+  <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach</button>
+</nav>
 
-    <!-- Stats -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-icon">📚</div>
-        <div class="stat-num" id="stat-lessons">0</div>
-        <div class="stat-label">Lessons Done</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">🧩</div>
-        <div class="stat-num" id="stat-puzzles">0</div>
-        <div class="stat-label">Puzzles Solved</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-icon">⏳</div>
-        <div class="stat-num" id="stat-days">30</div>
-        <div class="stat-label">Days Left</div>
-      </div>
+<!-- CONTENT -->
+<main class="content">
+
+  <!-- Daily Lessons -->
+  <section class="tab-panel active" id="panel-lessons" role="tabpanel">
+    <div class="coming-soon">
+      <div class="cs-icon">📖</div>
+      <h2>Coming Soon</h2>
+      <p>Daily lessons are on their way. Check back soon!</p>
     </div>
+  </section>
 
-    <div class="progress-wrap">
-      <div class="progress-fill" id="prog-bar" style="width:0%"></div>
+  <!-- Puzzles -->
+  <section class="tab-panel" id="panel-puzzles" role="tabpanel">
+    <div class="coming-soon">
+      <div class="cs-icon">🧩</div>
+      <h2>Coming Soon</h2>
+      <p>Chess puzzles are being prepared. Stay tuned!</p>
     </div>
+  </section>
 
-    <!-- Action buttons -->
-    <div class="action-row">
-      <button class="btn btn-primary btn-full" id="btn-start">▶ Start Today's Lesson</button>
-      <button class="btn btn-gold    btn-full" id="btn-puzzle">🧩 Daily Puzzle</button>
+  <!-- Ask Coach -->
+  <section class="tab-panel" id="panel-coach" role="tabpanel">
+    <div class="coach-card">
+      <h2>🎓 Ask Coach Samuel</h2>
+      <p class="subtitle">Type your chess question below and Samuel will get back to you.</p>
+      <form id="coachForm" novalidate>
+        <label for="questionBox">Your question</label>
+        <textarea id="questionBox" placeholder="e.g. How do I defend against the King's Gambit?" required></textarea>
+        <button type="submit" class="submit-btn" id="submitBtn">Send Question</button>
+      </form>
+      <div class="msg" id="statusMsg"></div>
     </div>
+  </section>
 
-    <!-- Curriculum -->
-    <div class="section-title">📋 4-Week Curriculum</div>
-    <div id="curriculum"></div>
-
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════
-     VIEW 2 · LESSON
-════════════════════════════════════════════ -->
-<div id="v-lesson" class="view">
-  <div class="container">
-
-    <button class="back-btn" id="btn-lesson-back">← Back to Home</button>
-
-    <div class="lesson-meta-row" id="l-week-label">Week 1 · Day 1</div>
-    <h2 class="lesson-view-title" id="l-title">Lesson Title</h2>
-
-    <div class="lesson-desc" id="l-desc">Description goes here.</div>
-
-    <div class="board-wrap">
-      <iframe id="l-board" src="" title="Chess board" allowfullscreen></iframe>
-    </div>
-
-    <button class="btn btn-primary btn-full" id="btn-complete" style="margin-bottom:14px">
-      ✓ Mark as Complete
-    </button>
-
-    <div class="lesson-nav">
-      <button class="btn btn-ghost" id="btn-prev">← Prev</button>
-      <div class="lesson-nav-pos" id="l-pos">1 / 28</div>
-      <button class="btn btn-ghost" id="btn-next">Next →</button>
-    </div>
-
-  </div>
-</div>
-
-<!-- ════════════════════════════════════════════
-     VIEW 3 · DAILY PUZZLE
-════════════════════════════════════════════ -->
-<div id="v-puzzle" class="view">
-  <div class="container">
-
-    <button class="back-btn" id="btn-puzzle-back">← Back to Home</button>
-
-    <div class="lesson-meta-row">Daily Challenge</div>
-    <h2 class="lesson-view-title">Today's Puzzle</h2>
-
-    <p class="puzzle-hint">Find the best move for the highlighted side. Take your time!</p>
-
-    <div class="puzzle-wrap">
-      <iframe
-        src="https://lichess.org/training/frame?theme=brown&bg=light"
-        title="Daily chess puzzle"
-        allowfullscreen>
-      </iframe>
-    </div>
-
-    <div class="puzzle-btns">
-      <button class="btn btn-success" id="btn-solved">✓ Solved it!</button>
-      <button class="btn btn-danger"  id="btn-failed">✗ Couldn't get it</button>
-    </div>
-
-  </div>
-</div>
-
+</main>
 
 <script>
-// ============================================================
-// LESSON DATA
-// ============================================================
-const LESSONS = [
-  // ── WEEK 1: Pieces & Rules ──────────────────────────────
-  {
-    week:1, day:1,
-    title:"Meet the Board",
-    desc:"Welcome to chess! The board is an 8×8 grid of 64 squares, always placed so there's a light square in the bottom-right corner. You start with 16 pieces each — and today we're just getting comfortable with how everything is arranged before the first move.",
-    fen:"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"
-  },
-  {
-    week:1, day:2,
-    title:"The King",
-    desc:"The King is your most important piece — if he's captured, the game is over! He moves exactly one square in any direction: forward, backward, sideways, or diagonally. He's slow but mighty, and protecting him at all times is your number one job.",
-    fen:"8/8/8/3K4/8/8/8/8 w - - 0 1"
-  },
-  {
-    week:1, day:3,
-    title:"The Queen",
-    desc:"The Queen is the most powerful piece on the board — she moves any number of squares in any direction (horizontally, vertically, or diagonally). Think of her as a Rook and Bishop combined! She's worth about 9 points, so keep her safe and don't bring her out too early.",
-    fen:"8/8/8/3Q4/8/8/8/8 w - - 0 1"
-  },
-  {
-    week:1, day:4,
-    title:"The Rooks",
-    desc:"Rooks are heavy hitters — they move any number of squares horizontally or vertically, like a big plus sign. Each is worth 5 points. They're especially powerful in the endgame when the board opens up, and a pair of rooks on the seventh rank is a dream weapon!",
-    fen:"8/8/8/R7/8/8/8/7R w - - 0 1"
-  },
-  {
-    week:1, day:5,
-    title:"The Bishops",
-    desc:"Bishops glide diagonally any number of squares, and each one stays on its own color for the entire game. Your two bishops cover completely different territory — together they're a formidable team! A bishop with an open diagonal is like a sniper with a clear line of sight.",
-    fen:"8/8/5B2/8/8/2B5/8/8 w - - 0 1"
-  },
-  {
-    week:1, day:6,
-    title:"The Knights",
-    desc:"Knights are the most unique pieces in chess — they jump in an 'L' shape (two squares one way, one square sideways) and can leap over other pieces entirely! They're worth 3 points and are masters of surprise. Knights absolutely love being near the center of the board.",
-    fen:"8/8/2N5/8/8/5N2/8/8 w - - 0 1"
-  },
-  {
-    week:1, day:7,
-    title:"The Pawns",
-    desc:"Pawns march forward one square at a time (two squares on their very first move!) but capture diagonally. Here's the magic: if a pawn reaches the other side of the board, it promotes to any piece — almost always a Queen. Eight humble pawns with massive potential!",
-    fen:"8/pppppppp/8/8/8/8/PPPPPPPP/8 w - - 0 1"
-  },
+  // ── EmailJS config ──────────────────────────────────────────────────────────
+  // Sign up free at https://www.emailjs.com, then replace these three values:
+  const EMAILJS_PUBLIC_KEY  = 'YOUR_PUBLIC_KEY';   // Account → API Keys
+  const EMAILJS_SERVICE_ID  = 'YOUR_SERVICE_ID';   // Email Services tab
+  const EMAILJS_TEMPLATE_ID = 'YOUR_TEMPLATE_ID';  // Email Templates tab
+  // Template should have a variable {{message}} and To: he.samuel300@gmail.com
+  // ───────────────────────────────────────────────────────────────────────────
 
-  // ── WEEK 2: Tactics ─────────────────────────────────────
-  {
-    week:2, day:8,
-    title:"Check & Checkmate",
-    desc:"When your piece directly attacks the enemy King, that's 'check' — they must escape immediately. If there's no escape, it's 'checkmate' and you win! This position shows the Scholar's Mate, one of the quickest checkmates — and why bringing your Queen out early can backfire.",
-    fen:"rnb1kbnr/pppp1ppp/8/4p2q/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 2 3"
-  },
-  {
-    week:2, day:9,
-    title:"Stalemate — The Tricky Draw",
-    desc:"Stalemate happens when the player to move has no legal moves AND their King is NOT in check — the game is automatically a draw! When you're winning, always make sure your opponent has at least one legal move available. Can you see how this position would be stalemate on Black's turn?",
-    fen:"7k/5Q2/6K1/8/8/8/8/8 b - - 0 1"
-  },
-  {
-    week:2, day:10,
-    title:"Forks — Attack Two at Once",
-    desc:"A fork is when one piece attacks two or more enemy pieces at the same time. Your opponent can only move one piece to safety — so you win the other for free! Knights are the fork champions because of their tricky L-shaped movement. Here, see how the knight threatens from c4.",
-    fen:"8/8/8/3k4/2N5/8/3K4/8 w - - 0 1"
-  },
-  {
-    week:2, day:11,
-    title:"Pins — Nailed in Place",
-    desc:"A pin happens when you attack a piece that can't (or really shouldn't) move because it would expose a more valuable piece behind it. A piece pinned to the King literally cannot move legally. Pins are wonderful in practice — pile up attackers on the pinned piece and win material!",
-    fen:"8/8/8/r2bk3/8/8/4B3/4K3 w - - 0 1"
-  },
-  {
-    week:2, day:12,
-    title:"Skewers — The Reverse Pin",
-    desc:"A skewer is like a pin in reverse: you attack the more valuable piece directly, forcing it to move, and then you capture the less valuable piece hiding behind it. Here, the White bishop attacks the Black king — when the king moves, the rook on e6 will be taken. Ouch!",
-    fen:"8/8/4r3/4k3/8/8/8/4KB2 w - - 0 1"
-  },
-  {
-    week:2, day:13,
-    title:"Discovered Attacks",
-    desc:"A discovered attack happens when you move one piece out of the way, 'uncovering' an attack from the piece behind it. The magic is that the piece you moved can ALSO make a threat — so your opponent faces two problems at once and can only fix one. It's one of chess's most powerful ideas!",
-    fen:"4k3/3r4/8/8/3B4/8/8/3RK3 w - - 0 1"
-  },
-  {
-    week:2, day:14,
-    title:"Double Check",
-    desc:"A double check is the most powerful move in chess — you give check with TWO pieces at once. The only legal response is to move the King (you can't block or capture both attackers simultaneously). Double checks often lead to spectacular mating attacks that seem to come from nowhere!",
-    fen:"r1bqk2r/ppp2ppp/2np1B2/2b5/3QP3/2N5/PPP2PPP/R3KB1R b KQkq - 0 8"
-  },
+  emailjs.init(EMAILJS_PUBLIC_KEY);
 
-  // ── WEEK 3: Openings ────────────────────────────────────
-  {
-    week:3, day:15,
-    title:"Control the Center",
-    desc:"The four central squares — e4, d4, e5, d5 — are the most important real estate in chess. Pieces in the center control more squares and are far more active. The golden opening principle: fight for the center right from move one! After 1.e4 e5, both sides claim their share.",
-    fen:"rnbqkbnr/pppp1ppp/8/4p3/4P3/8/PPPP1PPP/RNBQKBNR w KQkq e6 0 2"
-  },
-  {
-    week:3, day:16,
-    title:"Develop Your Pieces",
-    desc:"Development means getting your knights and bishops off the back row and into the game. Every opening move should develop a new piece, reinforce the center, or keep your king safe. A great rule to memorize: don't move the same piece twice in the opening, and never bring your queen out too early!",
-    fen:"r1bqkb1r/pppp1ppp/2n2n2/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"
-  },
-  {
-    week:3, day:17,
-    title:"Castle Early — Protect Your King",
-    desc:"Castling is a special move: the King slides two squares toward a Rook, and the Rook hops to the other side. You can only castle if neither piece has moved yet, the squares between them are empty, and the King isn't in check. It tucks your King safely away and connects your rooks — do it in almost every game!",
-    fen:"r3k2r/pppppppp/8/8/8/8/PPPPPPPP/R3K2R w KQkq - 0 1"
-  },
-  {
-    week:3, day:18,
-    title:"The Italian Game",
-    desc:"The Italian Game: 1.e4 e5  2.Nf3 Nc6  3.Bc4 — one of the oldest and most popular openings for beginners! White places the bishop on c4 pointing at the soft f7 pawn near Black's king. It focuses on fast development and center control. A wonderful, principled choice to start with.",
-    fen:"r1bqkbnr/pppp1ppp/2n5/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 4 4"
-  },
-  {
-    week:3, day:19,
-    title:"The London System",
-    desc:"The London System is a reliable, beginner-friendly opening: play d4, develop your bishop to f4, bring the knight to f3, and build a solid pawn structure. The best part? It works against almost anything Black plays — you follow the same plan every game. Very hard to go wrong, and very solid!",
-    fen:"rnbqkb1r/ppp2ppp/3p1n2/4p3/3PPB2/5N2/PPP2PPP/RN1QKB1R w KQkq - 0 5"
-  },
-  {
-    week:3, day:20,
-    title:"The Sicilian Defense",
-    desc:"The Sicilian Defense (1.e4 c5) is the most popular chess opening in the world! Instead of matching White's central pawn with e5, Black fights for the center from the flank. It leads to unbalanced, fighting positions where Black actively plays for a win — a bold and dynamic choice!",
-    fen:"rnbqkbnr/pp1ppppp/8/2p5/4P3/8/PPPP1PPP/RNBQKBNR w KQkq c6 0 2"
-  },
-  {
-    week:3, day:21,
-    title:"Common Opening Mistakes",
-    desc:"The biggest opening mistakes: moving the same piece twice, bringing the queen out too early (she'll just get chased), ignoring king safety, and making too many pawn moves. Three rules to live by: control the center, develop your pieces, and castle your king to safety. Simple — but they work!",
-    fen:"rnb1kb1r/pppp1ppp/5n2/4p2q/2B1P3/8/PPPP1PPP/RNBQK1NR w KQkq - 3 4"
-  },
+  // ── Streak & days remaining (localStorage) ─────────────────────────────────
+  const CHALLENGE_DAYS = 30;
 
-  // ── WEEK 4: Beat Dad ─────────────────────────────────────
-  {
-    week:4, day:22,
-    title:"Endgame Basics — King + Rook",
-    desc:"In the endgame, the King transforms from a piece to protect into a powerful fighting piece — activate it! The King + Rook vs. lone King endgame is the most important one to know. Use the Rook to cut off the enemy King, march your own King in to help, and push the enemy to the board's edge.",
-    fen:"8/8/8/3k4/8/3K4/8/7R w - - 0 1"
-  },
-  {
-    week:4, day:23,
-    title:"Pawn Endgames",
-    desc:"When only Kings and pawns remain, every single move is critical. The key idea is 'opposition': facing the enemy King directly with one square between you. The player who does NOT have to move has the advantage. Passed pawns — pawns with no enemy pawns blocking them — are your best winning weapons!",
-    fen:"8/5p2/8/8/8/8/5P2/8 w - - 0 1"
-  },
-  {
-    week:4, day:24,
-    title:"Trading Pieces Wisely",
-    desc:"Piece values you should memorize: pawn=1, knight=3, bishop=3, rook=5, queen=9. Winning a rook for a bishop is a great deal! The general rule: trade down when you're ahead in material (simpler positions favor the side with more), and avoid trades when you're behind. Always count before you swap!",
-    fen:"r1bqkb1r/ppp2ppp/2np1n2/4p3/2BPP3/2N2N2/PPP2PPP/R1BQK2R w KQkq - 0 6"
-  },
-  {
-    week:4, day:25,
-    title:"Attack the King",
-    desc:"When your opponent's King is stuck in the center and you've castled safely, it's time to attack! Open files toward their King with pawn breaks, aim your pieces at the enemy fortress, and look for sacrifices to bust through. Act decisively — the longer you wait, the more time they have to escape to safety!",
-    fen:"r1bq1rk1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQ1RK1 w - - 0 7"
-  },
-  {
-    week:4, day:26,
-    title:"Recognize Mating Patterns",
-    desc:"Certain checkmate patterns appear over and over in chess. One of the most common is the back rank mate: a Rook or Queen delivers checkmate along the first or last rank when the King is trapped by its own pawns. Recognizing these patterns lets you find wins in a flash — and avoid falling into them yourself!",
-    fen:"6k1/5ppp/8/8/8/8/8/4R1K1 w - - 0 1"
-  },
-  {
-    week:4, day:27,
-    title:"Putting It All Together",
-    desc:"You now have all the tools: piece knowledge, tactical vision, opening principles, and endgame technique. Every chess game has three phases — opening (develop, control, castle), middlegame (tactics, attacks, plans), and endgame (activate King, convert advantages). Play slowly, think about your opponent's plans, and enjoy every move!",
-    fen:"r1bqr1k1/ppp2ppp/2np1n2/2b1p3/2B1P3/2NP1N2/PPP2PPP/R1BQR1K1 w - - 0 8"
-  },
-  {
-    week:4, day:28,
-    title:"The Big Match — You're Ready!",
-    desc:"You've done it — four full weeks of chess! You know the pieces, the tactics, the openings, and the endgame. Now it's time to put it all into practice and take on Dad. Stay calm, think before each move, look for your opponent's threats, and play with confidence. You've got this. Go make your family proud! ♟",
-    fen:"rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq e3 0 1"
-  }
-];
-
-// ============================================================
-// STORAGE HELPERS
-// ============================================================
-const LS = {
-  get(k, def) {
-    try { const v = localStorage.getItem(k); return v !== null ? JSON.parse(v) : def; }
-    catch { return def; }
-  },
-  set(k, v) {
-    try { localStorage.setItem(k, JSON.stringify(v)); } catch {}
-  }
-};
-
-function todayStr() {
-  return new Date().toISOString().slice(0, 10);
-}
-function daysBetween(a, b) {
-  return Math.round((new Date(b) - new Date(a)) / 86400000);
-}
-
-// ============================================================
-// STATE INIT (runs once on load)
-// ============================================================
-function initState() {
-  const today = todayStr();
-
-  // First visit: record start date
-  if (!LS.get('startDate', null)) {
-    LS.set('startDate', today);
+  function todayStr() {
+    return new Date().toISOString().slice(0, 10);
   }
 
-  // Streak logic
-  const last   = LS.get('lastVisit', null);
-  let   streak = LS.get('streak', 1);
-
-  if (!last) {
-    streak = 1;
-  } else if (last === today) {
-    // already visited today — no change
-  } else {
-    const diff = daysBetween(last, today);
-    streak = diff === 1 ? streak + 1 : 1;
+  function daysBetween(a, b) {
+    const msPerDay = 864e5;
+    return Math.round((new Date(b) - new Date(a)) / msPerDay);
   }
 
-  LS.set('lastVisit', today);
-  LS.set('streak',    streak);
+  function initStats() {
+    const today = todayStr();
+    let streak        = parseInt(localStorage.getItem('streak') || '0', 10);
+    let lastVisit     = localStorage.getItem('lastVisit') || '';
+    let challengeStart = localStorage.getItem('challengeStart') || today;
 
-  // Ensure arrays / counters exist
-  if (!LS.get('completed', null))         LS.set('completed', []);
-  if (LS.get('puzzlesSolved', null) === null) LS.set('puzzlesSolved', 0);
-  if (LS.get('currentLesson', null) === null) LS.set('currentLesson', 0);
-}
+    if (!localStorage.getItem('challengeStart')) {
+      localStorage.setItem('challengeStart', today);
+    }
 
-function getState() {
-  const today      = todayStr();
-  const startDate  = LS.get('startDate', today);
-  const daysSince  = daysBetween(startDate, today);
-  return {
-    streak:       LS.get('streak', 1),
-    completed:    LS.get('completed', []),
-    puzzlesSolved:LS.get('puzzlesSolved', 0),
-    daysLeft:     Math.max(0, 30 - daysSince),
-    todayLesson:  Math.min(daysSince, LESSONS.length - 1),
-    currentLesson:LS.get('currentLesson', 0)
-  };
-}
+    if (lastVisit === today) {
+      // already visited today — no change
+    } else if (lastVisit && daysBetween(lastVisit, today) === 1) {
+      streak += 1;
+    } else {
+      streak = 1;
+    }
 
-// ============================================================
-// VIEW SWITCHING
-// ============================================================
-function showView(id) {
-  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+    localStorage.setItem('streak', streak);
+    localStorage.setItem('lastVisit', today);
 
-// ============================================================
-// DASHBOARD
-// ============================================================
-const WEEK_LABELS = {
-  1: '📖 Week 1 — Pieces & Rules',
-  2: '⚔️ Week 2 — Tactics',
-  3: '🏰 Week 3 — Openings',
-  4: '🏆 Week 4 — Beat Dad'
-};
+    const elapsed = daysBetween(challengeStart, today);
+    const daysLeft = Math.max(0, CHALLENGE_DAYS - elapsed);
 
-function renderDashboard() {
-  const { streak, completed, puzzlesSolved, daysLeft, todayLesson } = getState();
-
-  // Streak badges (one per view header)
-  document.querySelectorAll('.streak-count').forEach(el => el.textContent = streak);
-
-  // Stats
-  document.getElementById('stat-lessons').textContent = completed.length;
-  document.getElementById('stat-puzzles').textContent  = puzzlesSolved;
-  document.getElementById('stat-days').textContent     = daysLeft;
-
-  // Progress bar
-  const pct = Math.round((completed.length / LESSONS.length) * 100);
-  document.getElementById('prog-bar').style.width = pct + '%';
-
-  // Curriculum
-  const container = document.getElementById('curriculum');
-
-  // Group by week
-  const weeks = [1,2,3,4].map(w => LESSONS.map((l,i) => ({...l, index:i})).filter(l => l.week === w));
-
-  let html = '';
-
-  // All-done banner
-  if (completed.length === LESSONS.length) {
-    html += `
-      <div class="complete-card">
-        <span class="big-emoji">🏆</span>
-        <h2>Course Complete!</h2>
-        <p>You've finished all 28 lessons. Time to beat Dad — you're ready!</p>
-      </div>`;
+    document.getElementById('streakVal').textContent = streak;
+    document.getElementById('daysVal').textContent   = daysLeft;
   }
 
-  weeks.forEach((group, wi) => {
-    const w = wi + 1;
-    const rows = group.map(l => {
-      const isDone  = completed.includes(l.index);
-      const isToday = l.index === todayLesson;
-      return `
-        <div class="lesson-row${isDone ? ' is-done' : ''}${isToday ? ' is-today' : ''}"
-             data-idx="${l.index}"
-             onclick="openLesson(${l.index})">
-          <input type="checkbox"
-                 class="cb"
-                 ${isDone ? 'checked' : ''}
-                 onclick="event.stopPropagation(); toggleDone(${l.index})">
-          <div class="lesson-meta">
-            <div class="lesson-day-lbl">Day ${l.day}</div>
-            <div class="lesson-name">${l.title}</div>
-          </div>
-          ${isToday ? '<span class="today-pill">Today</span>' : ''}
-        </div>`;
-    }).join('');
+  // ── Tabs ───────────────────────────────────────────────────────────────────
+  const tabBtns   = document.querySelectorAll('.tab-btn');
+  const tabPanels = document.querySelectorAll('.tab-panel');
 
-    html += `
-      <div class="week-block">
-        <div class="week-header">${WEEK_LABELS[w]}</div>
-        ${rows}
-      </div>`;
+  function switchTab(id) {
+    tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
+    tabPanels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + id));
+    localStorage.setItem('activeTab', id);
+  }
+
+  tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+
+  const savedTab = localStorage.getItem('activeTab');
+  if (savedTab) switchTab(savedTab);
+
+  // ── Ask Coach form ─────────────────────────────────────────────────────────
+  const form      = document.getElementById('coachForm');
+  const question  = document.getElementById('questionBox');
+  const submitBtn = document.getElementById('submitBtn');
+  const statusMsg = document.getElementById('statusMsg');
+
+  function showMsg(type, text) {
+    statusMsg.className = 'msg ' + type;
+    statusMsg.textContent = text;
+  }
+
+  form.addEventListener('submit', async e => {
+    e.preventDefault();
+    const text = question.value.trim();
+    if (!text) { question.focus(); return; }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Sending…';
+    statusMsg.className = 'msg';
+
+    try {
+      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
+        message:  text,
+        to_email: 'he.samuel300@gmail.com',
+      });
+      showMsg('success', 'Question sent! Samuel will review and get back to you.');
+      question.value = '';
+    } catch (err) {
+      console.error('EmailJS error:', err);
+      showMsg('error', 'Could not send. Please try again later.');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Send Question';
+    }
   });
 
-  container.innerHTML = html;
-}
-
-function toggleDone(index) {
-  let arr = LS.get('completed', []);
-  if (arr.includes(index)) {
-    arr = arr.filter(i => i !== index);
-  } else {
-    arr.push(index);
-  }
-  LS.set('completed', arr);
-  renderDashboard();
-}
-
-function openLesson(index) {
-  LS.set('currentLesson', index);
-  renderLesson(index);
-  showView('v-lesson');
-}
-
-// ============================================================
-// LESSON VIEW
-// ============================================================
-function renderLesson(index) {
-  const l = LESSONS[index];
-  if (!l) return;
-
-  const completed = LS.get('completed', []);
-  const isDone    = completed.includes(index);
-
-  document.getElementById('l-week-label').textContent = `Week ${l.week} · Day ${l.day}`;
-  document.getElementById('l-title').textContent      = l.title;
-  document.getElementById('l-desc').textContent       = l.desc;
-  document.getElementById('l-pos').textContent        = `${index + 1} / ${LESSONS.length}`;
-
-  // Lichess board with FEN
-  document.getElementById('l-board').src =
-    `https://lichess.org/embed/frame?theme=brown&bg=light&fen=${encodeURIComponent(l.fen)}`;
-
-  // Complete button
-  const btnC = document.getElementById('btn-complete');
-  if (isDone) {
-    btnC.textContent = '✓ Completed!';
-    btnC.className   = 'btn btn-done btn-full';
-  } else {
-    btnC.textContent = '✓ Mark as Complete';
-    btnC.className   = 'btn btn-primary btn-full';
-  }
-
-  // Prev / Next
-  document.getElementById('btn-prev').disabled = index === 0;
-  document.getElementById('btn-next').disabled = index === LESSONS.length - 1;
-
-  LS.set('currentLesson', index);
-
-  // Keep streak badges in sync
-  const { streak } = getState();
-  document.querySelectorAll('.streak-count').forEach(el => el.textContent = streak);
-}
-
-// ============================================================
-// EVENT WIRING
-// ============================================================
-
-// Dashboard buttons
-document.getElementById('btn-start').addEventListener('click', () => {
-  const { todayLesson } = getState();
-  openLesson(todayLesson);
-});
-
-document.getElementById('btn-puzzle').addEventListener('click', () => showView('v-puzzle'));
-
-// Lesson navigation
-document.getElementById('btn-lesson-back').addEventListener('click', () => {
-  renderDashboard();
-  showView('v-dashboard');
-});
-
-document.getElementById('btn-prev').addEventListener('click', () => {
-  const cur = LS.get('currentLesson', 0);
-  if (cur > 0) renderLesson(cur - 1);
-});
-
-document.getElementById('btn-next').addEventListener('click', () => {
-  const cur = LS.get('currentLesson', 0);
-  if (cur < LESSONS.length - 1) renderLesson(cur + 1);
-});
-
-document.getElementById('btn-complete').addEventListener('click', () => {
-  const cur       = LS.get('currentLesson', 0);
-  const completed = LS.get('completed', []);
-  const wasDone   = completed.includes(cur);
-
-  toggleDone(cur);      // toggle in/out
-  renderLesson(cur);    // refresh button state
-
-  if (!wasDone) {
-    // Just completed — auto-advance after a beat
-    setTimeout(() => {
-      if (cur < LESSONS.length - 1) {
-        renderLesson(cur + 1);
-      } else {
-        renderDashboard();
-        showView('v-dashboard');
-      }
-    }, 750);
-  }
-});
-
-// Puzzle buttons
-document.getElementById('btn-puzzle-back').addEventListener('click', () => {
-  renderDashboard();
-  showView('v-dashboard');
-});
-
-document.getElementById('btn-solved').addEventListener('click', () => {
-  LS.set('puzzlesSolved', LS.get('puzzlesSolved', 0) + 1);
-  renderDashboard();
-  showView('v-dashboard');
-});
-
-document.getElementById('btn-failed').addEventListener('click', () => {
-  renderDashboard();
-  showView('v-dashboard');
-});
-
-// ============================================================
-// BOOT
-// ============================================================
-initState();
-renderDashboard();
+  // ── Init ───────────────────────────────────────────────────────────────────
+  initStats();
 </script>
-
 </body>
 </html>
