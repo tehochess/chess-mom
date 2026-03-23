@@ -370,16 +370,16 @@
 
   <!-- Ask Coach -->
   <section class="tab-panel" id="panel-coach" role="tabpanel">
-    <div class="coach-card">
-      <h2>🎓 Ask Coach Samuel</h2>
-      <p class="subtitle">Type your chess question below and Samuel will get back to you.</p>
-      <form id="coachForm" novalidate>
-        <label for="questionBox">Your question</label>
-        <textarea id="questionBox" placeholder="e.g. How do I defend against the King's Gambit?" required></textarea>
-        <button type="submit" class="submit-btn" id="submitBtn">Send Question</button>
-      </form>
-      <div class="msg" id="statusMsg"></div>
-    </div>
+    <iframe
+      src="YOUR_GOOGLE_FORM_URL"
+      width="100%"
+      height="600"
+      frameborder="0"
+      marginheight="0"
+      marginwidth="0"
+      style="border-radius: var(--radius); display: block;">
+      Loading…
+    </iframe>
   </section>
 
 </main>
@@ -397,20 +397,6 @@
 </div>
 
 <script>
-  // ── Questions (localStorage) ────────────────────────────────────────────────
-  const QUESTIONS_KEY = 'coachQuestions';
-
-  function loadQuestions() {
-    try { return JSON.parse(localStorage.getItem(QUESTIONS_KEY)) || []; }
-    catch { return []; }
-  }
-
-  function saveQuestion(text) {
-    const questions = loadQuestions();
-    questions.push({ text, ts: new Date().toISOString() });
-    localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
-  }
-
   // ── Streak & days remaining (localStorage) ─────────────────────────────────
   const CHALLENGE_DAYS = 30;
 
@@ -462,27 +448,6 @@
 
   const savedTab = localStorage.getItem('activeTab');
   if (savedTab) switchTab(savedTab);
-
-  // ── Ask Coach form ─────────────────────────────────────────────────────────
-  const form      = document.getElementById('coachForm');
-  const question  = document.getElementById('questionBox');
-  const submitBtn = document.getElementById('submitBtn');
-  const statusMsg = document.getElementById('statusMsg');
-
-  function showMsg(type, text) {
-    statusMsg.className = 'msg ' + type;
-    statusMsg.textContent = text;
-  }
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const text = question.value.trim();
-    if (!text) { question.focus(); return; }
-
-    saveQuestion(text);
-    showMsg('success', 'Question sent! Samuel will review and get back to you.');
-    question.value = '';
-  });
 
   // ── Coach View ─────────────────────────────────────────────────────────────
   function formatDate(iso) {
