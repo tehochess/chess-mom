@@ -1,0 +1,89 @@
+﻿Drink Name,Basic Description,Category,Sweetness (1-5),Caffeine (1-5),Hotness (1-5),Creaminess (1-5),Coffee Intensity (1-5),Chocolate Flavor (1-5),Fruit Flavor (1-5),Spice / Floral (1-5),Coldness (1-5),Dessert Richness (1-5),Signature Key,Unique Signature?
+Caffè Latte,"Espresso with steamed milk and light foam; smooth, milky, classic coffeehouse staple.",Espresso Beverage,2,4,5,4,3,1,1,1,1,3,2-4-5-4-3-1-1-1-1-3,Yes
+Lavender Latte,"Espresso, steamed milk, and lavender flavor for floral sweetness and creamy texture.",Espresso Beverage,3,4,5,4,3,1,1,5,1,3,3-4-5-4-3-1-1-5-1-3,Yes
+Toasted Coconut Latte,"Espresso, steamed milk, and toasted coconut flavor; lightly sweet, tropical, nutty.",Espresso Beverage,2,4,5,4,3,1,1,1,1,4,2-4-5-4-3-1-1-1-1-4,Yes
+Pistachio Latte,"Espresso and steamed milk with pistachio flavor; rich, nutty, slightly sweet.",Espresso Beverage,3,4,5,4,3,1,1,1,1,3,3-4-5-4-3-1-1-1-1-3,Yes
+Vanilla Protein Latte,"Espresso with protein milk and vanilla flavor; creamy, higher-protein, lightly sweet.",Espresso Beverage,3,4,5,4,3,1,1,1,1,2,3-4-5-4-3-1-1-1-1-2,Yes
+Sugar-Free Vanilla Protein Latte,"Espresso, protein milk, and sugar-free vanilla flavor; creamy and lighter.",Espresso Beverage,2,4,5,4,3,1,1,1,1,2,2-4-5-4-3-1-1-1-1-2,Yes
+Caramel Protein Latte,"Espresso with protein milk and caramel flavor; sweet, creamy, protein-forward.",Espresso Beverage,4,4,5,4,3,1,1,1,1,3,4-4-5-4-3-1-1-1-1-3,Yes
+Cappuccino,"Espresso with steamed milk and thick foam; airy texture, stronger coffee taste.",Espresso Beverage,2,4,5,3,1,1,1,1,1,1,2-4-5-3-1-1-1-1-1-1,Yes
+Flat White,Ristretto espresso shots with steamed milk; velvety texture and bolder espresso.,Espresso Beverage,2,4,5,4,1,1,1,1,1,3,2-4-5-4-1-1-1-1-1-3,Yes
+Caramel Macchiato,"Vanilla syrup, steamed milk, espresso, and caramel drizzle; layered and sweet.",Espresso Beverage,3,4,5,4,3,1,1,1,1,4,3-4-5-4-3-1-1-1-1-4,Yes
+Caffè Mocha,"Espresso, mocha sauce, steamed milk, and whipped cream; chocolate-forward and rich.",Espresso Beverage,4,4,5,4,3,4,1,1,1,4,4-4-5-4-3-4-1-1-1-4,Yes
+White Chocolate Mocha,"Espresso, white chocolate sauce, steamed milk, whipped cream; sweet and creamy.",Espresso Beverage,4,4,5,4,3,5,1,1,1,4,4-4-5-4-3-5-1-1-1-4,Yes
+Americano,"Espresso diluted with hot water; bold flavor, lighter body than drip coffee.",Coffee,1,4,5,1,5,1,1,1,1,1,1-4-5-1-5-1-1-1-1-1,Yes
+Blonde Vanilla Latte,"Blonde espresso, steamed milk, and vanilla syrup; smoother, sweeter, lighter roast.",Espresso Beverage,3,4,5,5,3,1,1,1,1,3,3-4-5-5-3-1-1-1-1-3,Yes
+Brewed Coffee,Freshly brewed coffee; roast-forward flavor with no milk unless customized.,Coffee,1,4,5,1,5,1,1,1,1,2,1-4-5-1-5-1-1-1-1-2,Yes
+Espresso,"Concentrated coffee shot with intense flavor, crema, and no added milk.",Coffee,1,5,5,1,5,1,1,1,1,1,1-5-5-1-5-1-1-1-1-1,Yes
+Espresso Con Panna,"Espresso topped with whipped cream; small, rich, lightly sweetened coffee.",Coffee,4,4,5,4,5,1,1,1,1,4,4-4-5-4-5-1-1-1-1-4,Yes
+Flat White with Oatmilk,Ristretto shots and oatmilk; velvety mouthfeel with slightly grainy sweetness.,Espresso Beverage,2,4,5,4,1,1,1,1,1,4,2-4-5-4-1-1-1-1-1-4,Yes
+Iced Caffè Latte,"Espresso, milk, and ice; simple chilled latte with balanced coffee flavor.",Espresso Beverage,2,4,1,4,3,1,1,1,4,3,2-4-1-4-3-1-1-1-4-3,Yes
+Iced Lavender Latte,"Espresso, milk, ice, and lavender flavor; floral and softly sweet.",Espresso Beverage,3,4,1,4,3,1,1,5,4,3,3-4-1-4-3-1-1-5-4-3,Yes
+Iced Toasted Coconut Latte,"Espresso, milk, ice, and toasted coconut flavor; cool, nutty, tropical.",Espresso Beverage,2,4,1,4,3,1,1,1,4,4,2-4-1-4-3-1-1-1-4-4,Yes
+Iced Caramel Macchiato,"Vanilla syrup, milk, ice, espresso, caramel drizzle; layered sweet iced coffee.",Espresso Beverage,3,4,1,4,3,1,1,1,4,4,3-4-1-4-3-1-1-1-4-4,Yes
+Iced Caffè Mocha,"Espresso, mocha sauce, milk, ice, whipped cream; chilled chocolate coffee.",Espresso Beverage,4,4,1,4,3,4,1,1,4,4,4-4-1-4-3-4-1-1-4-4,Yes
+Iced White Chocolate Mocha,"Espresso, white chocolate sauce, milk, ice, whipped cream; creamy dessert-like.",Espresso Beverage,4,4,1,4,3,5,1,1,4,4,4-4-1-4-3-5-1-1-4-4,Yes
+Iced Americano,"Espresso with cold water and ice; bold, refreshing, no milk.",Coffee,1,4,1,1,5,1,1,1,4,1,1-4-1-1-5-1-1-1-4-1,Yes
+Cold Brew,"Slow-steeped cold coffee; smooth, less acidic, subtly chocolatey and refreshing.",Cold Coffee,1,5,1,1,5,1,1,1,4,1,1-5-1-1-5-1-1-1-4-1,Yes
+Vanilla Sweet Cream Cold Brew,"Cold brew topped with vanilla sweet cream; smooth, sweet, creamy finish.",Cold Coffee,3,5,1,4,5,1,1,1,4,4,3-5-1-4-5-1-1-1-4-4,Yes
+Salted Caramel Cream Cold Brew,Cold brew with caramel cream cold foam and salt; sweet-savory.,Cold Coffee,3,5,1,4,5,1,1,1,4,3,3-5-1-4-5-1-1-1-4-3,Yes
+Toasted Coconut Cream Cold Brew,Cold brew topped with toasted coconut cream foam; tropical and smooth.,Cold Coffee,2,5,1,4,5,1,1,1,4,3,2-5-1-4-5-1-1-1-4-3,Yes
+Nitro Cold Brew,"Nitrogen-infused cold brew; silky texture, cascading foam, naturally sweeter feel.",Cold Coffee,1,5,1,1,5,1,1,1,4,2,1-5-1-1-5-1-1-1-4-2,Yes
+Nitro Vanilla Sweet Cream,"Nitro cold brew with vanilla sweet cream; velvety, sweet, extra smooth.",Cold Coffee,3,5,1,4,5,1,1,1,4,5,3-5-1-4-5-1-1-1-4-5,Yes
+Iced Coffee,"Chilled brewed coffee served over ice; straightforward, refreshing, lightly bitter.",Cold Coffee,1,4,1,1,5,1,1,1,4,2,1-4-1-1-5-1-1-1-4-2,Yes
+Iced Shaken Espresso,"Espresso shaken with ice and syrup; frothy, chilled, lightly sweet.",Cold Coffee,2,5,1,1,5,1,1,1,4,1,2-5-1-1-5-1-1-1-4-1,Yes
+Brown Sugar Oatmilk Shaken Espresso,"Blonde espresso, brown sugar, cinnamon, oatmilk, ice; sweet and spiced.",Cold Coffee,3,5,5,1,5,1,1,1,1,3,3-5-5-1-5-1-1-1-1-3,Yes
+Hazelnut Oatmilk Shaken Espresso,"Espresso, hazelnut flavor, oatmilk, and ice; nutty, smooth, lightly sweet.",Cold Coffee,3,5,5,1,5,1,1,1,1,4,3-5-5-1-5-1-1-1-1-4,Yes
+Iced Espresso,"Straight espresso shots over ice; concentrated flavor, bracing, minimal dilution.",Coffee,1,5,1,2,5,1,1,1,4,1,1-5-1-2-5-1-1-1-4-1,Yes
+Iced Flat White,"Ristretto shots, milk, and ice; creamy texture with stronger espresso taste.",Espresso Beverage,2,4,1,4,1,1,1,1,4,3,2-4-1-4-1-1-1-1-4-3,Yes
+Iced Blonde Vanilla Latte,"Blonde espresso, vanilla syrup, milk, and ice; softer and sweeter.",Espresso Beverage,3,4,1,4,3,1,1,1,4,3,3-4-1-4-3-1-1-1-4-3,Yes
+Iced Matcha Latte,"Matcha powder, milk, classic syrup, and ice; grassy, creamy, sweet.",Tea / Matcha,2,3,1,4,1,1,1,1,4,3,2-3-1-4-1-1-1-1-4-3,Yes
+Matcha Latte,"Matcha powder with steamed milk and sweetness; earthy, creamy, vibrant green.",Tea / Matcha,2,3,5,4,1,1,1,1,1,3,2-3-5-4-1-1-1-1-1-3,Yes
+Iced Caramel Protein Latte,"Protein milk, espresso, caramel flavor, and ice; sweet, creamy, filling.",Espresso Beverage,3,4,1,4,3,1,1,1,4,2,3-4-1-4-3-1-1-1-4-2,Yes
+Iced Sugar-Free Caramel Protein Latte,"Espresso, protein milk, sugar-free caramel flavor, and ice; lighter sweet.",Espresso Beverage,2,4,1,4,3,1,1,1,4,2,2-4-1-4-3-1-1-1-4-2,Yes
+Iced Caramel Protein Matcha,"Matcha, protein milk, caramel flavor, and ice; creamy, sweet, greener.",Tea / Matcha,3,3,1,1,1,1,1,1,4,3,3-3-1-1-1-1-1-1-4-3,Yes
+Hot Tea,Brewed tea served hot; variety depends on selected tea blend.,Tea / Matcha,1,2,5,1,1,1,1,1,1,1,1-2-5-1-1-1-1-1-1-1,Yes
+Chai Tea Latte,"Black tea concentrate, warming spices, and steamed milk; sweet and spiced.",Tea / Matcha,3,3,5,4,1,1,1,5,1,3,3-3-5-4-1-1-1-5-1-3,Yes
+Iced Chai Tea Latte,"Chai concentrate, milk, and ice; sweet, spiced, and refreshing.",Tea / Matcha,3,3,1,4,1,1,1,5,4,3,3-3-1-4-1-1-1-5-4-3,Yes
+London Fog Latte,"Earl Grey tea, vanilla syrup, and steamed milk; citrusy and creamy.",Tea / Matcha,3,2,5,4,1,1,1,4,1,3,3-2-5-4-1-1-1-4-1-3,Yes
+Honey Citrus Mint Tea,"Jade Citrus Mint, Peach Tranquility, lemonade, honey blend; soothing and bright.",Tea / Matcha,2,3,5,1,1,1,1,3,1,1,2-3-5-1-1-1-1-3-1-1,Yes
+Iced Black Tea,"Shaken black tea over ice; crisp, unsweetened unless customized.",Tea / Matcha,2,3,1,1,1,1,1,1,4,1,2-3-1-1-1-1-1-1-4-1,Yes
+Iced Black Tea Lemonade,"Black tea, lemonade, and ice; brisk, tart, and refreshing.",Tea / Matcha,2,3,1,1,1,1,1,1,4,2,2-3-1-1-1-1-1-1-4-2,Yes
+Iced Green Tea,"Shaken green tea over ice; lighter body, herbal, subtly refreshing.",Tea / Matcha,2,1,1,1,1,1,1,1,4,1,2-1-1-1-1-1-1-1-4-1,Yes
+Iced Green Tea Lemonade,"Green tea, lemonade, and ice; citrusy, slightly grassy, very refreshing.",Tea / Matcha,2,2,1,1,1,1,1,1,4,1,2-2-1-1-1-1-1-1-4-1,Yes
+Iced Peach Green Tea,"Green tea, peach flavor, and ice; fruity, light, easy drinking.",Tea / Matcha,2,2,1,1,1,1,4,1,4,1,2-2-1-1-1-1-4-1-4-1,Yes
+Iced Peach Green Tea Lemonade,"Green tea, peach flavor, lemonade, and ice; tart-fruity combination.",Tea / Matcha,4,2,1,1,1,1,4,1,4,3,4-2-1-1-1-1-4-1-4-3,Yes
+Iced Passion Tango Tea,"Herbal hibiscus-cinnamon tea shaken with ice; tangy, caffeine-free, bright.",Tea / Matcha,2,1,1,1,1,1,1,1,4,2,2-1-1-1-1-1-1-1-4-2,Yes
+Iced Passion Tango Tea Lemonade,"Passion Tango tea, lemonade, and ice; tart, floral, vibrant.",Tea / Matcha,3,1,1,1,1,1,1,1,4,1,3-1-1-1-1-1-1-1-4-1,Yes
+Jade Citrus Mint Tea,Green tea blend with mint and citrus notes; light and aromatic.,Tea / Matcha,1,2,5,1,1,1,1,3,1,1,1-2-5-1-1-1-1-3-1-1,Yes
+Peach Tranquility Tea,"Herbal tea with peach and chamomile notes; mellow, sweet, caffeine-free.",Tea / Matcha,2,1,5,1,1,1,4,1,1,1,2-1-5-1-1-1-4-1-1-1,Yes
+Mint Majesty Tea,"Herbal mint tea; cool, simple, caffeine-free, and soothing.",Tea / Matcha,2,1,5,1,1,1,1,3,1,1,2-1-5-1-1-1-1-3-1-1,Yes
+Emperor's Clouds & Mist,Green tea with toasty sweetness and soft vegetal notes.,Espresso Beverage,1,3,5,1,1,1,1,1,1,1,1-3-5-1-1-1-1-1-1-1,Yes
+Earl Grey Tea,"Black tea with bergamot citrus aroma; brisk, floral, classic.",Tea / Matcha,1,3,5,1,1,1,1,4,1,1,1-3-5-1-1-1-1-4-1-1,Yes
+Mango Dragonfruit Refresher,Fruit juice base with mango-dragonfruit flavors and green coffee extract.,Refresher,4,2,1,1,1,1,5,1,4,3,4-2-1-1-1-1-5-1-4-3,Yes
+Mango Dragonfruit Lemonade Refresher,"Mango-dragonfruit refresher mixed with lemonade; brighter, tarter, fruitier finish.",Refresher,4,2,1,1,1,1,5,1,4,4,4-2-1-1-1-1-5-1-4-4,Yes
+Dragon Drink,"Mango Dragonfruit Refresher with coconutmilk; creamy, tropical, colorful beverage.",Refresher,4,2,1,4,1,1,5,1,4,3,4-2-1-4-1-1-5-1-4-3,Yes
+Strawberry Açaí Refresher,"Strawberry-açaí base with green coffee extract; fruity, lightly caffeinated.",Refresher,4,2,1,1,1,1,5,1,4,2,4-2-1-1-1-1-5-1-4-2,Yes
+Strawberry Açaí Lemonade Refresher,"Strawberry-açaí refresher plus lemonade; tart, juicy, and brighter.",Refresher,5,2,1,1,1,1,5,1,4,3,5-2-1-1-1-1-5-1-4-3,Yes
+Pink Drink,"Strawberry Açaí Refresher with coconutmilk; creamy, berry-forward, iconic pink beverage.",Refresher,4,2,1,4,1,1,5,1,4,4,4-2-1-4-1-1-5-1-4-4,Yes
+Pineapple Passionfruit Refresher,"Pineapple-passionfruit base with green coffee extract; tropical, tangy, energizing.",Refresher,4,2,1,1,1,1,4,1,4,4,4-2-1-1-1-1-4-1-4-4,Yes
+Pineapple Passionfruit Lemonade Refresher,"Pineapple-passionfruit refresher with lemonade; extra tart, bright, tropical.",Refresher,4,2,1,1,1,1,4,1,4,2,4-2-1-1-1-1-4-1-4-2,Yes
+Paradise Drink,"Pineapple Passionfruit Refresher with coconutmilk; creamy, tropical, vacation-style flavor.",Refresher,4,2,1,4,1,1,5,1,4,2,4-2-1-4-1-1-5-1-4-2,Yes
+Coffee Frappuccino,"Coffee, milk, ice, and Frappuccino base blended smooth and sweet.",Frappuccino,4,4,1,4,4,1,1,1,5,4,4-4-1-4-4-1-1-1-5-4,Yes
+Espresso Frappuccino,Coffee Frappuccino blended with espresso; stronger coffee flavor and caffeine.,Frappuccino,4,4,1,4,5,1,1,1,5,4,4-4-1-4-5-1-1-1-5-4,Yes
+Caramel Frappuccino,"Coffee, milk, ice, caramel syrup, whipped cream, caramel drizzle blended.",Frappuccino,4,3,1,4,3,1,1,1,5,4,4-3-1-4-3-1-1-1-5-4,Yes
+Caramel Ribbon Crunch Frappuccino,"Coffee, caramel, dark caramel sauce, whipped cream, crunch topping blended.",Frappuccino,5,3,1,5,3,1,1,1,5,5,5-3-1-5-3-1-1-1-5-5,Yes
+Mocha Frappuccino,"Coffee, milk, ice, mocha sauce blended; chocolaty and lightly bitter.",Frappuccino,4,4,1,4,3,4,1,1,5,4,4-4-1-4-3-4-1-1-5-4,Yes
+Java Chip Frappuccino,"Coffee, mocha sauce, Frappuccino chips, milk, and ice blended.",Frappuccino,5,3,1,4,3,5,1,1,5,5,5-3-1-4-3-5-1-1-5-5,Yes
+White Chocolate Mocha Frappuccino,"Coffee, white chocolate sauce, milk, and ice; very sweet.",Frappuccino,5,4,1,5,3,5,1,1,5,5,5-4-1-5-3-5-1-1-5-5,Yes
+Vanilla Bean Crème Frappuccino,"Vanilla bean flavor, milk, and ice blended; coffee-free and creamy.",Frappuccino,5,3,1,5,3,1,1,1,5,4,5-3-1-5-3-1-1-1-5-4,Yes
+Matcha Crème Frappuccino,"Matcha, milk, ice, and Frappuccino base; creamy, earthy, sweet.",Frappuccino,4,3,1,4,1,1,1,1,5,4,4-3-1-4-1-1-1-1-5-4,Yes
+Strawberry Crème Frappuccino,"Strawberry puree, milk, ice, and whipped cream; fruity and creamy.",Frappuccino,4,3,1,4,3,1,4,1,5,4,4-3-1-4-3-1-4-1-5-4,Yes
+Chai Crème Frappuccino,"Chai spices, milk, ice, and blended base; sweet and spiced.",Frappuccino,4,3,1,4,1,1,1,5,5,4,4-3-1-4-1-1-1-5-5-4,Yes
+Double Chocolaty Chip Crème Frappuccino,"Mocha sauce, chocolate chips, milk, ice; coffee-free chocolate treat.",Frappuccino,5,3,1,5,3,5,1,1,5,5,5-3-1-5-3-5-1-1-5-5,Yes
+Lavender Crème Frappuccino,"Lavender flavor, milk, ice, and cream base; floral, sweet, creamy.",Frappuccino,4,3,1,4,3,1,1,5,5,4,4-3-1-4-3-1-1-5-5-4,Yes
+Hot Chocolate,"Mocha sauce, steamed milk, and whipped cream; rich, warm chocolate drink.",Espresso Beverage,4,1,5,4,1,5,1,1,1,5,4-1-5-4-1-5-1-1-1-5,Yes
+White Hot Chocolate,"White chocolate sauce and steamed milk, topped with whipped cream.",Espresso Beverage,4,1,5,4,1,5,1,1,1,4,4-1-5-4-1-5-1-1-1-4,Yes
+Steamed Milk,Plain steamed milk with foam; simple and customizable base beverage.,Tea / Matcha,2,1,5,4,1,1,1,1,1,3,2-1-5-4-1-1-1-1-1-3,Yes
+Vanilla Crème,"Steamed milk flavored with vanilla syrup; warm, sweet, coffee-free.",Espresso Beverage,3,1,5,4,1,1,1,1,1,3,3-1-5-4-1-1-1-1-1-3,Yes
+Caramel Apple Spice,"Steamed apple juice, cinnamon dolce syrup, whipped cream, caramel drizzle.",Espresso Beverage,4,1,5,4,1,1,4,1,1,4,4-1-5-4-1-1-4-1-1-4,Yes
