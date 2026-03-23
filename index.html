@@ -403,6 +403,127 @@
       padding: 4px 8px;
     }
 
+    /* ── WEEKLY LESSONS ──────────────────────────────── */
+    .section-title {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 14px;
+    }
+
+    .week-list { list-style: none; }
+
+    .week-item {
+      background: var(--white);
+      border: 1.5px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: var(--shadow);
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+    }
+
+    .week-item:hover { border-color: var(--green-accent); }
+
+    .week-item.done {
+      background: var(--success-bg);
+      border-color: #86efac;
+    }
+
+    .week-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      accent-color: var(--green-mid);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+
+    .week-item label {
+      cursor: pointer;
+      margin: 0;
+      font-size: .95rem;
+      font-weight: 600;
+      color: var(--text);
+      flex: 1;
+    }
+
+    .week-item.done label { color: var(--success-txt); }
+
+    .week-badge {
+      font-size: .72rem;
+      font-weight: 700;
+      background: var(--green-mid);
+      color: var(--cream);
+      border-radius: 999px;
+      padding: 2px 10px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+
+    .week-item.done .week-badge {
+      background: #16a34a;
+    }
+
+    .lessons-progress {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .progress-bar-wrap {
+      height: 6px;
+      background: var(--cream3);
+      border-radius: 999px;
+      margin-top: 6px;
+      overflow: hidden;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      background: var(--green-accent);
+      border-radius: 999px;
+      transition: width .4s ease;
+    }
+
+    /* ── KEY PRINCIPLES ───────────────────────────────── */
+    .principle-card {
+      background: var(--white);
+      border: 1.5px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .principle-icon {
+      font-size: 1.4rem;
+      line-height: 1;
+      flex-shrink: 0;
+      margin-top: 2px;
+    }
+
+    .principle-body h3 {
+      font-size: .98rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 4px;
+    }
+
+    .principle-body p {
+      font-size: .88rem;
+      color: var(--muted);
+      line-height: 1.55;
+    }
+
     /* ── RESPONSIVE ──────────────────────────────────── */
     @media (max-width: 400px) {
       .coach-card { padding: 20px 16px; }
@@ -421,7 +542,7 @@
   <div class="header-stats">
     <div class="stat-chip">
       <span class="icon">⚔️</span>
-      Match Countdown: <span class="value" id="daysVal">30</span> days
+      Match Countdown: <span class="value" id="daysVal">60</span> days
     </div>
   </div>
 </header>
@@ -429,8 +550,8 @@
 <!-- TABS -->
 <nav class="tabs-bar" role="tablist">
   <button class="tab-btn active" role="tab" data-tab="home">Home</button>
-  <button class="tab-btn"        role="tab" data-tab="lessons">Daily Lessons</button>
-  <button class="tab-btn"        role="tab" data-tab="puzzles">Puzzles</button>
+  <button class="tab-btn"        role="tab" data-tab="lessons">Weekly Lessons</button>
+  <button class="tab-btn"        role="tab" data-tab="puzzles">Key Principles</button>
   <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach</button>
 </nav>
 
@@ -442,7 +563,7 @@
     <div class="hero">
       <div class="hero-icon">♟</div>
       <h2>The Challenge</h2>
-      <p>Mom has 30 days to learn chess from scratch and beat Dad in a single game. Dad is a 1700-rated player. This is her journey.</p>
+      <p>Mom has 60 days to learn chess from scratch and beat Dad in a single game. Dad is a 1700-rated player. This is her journey.</p>
     </div>
     <div class="countdown-section">
       <div class="countdown-label">Days Until Match</div>
@@ -456,21 +577,115 @@
     <p class="motivational">Every day counts. Every puzzle matters. Every lesson brings you closer.</p>
   </section>
 
-  <!-- Daily Lessons -->
+  <!-- Weekly Lessons -->
   <section class="tab-panel" id="panel-lessons" role="tabpanel">
-    <div class="coming-soon">
-      <div class="cs-icon">📖</div>
-      <h2>Coming Soon</h2>
-      <p>Daily lessons are on their way. Check back soon!</p>
+    <p class="section-title">8-Week Curriculum</p>
+    <div class="lessons-progress">
+      <span id="weeksDoneCount">0</span> of 8 weeks complete
+      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
     </div>
+    <ul class="week-list" id="weekList">
+      <li class="week-item" data-week="0">
+        <input type="checkbox" id="w0"><span class="week-badge">Week 1</span>
+        <label for="w0">The Board and Pieces</label>
+      </li>
+      <li class="week-item" data-week="1">
+        <input type="checkbox" id="w1"><span class="week-badge">Week 2</span>
+        <label for="w1">Check, Checkmate and Special Moves</label>
+      </li>
+      <li class="week-item" data-week="2">
+        <input type="checkbox" id="w2"><span class="week-badge">Week 3</span>
+        <label for="w2">Piece Values and Hanging Pieces</label>
+      </li>
+      <li class="week-item" data-week="3">
+        <input type="checkbox" id="w3"><span class="week-badge">Week 4</span>
+        <label for="w3">Forks, Pins and Skewers</label>
+      </li>
+      <li class="week-item" data-week="4">
+        <input type="checkbox" id="w4"><span class="week-badge">Week 5</span>
+        <label for="w4">Opening Principles</label>
+      </li>
+      <li class="week-item" data-week="5">
+        <input type="checkbox" id="w5"><span class="week-badge">Week 6</span>
+        <label for="w5">Your Openings as White and Black</label>
+      </li>
+      <li class="week-item" data-week="6">
+        <input type="checkbox" id="w6"><span class="week-badge">Week 7</span>
+        <label for="w6">Basic Endgames</label>
+      </li>
+      <li class="week-item" data-week="7">
+        <input type="checkbox" id="w7"><span class="week-badge">Week 8</span>
+        <label for="w7">Beat Dad — Patterns and Practice</label>
+      </li>
+    </ul>
   </section>
 
-  <!-- Puzzles -->
+  <!-- Key Principles -->
   <section class="tab-panel" id="panel-puzzles" role="tabpanel">
-    <div class="coming-soon">
-      <div class="cs-icon">🧩</div>
-      <h2>Coming Soon</h2>
-      <p>Chess puzzles are being prepared. Stay tuned!</p>
+    <p class="section-title">Golden Rules of Chess</p>
+
+    <div class="principle-card">
+      <div class="principle-icon">♟</div>
+      <div class="principle-body">
+        <h3>Control the center</h3>
+        <p>Put your pawns and pieces where they can control the four central squares. Whoever owns the center controls the game.</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">🚀</div>
+      <div class="principle-body">
+        <h3>Develop your pieces early</h3>
+        <p>Get your knights and bishops off the back rank in the first few moves. Pieces stuck at home can't help you.</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">🏰</div>
+      <div class="principle-body">
+        <h3>Castle early to protect your king</h3>
+        <p>Castling tucks your king safely behind pawns and connects your rooks. Try to castle within the first 10 moves.</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">🚫</div>
+      <div class="principle-body">
+        <h3>Don't move the same piece twice in the opening</h3>
+        <p>Every move in the opening should bring out a new piece. Moving the same piece twice wastes a turn your opponent can use.</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">🔗</div>
+      <div class="principle-body">
+        <h3>Connect your rooks</h3>
+        <p>After castling and developing, clear the back rank so your rooks guard each other. Rooks double in strength when working together.</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">🤔</div>
+      <div class="principle-body">
+        <h3>Think before you move</h3>
+        <p>Before every move ask: is my piece safe where I'm moving it? Am I leaving anything undefended? Can my opponent capture something for free?</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">⚖️</div>
+      <div class="principle-body">
+        <h3>Trade pieces wisely</h3>
+        <p>Don't give away a bishop or knight for a pawn. Know the values: pawn = 1, knight/bishop = 3, rook = 5, queen = 9.</p>
+      </div>
+    </div>
+
+    <div class="principle-card">
+      <div class="principle-icon">👑</div>
+      <div class="principle-body">
+        <h3>Activate your king in the endgame</h3>
+        <p>Once most pieces are off the board, the king becomes a strong piece. March it to the center to help your pawns promote.</p>
+      </div>
     </div>
   </section>
 
@@ -504,12 +719,12 @@
 
 <script>
   // ── Match date (localStorage) ───────────────────────────────────────────────
-  // Set once on first visit: now + 30 days
+  // Set once on first visit: now + 60 days
   function getMatchDate() {
     let stored = localStorage.getItem('matchDate');
     if (!stored) {
       const d = new Date();
-      d.setDate(d.getDate() + 30);
+      d.setDate(d.getDate() + 60);
       stored = d.toISOString();
       localStorage.setItem('matchDate', stored);
     }
@@ -543,6 +758,47 @@
     document.getElementById('cdHours').textContent = pad(hours);
     document.getElementById('cdMins').textContent  = pad(mins);
     document.getElementById('cdSecs').textContent  = pad(secs);
+  }
+
+  // ── Weekly Lessons checklist ───────────────────────────────────────────────
+  function loadWeeks() {
+    try { return JSON.parse(localStorage.getItem('weeksDone')) || []; }
+    catch { return []; }
+  }
+
+  function saveWeeks(done) {
+    localStorage.setItem('weeksDone', JSON.stringify(done));
+  }
+
+  function updateProgress(done) {
+    const n = done.length;
+    document.getElementById('weeksDoneCount').textContent = n;
+    document.getElementById('progressFill').style.width = (n / 8 * 100) + '%';
+  }
+
+  function initLessons() {
+    const done = loadWeeks();
+    done.forEach(w => {
+      const item = document.querySelector(`.week-item[data-week="${w}"]`);
+      if (item) { item.classList.add('done'); item.querySelector('input').checked = true; }
+    });
+    updateProgress(done);
+
+    document.getElementById('weekList').addEventListener('change', e => {
+      const cb   = e.target;
+      const item = cb.closest('.week-item');
+      const week = parseInt(item.dataset.week, 10);
+      let done   = loadWeeks();
+      if (cb.checked) {
+        item.classList.add('done');
+        if (!done.includes(week)) done.push(week);
+      } else {
+        item.classList.remove('done');
+        done = done.filter(w => w !== week);
+      }
+      saveWeeks(done);
+      updateProgress(done);
+    });
   }
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -617,6 +873,7 @@
     updateHeaderDays(matchDate);
     tickCountdown(matchDate);
     setInterval(() => tickCountdown(matchDate), 1000);
+    initLessons();
   }
 </script>
 </body>
