@@ -314,9 +314,99 @@
       white-space: pre-wrap;
     }
 
+    /* ── HOME / HERO ─────────────────────────────────── */
+    .hero {
+      background: var(--green-dark);
+      color: var(--cream);
+      border-radius: var(--radius);
+      padding: 32px 24px 28px;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-icon { font-size: 2.8rem; margin-bottom: 12px; }
+
+    .hero h2 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      letter-spacing: -.5px;
+      margin-bottom: 14px;
+      color: var(--gold);
+    }
+
+    .hero p {
+      font-size: .97rem;
+      line-height: 1.7;
+      color: rgba(250,246,238,.88);
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .countdown-section {
+      background: var(--white);
+      border: 1px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 28px 20px 24px;
+      text-align: center;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .countdown-label {
+      font-size: .8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .cd-grid {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .cd-box {
+      background: var(--green-dark);
+      color: var(--cream);
+      border-radius: var(--radius-sm);
+      padding: 14px 10px 10px;
+      min-width: 68px;
+      flex: 1 1 60px;
+      max-width: 90px;
+    }
+
+    .cd-num {
+      font-size: 2rem;
+      font-weight: 800;
+      line-height: 1;
+      color: var(--gold);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .cd-unit {
+      font-size: .7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: rgba(250,246,238,.6);
+      margin-top: 4px;
+    }
+
+    .motivational {
+      text-align: center;
+      font-size: .92rem;
+      color: var(--muted);
+      font-style: italic;
+      padding: 4px 8px;
+    }
+
     /* ── RESPONSIVE ──────────────────────────────────── */
     @media (max-width: 400px) {
       .coach-card { padding: 20px 16px; }
+      .hero { padding: 24px 16px 20px; }
     }
   </style>
 </head>
@@ -330,19 +420,16 @@
   </div>
   <div class="header-stats">
     <div class="stat-chip">
-      <span class="icon">🔥</span>
-      Streak: <span class="value" id="streakVal">0</span> days
-    </div>
-    <div class="stat-chip">
-      <span class="icon">📅</span>
-      Days remaining: <span class="value" id="daysVal">30</span>
+      <span class="icon">⚔️</span>
+      Match Countdown: <span class="value" id="daysVal">30</span> days
     </div>
   </div>
 </header>
 
 <!-- TABS -->
 <nav class="tabs-bar" role="tablist">
-  <button class="tab-btn active" role="tab" data-tab="lessons">Daily Lessons</button>
+  <button class="tab-btn active" role="tab" data-tab="home">Home</button>
+  <button class="tab-btn"        role="tab" data-tab="lessons">Daily Lessons</button>
   <button class="tab-btn"        role="tab" data-tab="puzzles">Puzzles</button>
   <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach</button>
 </nav>
@@ -350,8 +437,27 @@
 <!-- CONTENT -->
 <main class="content">
 
+  <!-- Home -->
+  <section class="tab-panel active" id="panel-home" role="tabpanel">
+    <div class="hero">
+      <div class="hero-icon">♟</div>
+      <h2>The Challenge</h2>
+      <p>Mom has 30 days to learn chess from scratch and beat Dad in a single game. Dad is a 1700-rated player. This is her journey.</p>
+    </div>
+    <div class="countdown-section">
+      <div class="countdown-label">Days Until Match</div>
+      <div class="cd-grid">
+        <div class="cd-box"><div class="cd-num" id="cdDays">--</div><div class="cd-unit">Days</div></div>
+        <div class="cd-box"><div class="cd-num" id="cdHours">--</div><div class="cd-unit">Hours</div></div>
+        <div class="cd-box"><div class="cd-num" id="cdMins">--</div><div class="cd-unit">Minutes</div></div>
+        <div class="cd-box"><div class="cd-num" id="cdSecs">--</div><div class="cd-unit">Seconds</div></div>
+      </div>
+    </div>
+    <p class="motivational">Every day counts. Every puzzle matters. Every lesson brings you closer.</p>
+  </section>
+
   <!-- Daily Lessons -->
-  <section class="tab-panel active" id="panel-lessons" role="tabpanel">
+  <section class="tab-panel" id="panel-lessons" role="tabpanel">
     <div class="coming-soon">
       <div class="cs-icon">📖</div>
       <h2>Coming Soon</h2>
@@ -397,41 +503,46 @@
 </div>
 
 <script>
-  // ── Streak & days remaining (localStorage) ─────────────────────────────────
-  const CHALLENGE_DAYS = 30;
-
-  function todayStr() {
-    return new Date().toISOString().slice(0, 10);
+  // ── Match date (localStorage) ───────────────────────────────────────────────
+  // Set once on first visit: now + 30 days
+  function getMatchDate() {
+    let stored = localStorage.getItem('matchDate');
+    if (!stored) {
+      const d = new Date();
+      d.setDate(d.getDate() + 30);
+      stored = d.toISOString();
+      localStorage.setItem('matchDate', stored);
+    }
+    return new Date(stored);
   }
 
-  function daysBetween(a, b) {
-    return Math.round((new Date(b) - new Date(a)) / 864e5);
+  // ── Header: days remaining ──────────────────────────────────────────────────
+  function updateHeaderDays(matchDate) {
+    const msLeft = matchDate - Date.now();
+    const days   = msLeft > 0 ? Math.ceil(msLeft / 864e5) : 0;
+    document.getElementById('daysVal').textContent = days;
   }
 
-  function initStats() {
-    const today = todayStr();
-    let streak         = parseInt(localStorage.getItem('streak') || '0', 10);
-    const lastVisit    = localStorage.getItem('lastVisit') || '';
-    const challengeStart = localStorage.getItem('challengeStart') || today;
+  // ── Home countdown (live) ───────────────────────────────────────────────────
+  function pad(n) { return String(n).padStart(2, '0'); }
 
-    if (!localStorage.getItem('challengeStart')) {
-      localStorage.setItem('challengeStart', today);
+  function tickCountdown(matchDate) {
+    const msLeft = matchDate - Date.now();
+    if (msLeft <= 0) {
+      ['cdDays','cdHours','cdMins','cdSecs'].forEach(id => {
+        document.getElementById(id).textContent = '00';
+      });
+      return;
     }
-
-    if (lastVisit === today) {
-      // already visited today — no change
-    } else if (lastVisit && daysBetween(lastVisit, today) === 1) {
-      streak += 1;
-    } else {
-      streak = 1;
-    }
-
-    localStorage.setItem('streak', streak);
-    localStorage.setItem('lastVisit', today);
-
-    const daysLeft = Math.max(0, CHALLENGE_DAYS - daysBetween(challengeStart, today));
-    document.getElementById('streakVal').textContent = streak;
-    document.getElementById('daysVal').textContent   = daysLeft;
+    const totalSecs = Math.floor(msLeft / 1000);
+    const secs  = totalSecs % 60;
+    const mins  = Math.floor(totalSecs / 60) % 60;
+    const hours = Math.floor(totalSecs / 3600) % 24;
+    const days  = Math.floor(totalSecs / 86400);
+    document.getElementById('cdDays').textContent  = days;
+    document.getElementById('cdHours').textContent = pad(hours);
+    document.getElementById('cdMins').textContent  = pad(mins);
+    document.getElementById('cdSecs').textContent  = pad(secs);
   }
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
@@ -457,20 +568,22 @@
     });
   }
 
+  function loadQuestions() {
+    try { return JSON.parse(localStorage.getItem('coachQuestions')) || []; }
+    catch { return []; }
+  }
+
   function renderCoachView() {
-    const questions = loadQuestions().slice().reverse(); // newest first
+    const questions = loadQuestions().slice().reverse();
     const count     = document.getElementById('cvCount');
     const list      = document.getElementById('cvList');
-
     count.textContent = questions.length
       ? `${questions.length} question${questions.length === 1 ? '' : 's'} submitted`
       : '';
-
     if (questions.length === 0) {
       list.innerHTML = '<p class="cv-empty">No questions yet.</p>';
       return;
     }
-
     list.innerHTML = questions.map((q, i) => `
       <div class="q-card">
         <div class="q-meta">
@@ -484,14 +597,13 @@
 
   function initCoachView() {
     document.getElementById('coachView').classList.add('active');
-    document.querySelector('.header').style.display     = 'none';
-    document.querySelector('.tabs-bar').style.display   = 'none';
-    document.querySelector('.content').style.display    = 'none';
+    document.querySelector('.header').style.display   = 'none';
+    document.querySelector('.tabs-bar').style.display = 'none';
+    document.querySelector('.content').style.display  = 'none';
     renderCoachView();
-
     document.getElementById('clearBtn').addEventListener('click', () => {
       if (confirm('Clear all questions? This cannot be undone.')) {
-        localStorage.removeItem(QUESTIONS_KEY);
+        localStorage.removeItem('coachQuestions');
         renderCoachView();
       }
     });
@@ -501,7 +613,10 @@
   if (window.location.hash === '#coach') {
     initCoachView();
   } else {
-    initStats();
+    const matchDate = getMatchDate();
+    updateHeaderDays(matchDate);
+    tickCountdown(matchDate);
+    setInterval(() => tickCountdown(matchDate), 1000);
   }
 </script>
 </body>
