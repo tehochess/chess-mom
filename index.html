@@ -226,6 +226,94 @@
     .msg.success { display: block; background: var(--success-bg); color: var(--success-txt); }
     .msg.error   { display: block; background: var(--error-bg);   color: var(--error-txt); }
 
+    /* ── COACH VIEW ──────────────────────────────────── */
+    #coachView { display: none; }
+    #coachView.active { display: block; }
+
+    .cv-header {
+      background: var(--green-dark);
+      color: var(--cream);
+      padding: 20px 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .cv-header h1 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .cv-clear-btn {
+      background: rgba(255,255,255,.12);
+      border: 1px solid rgba(255,255,255,.22);
+      color: var(--cream);
+      border-radius: var(--radius-sm);
+      padding: 6px 14px;
+      font-size: .82rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .cv-clear-btn:hover { background: rgba(220,38,38,.55); }
+
+    .cv-content {
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    .cv-count {
+      font-size: .85rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .cv-empty {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--muted);
+      font-size: .95rem;
+    }
+
+    .q-card {
+      background: var(--white);
+      border: 1px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .q-meta {
+      font-size: .78rem;
+      color: var(--muted);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .q-num {
+      background: var(--green-mid);
+      color: var(--cream);
+      border-radius: 999px;
+      padding: 1px 8px;
+      font-size: .72rem;
+      font-weight: 700;
+    }
+
+    .q-text {
+      font-size: .95rem;
+      color: var(--text);
+      line-height: 1.55;
+      white-space: pre-wrap;
+    }
+
     /* ── RESPONSIVE ──────────────────────────────────── */
     @media (max-width: 400px) {
       .coach-card { padding: 20px 16px; }
@@ -296,31 +384,31 @@
 
 </main>
 
-<script>
-  // ── EmailJS config (fetch API — no SDK needed) ─────────────────────────────
-  const EMAILJS_PUBLIC_KEY  = '62KDMFVzdGnMxMNjW';
-  const EMAILJS_SERVICE_ID  = 'service_8gur3em';
-  const EMAILJS_TEMPLATE_ID = 'template_q0skdh9';
-  // ───────────────────────────────────────────────────────────────────────────
+<!-- COACH VIEW (hidden; access via #coach in URL) -->
+<div id="coachView">
+  <div class="cv-header">
+    <h1>🎓 Coach View — Questions</h1>
+    <button class="cv-clear-btn" id="clearBtn">Clear all</button>
+  </div>
+  <div class="cv-content">
+    <p class="cv-count" id="cvCount"></p>
+    <div id="cvList"></div>
+  </div>
+</div>
 
-  async function sendViaEmailJS(message) {
-    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        service_id:  EMAILJS_SERVICE_ID,
-        template_id: EMAILJS_TEMPLATE_ID,
-        user_id:     EMAILJS_PUBLIC_KEY,
-        template_params: {
-          message:  message,
-          to_email: 'he.samuel300@gmail.com',
-        },
-      }),
-    });
-    if (!res.ok) {
-      const text = await res.text().catch(() => res.status);
-      throw new Error(text || res.status);
-    }
+<script>
+  // ── Questions (localStorage) ────────────────────────────────────────────────
+  const QUESTIONS_KEY = 'coachQuestions';
+
+  function loadQuestions() {
+    try { return JSON.parse(localStorage.getItem(QUESTIONS_KEY)) || []; }
+    catch { return []; }
+  }
+
+  function saveQuestion(text) {
+    const questions = loadQuestions();
+    questions.push({ text, ts: new Date().toISOString() });
+    localStorage.setItem(QUESTIONS_KEY, JSON.stringify(questions));
   }
 
   // ── Streak & days remaining (localStorage) ─────────────────────────────────
@@ -331,15 +419,14 @@
   }
 
   function daysBetween(a, b) {
-    const msPerDay = 864e5;
-    return Math.round((new Date(b) - new Date(a)) / msPerDay);
+    return Math.round((new Date(b) - new Date(a)) / 864e5);
   }
 
   function initStats() {
     const today = todayStr();
-    let streak        = parseInt(localStorage.getItem('streak') || '0', 10);
-    let lastVisit     = localStorage.getItem('lastVisit') || '';
-    let challengeStart = localStorage.getItem('challengeStart') || today;
+    let streak         = parseInt(localStorage.getItem('streak') || '0', 10);
+    const lastVisit    = localStorage.getItem('lastVisit') || '';
+    const challengeStart = localStorage.getItem('challengeStart') || today;
 
     if (!localStorage.getItem('challengeStart')) {
       localStorage.setItem('challengeStart', today);
@@ -356,9 +443,7 @@
     localStorage.setItem('streak', streak);
     localStorage.setItem('lastVisit', today);
 
-    const elapsed = daysBetween(challengeStart, today);
-    const daysLeft = Math.max(0, CHALLENGE_DAYS - elapsed);
-
+    const daysLeft = Math.max(0, CHALLENGE_DAYS - daysBetween(challengeStart, today));
     document.getElementById('streakVal').textContent = streak;
     document.getElementById('daysVal').textContent   = daysLeft;
   }
@@ -389,30 +474,70 @@
     statusMsg.textContent = text;
   }
 
-  form.addEventListener('submit', async e => {
+  form.addEventListener('submit', e => {
     e.preventDefault();
     const text = question.value.trim();
     if (!text) { question.focus(); return; }
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending…';
-    statusMsg.className = 'msg';
-
-    try {
-      await sendViaEmailJS(text);
-      showMsg('success', 'Question sent! Samuel will review and get back to you.');
-      question.value = '';
-    } catch (err) {
-      console.error('EmailJS error:', err);
-      showMsg('error', 'Could not send — please try again later.');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Send Question';
-    }
+    saveQuestion(text);
+    showMsg('success', 'Question sent! Samuel will review and get back to you.');
+    question.value = '';
   });
 
+  // ── Coach View ─────────────────────────────────────────────────────────────
+  function formatDate(iso) {
+    return new Date(iso).toLocaleString(undefined, {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: 'numeric', minute: '2-digit',
+    });
+  }
+
+  function renderCoachView() {
+    const questions = loadQuestions().slice().reverse(); // newest first
+    const count     = document.getElementById('cvCount');
+    const list      = document.getElementById('cvList');
+
+    count.textContent = questions.length
+      ? `${questions.length} question${questions.length === 1 ? '' : 's'} submitted`
+      : '';
+
+    if (questions.length === 0) {
+      list.innerHTML = '<p class="cv-empty">No questions yet.</p>';
+      return;
+    }
+
+    list.innerHTML = questions.map((q, i) => `
+      <div class="q-card">
+        <div class="q-meta">
+          <span class="q-num">#${questions.length - i}</span>
+          ${formatDate(q.ts)}
+        </div>
+        <div class="q-text">${q.text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}</div>
+      </div>
+    `).join('');
+  }
+
+  function initCoachView() {
+    document.getElementById('coachView').classList.add('active');
+    document.querySelector('.header').style.display     = 'none';
+    document.querySelector('.tabs-bar').style.display   = 'none';
+    document.querySelector('.content').style.display    = 'none';
+    renderCoachView();
+
+    document.getElementById('clearBtn').addEventListener('click', () => {
+      if (confirm('Clear all questions? This cannot be undone.')) {
+        localStorage.removeItem(QUESTIONS_KEY);
+        renderCoachView();
+      }
+    });
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
-  initStats();
+  if (window.location.hash === '#coach') {
+    initCoachView();
+  } else {
+    initStats();
+  }
 </script>
 </body>
 </html>
