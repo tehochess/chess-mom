@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Samuel's Chess Academy</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟</text></svg>">
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -87,15 +86,13 @@
     .tabs-bar {
       background: var(--green-mid);
       display: flex;
-      overflow-x: auto;
-      scrollbar-width: none;
+      width: 100%;
     }
-    .tabs-bar::-webkit-scrollbar { display: none; }
 
     .tab-btn {
-      flex: 1;
-      min-width: 100px;
-      padding: 13px 10px;
+      flex: 1 1 0;
+      min-width: 0;
+      padding: 13px 6px;
       border: none;
       background: transparent;
       color: rgba(250,246,238,.65);
@@ -300,15 +297,31 @@
 </main>
 
 <script>
-  // ── EmailJS config ──────────────────────────────────────────────────────────
-  // Sign up free at https://www.emailjs.com, then replace these three values:
+  // ── EmailJS config (fetch API — no SDK needed) ─────────────────────────────
   const EMAILJS_PUBLIC_KEY  = '62KDMFVzdGnMxMNjW';
   const EMAILJS_SERVICE_ID  = 'service_8gur3em';
   const EMAILJS_TEMPLATE_ID = 'template_q0skdh9';
-  // Template should have a variable {{message}} and To: he.samuel300@gmail.com
   // ───────────────────────────────────────────────────────────────────────────
 
-  emailjs.init(EMAILJS_PUBLIC_KEY);
+  async function sendViaEmailJS(message) {
+    const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        service_id:  EMAILJS_SERVICE_ID,
+        template_id: EMAILJS_TEMPLATE_ID,
+        user_id:     EMAILJS_PUBLIC_KEY,
+        template_params: {
+          message:  message,
+          to_email: 'he.samuel300@gmail.com',
+        },
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text().catch(() => res.status);
+      throw new Error(text || res.status);
+    }
+  }
 
   // ── Streak & days remaining (localStorage) ─────────────────────────────────
   const CHALLENGE_DAYS = 30;
@@ -386,15 +399,12 @@
     statusMsg.className = 'msg';
 
     try {
-      await emailjs.send(EMAILJS_SERVICE_ID, EMAILJS_TEMPLATE_ID, {
-        message:  text,
-        to_email: 'he.samuel300@gmail.com',
-      });
+      await sendViaEmailJS(text);
       showMsg('success', 'Question sent! Samuel will review and get back to you.');
       question.value = '';
     } catch (err) {
       console.error('EmailJS error:', err);
-      showMsg('error', 'Could not send. Please try again later.');
+      showMsg('error', 'Could not send — please try again later.');
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Send Question';
