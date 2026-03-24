@@ -291,95 +291,150 @@
       .qa-category-select, .qa-submit-btn { width: 100%; }
     }
 
-    /* ── LESSON PLAN NOTEPAD ─────────────────────────── */
-    .lp-wrap { max-width: 700px; margin: 0 auto; padding: 0 0 80px; display: flex; flex-direction: column; gap: 0; }
+    /* ── LESSON PLAN — GOOGLE DOC STYLE ──────────────── */
+    .lp-wrap {
+      max-width: 780px; margin: 0 auto; padding: 0 0 80px;
+      display: flex; flex-direction: column; gap: 0;
+    }
 
-    .lp-header {
+    /* Toolbar bar */
+    .lp-toolbar {
       display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-      background: #fffbf0; border: 1px solid #f0e2b6; border-radius: var(--radius);
-      padding: 20px 24px; margin-bottom: 20px;
-      box-shadow: 0 2px 12px rgba(180,140,40,.10);
+      background: #fff; border: 1px solid #e8e2d6;
+      border-radius: var(--radius) var(--radius) 0 0;
+      padding: 14px 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+      border-bottom: none;
     }
-    .lp-header-left { display: flex; align-items: center; gap: 14px; }
-    .lp-icon { font-size: 2rem; line-height: 1; }
-    .lp-title { font-size: 1.25rem; font-weight: 700; color: var(--green-dark); margin-bottom: 2px; }
-    .lp-subtitle { font-size: .82rem; color: var(--muted); }
+    .lp-toolbar-left { display: flex; align-items: center; gap: 12px; }
+    .lp-doc-icon { font-size: 1.5rem; line-height: 1; }
+    .lp-doc-title { font-size: 1.05rem; font-weight: 700; color: var(--green-dark); }
+    .lp-doc-sub   { font-size: .75rem; color: var(--muted); margin-top: 1px; }
 
-    .lp-author-badge {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 16px; border-radius: 999px;
-      font-size: .85rem; font-weight: 600;
-      border: 2px solid currentColor;
+    /* Author dropdown */
+    .lp-author-select-wrap {
+      position: relative; display: flex; align-items: center;
     }
-    .lp-author-badge::before { content: ''; width: 10px; height: 10px; border-radius: 50%; background: currentColor; }
-
-    .lp-feed {
-      background: #fffdf7;
-      border: 1px solid #ede8d8;
-      border-radius: var(--radius);
-      min-height: 320px;
-      max-height: 520px;
-      overflow-y: auto;
-      padding: 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-      box-shadow: inset 0 2px 8px rgba(0,0,0,.04);
-      margin-bottom: 16px;
+    .lp-author-dot {
+      position: absolute; left: 12px; width: 9px; height: 9px;
+      border-radius: 50%; pointer-events: none; flex-shrink: 0;
     }
-    .lp-feed::-webkit-scrollbar { width: 6px; }
-    .lp-feed::-webkit-scrollbar-track { background: transparent; }
-    .lp-feed::-webkit-scrollbar-thumb { background: #d6cdb8; border-radius: 99px; }
+    .lp-author-select {
+      appearance: none; -webkit-appearance: none;
+      padding: 7px 32px 7px 28px;
+      border-radius: 999px; border: 2px solid #ccc;
+      font-size: .83rem; font-weight: 600; cursor: pointer;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 10px center;
+      transition: border-color .2s, color .2s, box-shadow .2s;
+      outline: none;
+    }
+    .lp-author-select:focus { box-shadow: 0 0 0 3px rgba(0,0,0,.08); }
 
-    .lp-loading { color: var(--muted); font-size: .9rem; margin: auto; text-align: center; padding: 40px 0; }
-    .lp-empty   { color: var(--muted); font-size: .9rem; margin: auto; text-align: center; padding: 40px 0; }
+    /* Save status pill */
+    .lp-save-status {
+      font-size: .75rem; color: #aaa; display: flex; align-items: center; gap: 5px;
+      transition: color .3s;
+    }
+    .lp-save-status.saving { color: #F59E0B; }
+    .lp-save-status.saved  { color: #10B981; }
 
-    .lp-note {
+    /* Document body */
+    .lp-doc-outer {
       background: #fff;
-      border-radius: 10px;
-      border-left: 4px solid #ccc;
-      padding: 12px 14px;
-      box-shadow: 0 1px 6px rgba(0,0,0,.07);
-      transition: box-shadow .15s;
+      border: 1px solid #e8e2d6;
+      border-top: none;
+      border-radius: 0 0 var(--radius) var(--radius);
+      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      overflow: hidden;
     }
-    .lp-note:hover { box-shadow: 0 3px 12px rgba(0,0,0,.11); }
-    .lp-note-meta {
-      display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
-    }
-    .lp-note-author {
-      font-size: .78rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
-    }
-    .lp-note-dot { width: 6px; height: 6px; border-radius: 50%; background: #ccc; flex-shrink: 0; }
-    .lp-note-time { font-size: .75rem; color: #999; }
-    .lp-note-content { font-size: .93rem; color: #2d2d2d; line-height: 1.65; white-space: pre-wrap; }
 
-    .lp-composer {
-      background: #fffbf0;
-      border: 1px solid #ede8d8;
+    /* Scrollable history area */
+    .lp-doc-body {
+      min-height: 280px;
+      max-height: 460px;
+      overflow-y: auto;
+      padding: 32px 40px 24px;
+      background:
+        repeating-linear-gradient(
+          transparent,
+          transparent 27px,
+          #f0ece4 28px
+        );
+      background-color: #fdfaf5;
+    }
+    .lp-doc-body::-webkit-scrollbar { width: 6px; }
+    .lp-doc-body::-webkit-scrollbar-track { background: transparent; }
+    .lp-doc-body::-webkit-scrollbar-thumb { background: #d6cdb8; border-radius: 99px; }
+
+    .lp-doc-empty {
+      color: #c0b898; font-style: italic;
+      font-size: .95rem; padding: 24px 0; text-align: center;
+      font-family: Georgia, 'Times New Roman', serif;
+    }
+
+    /* Each saved paragraph in the doc */
+    .lp-para {
+      display: grid;
+      grid-template-columns: 52px 1fr;
+      gap: 0 12px;
+      margin-bottom: 18px;
+      line-height: 28px; /* match ruled lines */
+    }
+    .lp-para-annotation {
+      text-align: right;
+      padding-top: 2px;
+    }
+    .lp-para-tag {
+      display: inline-block;
+      font-size: .64rem; font-weight: 700; letter-spacing: .05em;
+      text-transform: uppercase;
+      padding: 2px 6px; border-radius: 4px;
+      color: #fff; white-space: nowrap;
+      line-height: 1.4;
+    }
+    .lp-para-time {
+      font-size: .6rem; color: #bbb; display: block;
+      text-align: right; margin-top: 2px; white-space: nowrap;
+    }
+    .lp-para-text {
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: .97rem; color: #1a1a1a;
+      white-space: pre-wrap; word-break: break-word;
+      padding-left: 4px;
+      border-left: 2px solid transparent;
+      transition: border-color .2s;
+    }
+    .lp-para:hover .lp-para-text { border-left-color: #e0d8c8; }
+
+    /* Divider between toolbar/doc and composer */
+    .lp-composer-wrap {
+      margin-top: 20px;
+      background: #fff;
+      border: 1px solid #e8e2d6;
       border-radius: var(--radius);
-      padding: 16px;
       box-shadow: 0 2px 12px rgba(0,0,0,.06);
+      overflow: hidden;
     }
-    .lp-textarea {
-      width: 100%; resize: vertical; min-height: 72px;
-      border: 1px solid #ddd5be; border-radius: 8px;
-      padding: 10px 12px; font-size: .92rem; font-family: inherit;
-      background: #fff; color: var(--text);
-      transition: border-color .15s, box-shadow .15s;
-      line-height: 1.6;
+    .lp-composer-label {
+      padding: 10px 20px 0;
+      font-size: .72rem; font-weight: 700; letter-spacing: .08em;
+      text-transform: uppercase; color: #bbb;
     }
-    .lp-textarea:focus { outline: none; border-color: #c9a84c; box-shadow: 0 0 0 3px rgba(201,168,76,.15); }
-    .lp-composer-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
-    .lp-char-hint { font-size: .78rem; color: #bbb; }
-    .lp-add-btn {
-      background: var(--green-dark); color: var(--cream);
-      border: none; border-radius: 8px; padding: 9px 22px;
-      font-size: .88rem; font-weight: 600; cursor: pointer;
-      transition: background .15s, transform .1s;
+    .lp-draft-area {
+      width: 100%; border: none; outline: none; resize: none;
+      padding: 12px 20px 14px;
+      font-family: Georgia, 'Times New Roman', serif;
+      font-size: .97rem; line-height: 1.75; color: #1a1a1a;
+      background: transparent;
+      min-height: 88px;
     }
-    .lp-add-btn:hover { background: var(--green-mid); }
-    .lp-add-btn:active { transform: scale(.97); }
-    .lp-add-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .lp-draft-area::placeholder { color: #c8bfaa; font-style: italic; }
+    .lp-composer-footer {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 8px 20px 12px; border-top: 1px solid #f0ece4;
+      gap: 8px;
+    }
+    .lp-hint { font-size: .74rem; color: #bbb; }
 
     /* ── SCOUT DAD ───────────────────────────────────── */
     .scout-wrap { max-width: 680px; margin: 0 auto; padding: 0 0 60px; }
@@ -1502,26 +1557,45 @@
   <!-- Lesson Plan -->
   <section class="tab-panel" id="panel-lessonplan" role="tabpanel">
     <div class="lp-wrap">
-      <div class="lp-header">
-        <div class="lp-header-left">
-          <span class="lp-icon">📒</span>
+
+      <!-- Toolbar -->
+      <div class="lp-toolbar">
+        <div class="lp-toolbar-left">
+          <span class="lp-doc-icon">📄</span>
           <div>
-            <h2 class="lp-title">Lesson Plan</h2>
-            <p class="lp-subtitle">Shared notes for Mom, Daniel &amp; Hesam</p>
+            <div class="lp-doc-title">Lesson Plan</div>
+            <div class="lp-doc-sub">Shared document · Mom, Daniel &amp; Hesam</div>
           </div>
         </div>
-        <div class="lp-author-badge" id="lpAuthorBadge"></div>
-      </div>
-      <div class="lp-feed" id="lpFeed">
-        <div class="lp-loading">Loading notes…</div>
-      </div>
-      <div class="lp-composer">
-        <textarea class="lp-textarea" id="lpInput" placeholder="Write a note, idea, or lesson tip…" rows="3"></textarea>
-        <div class="lp-composer-footer">
-          <span class="lp-char-hint" id="lpCharHint"></span>
-          <button class="lp-add-btn" id="lpAddBtn">Add Note</button>
+        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+          <span class="lp-save-status" id="lpSaveStatus"></span>
+          <div class="lp-author-select-wrap">
+            <span class="lp-author-dot" id="lpAuthorDot"></span>
+            <select class="lp-author-select" id="lpAuthorSelect">
+              <option value="mom">Mom</option>
+              <option value="daniel">Daniel</option>
+              <option value="hesam">Hesam</option>
+            </select>
+          </div>
         </div>
       </div>
+
+      <!-- Document body (saved paragraphs) -->
+      <div class="lp-doc-outer">
+        <div class="lp-doc-body" id="lpDocBody">
+          <div class="lp-doc-empty">Start writing below — your notes will appear here.</div>
+        </div>
+      </div>
+
+      <!-- Composer -->
+      <div class="lp-composer-wrap">
+        <div class="lp-composer-label" id="lpComposerLabel">Writing as Mom</div>
+        <textarea class="lp-draft-area" id="lpDraft" placeholder="Start typing your note… it saves automatically."></textarea>
+        <div class="lp-composer-footer">
+          <span class="lp-hint">Saves as you type · Enter for new line · your draft is kept locally until saved</span>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -2155,7 +2229,7 @@
     if (document.getElementById('panel-progress').classList.contains('active')) maybeLoad();
   })();
 
-  // ── Lesson Plan Notepad (Supabase) ───────────────────────────────────────
+  // ── Lesson Plan — Collaborative Doc (Supabase) ───────────────────────────
   /*
    * SUPABASE TABLE SETUP — run once in the Supabase SQL editor:
    *
@@ -2180,119 +2254,151 @@
       'Content-Type': 'application/json',
     };
 
-    // Author config
     const AUTHORS = {
       mom:    { label: 'Mom',    color: '#F59E0B' },
       daniel: { label: 'Daniel', color: '#3B82F6' },
       hesam:  { label: 'Hesam',  color: '#10B981' },
     };
-    const urlUser  = new URLSearchParams(window.location.search).get('user') || '';
-    const AUTHOR   = AUTHORS[urlUser] ? urlUser : 'mom';
-    const authorCfg = AUTHORS[AUTHOR];
 
-    // Render author badge
-    const badge = document.getElementById('lpAuthorBadge');
-    if (badge) {
-      badge.textContent = 'Logged in as ' + authorCfg.label;
-      badge.style.color = authorCfg.color;
+    // ── Author state ────────────────────────────────────────────────────────
+    const urlUser = new URLSearchParams(window.location.search).get('user') || '';
+    let currentAuthor = AUTHORS[urlUser] ? urlUser : 'mom';
+
+    function applyAuthorUI() {
+      const cfg  = AUTHORS[currentAuthor];
+      const sel  = document.getElementById('lpAuthorSelect');
+      const dot  = document.getElementById('lpAuthorDot');
+      const lbl  = document.getElementById('lpComposerLabel');
+      if (sel) {
+        sel.value = currentAuthor;
+        sel.style.color       = cfg.color;
+        sel.style.borderColor = cfg.color;
+      }
+      if (dot)  dot.style.background = cfg.color;
+      if (lbl)  lbl.textContent = 'Writing as ' + cfg.label;
+      lbl && (lbl.style.color = cfg.color);
+      // Restore any saved draft for this author
+      const draft = document.getElementById('lpDraft');
+      if (draft) draft.value = localStorage.getItem('lpDraft_' + currentAuthor) || '';
     }
 
-    function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-    function fmtDate(iso) {
-      return new Date(iso).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: 'numeric', minute: '2-digit',
+    const sel = document.getElementById('lpAuthorSelect');
+    if (sel) {
+      sel.addEventListener('change', () => {
+        // Save current draft before switching
+        const draft = document.getElementById('lpDraft');
+        if (draft) localStorage.setItem('lpDraft_' + currentAuthor, draft.value);
+        currentAuthor = sel.value;
+        // Update URL without reload
+        const u = new URL(window.location.href);
+        u.searchParams.set('user', currentAuthor);
+        history.replaceState(null, '', u.toString());
+        applyAuthorUI();
       });
     }
 
-    // Fetch & render
-    async function fetchNotes() {
-      const feed = document.getElementById('lpFeed');
-      try {
-        const r = await fetch(
-          SB_URL + '/rest/v1/lesson_notes?order=created_at.asc&select=*',
-          { headers: HEADERS }
-        );
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const notes = await r.json();
-        renderNotes(notes);
-      } catch(e) {
-        if (feed) feed.innerHTML = '<div class="lp-empty">Could not load notes. Check console.</div>';
-        console.error('LP fetch error:', e);
-      }
+    // ── Helpers ─────────────────────────────────────────────────────────────
+    function esc(s) {
+      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    }
+    function fmtTime(iso) {
+      return new Date(iso).toLocaleString(undefined, {
+        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
+      });
+    }
+    function setStatus(msg, cls) {
+      const el = document.getElementById('lpSaveStatus');
+      if (!el) return;
+      el.textContent = msg;
+      el.className = 'lp-save-status ' + (cls || '');
     }
 
-    function renderNotes(notes) {
-      const feed = document.getElementById('lpFeed');
-      if (!feed) return;
+    // ── Render doc ──────────────────────────────────────────────────────────
+    function renderDoc(notes) {
+      const body = document.getElementById('lpDocBody');
+      if (!body) return;
+      const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
       if (!notes.length) {
-        feed.innerHTML = '<div class="lp-empty">No notes yet — be the first to add one!</div>';
+        body.innerHTML = '<div class="lp-doc-empty">Start writing below — your notes will appear here.</div>';
         return;
       }
-      const atBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight < 40;
-      feed.innerHTML = notes.map(n => {
+      body.innerHTML = notes.map(n => {
         const cfg = AUTHORS[n.author] || { label: n.author, color: '#888' };
-        return `<div class="lp-note" style="border-left-color:${cfg.color}">
-          <div class="lp-note-meta">
-            <span class="lp-note-author" style="color:${cfg.color}">${esc(cfg.label)}</span>
-            <span class="lp-note-dot" style="background:${cfg.color}"></span>
-            <span class="lp-note-time">${fmtDate(n.created_at)}</span>
+        return `<div class="lp-para">
+          <div class="lp-para-annotation">
+            <span class="lp-para-tag" style="background:${cfg.color}">${esc(cfg.label)}</span>
+            <span class="lp-para-time">${fmtTime(n.created_at)}</span>
           </div>
-          <div class="lp-note-content">${esc(n.content)}</div>
+          <div class="lp-para-text" style="border-left-color:${cfg.color}33">${esc(n.content)}</div>
         </div>`;
       }).join('');
-      if (atBottom) feed.scrollTop = feed.scrollHeight;
+      if (atBottom) body.scrollTop = body.scrollHeight;
     }
 
-    // Submit note
-    async function addNote() {
-      const input = document.getElementById('lpInput');
-      const btn   = document.getElementById('lpAddBtn');
-      const text  = (input.value || '').trim();
-      if (!text) { input.focus(); return; }
-      btn.disabled = true;
-      btn.textContent = 'Saving…';
+    // ── Fetch all notes ─────────────────────────────────────────────────────
+    async function fetchNotes() {
+      try {
+        const r = await fetch(SB_URL + '/rest/v1/lesson_notes?order=created_at.asc&select=*', { headers: HEADERS });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        renderDoc(await r.json());
+      } catch(e) {
+        console.error('LP fetch:', e);
+      }
+    }
+
+    // ── Auto-save (debounced 1.5s) ──────────────────────────────────────────
+    let saveTimer = null;
+    let lastSavedText = {};  // author → last saved content
+
+    async function flushDraft() {
+      const draft = document.getElementById('lpDraft');
+      if (!draft) return;
+      const text = draft.value.trim();
+      if (!text || text === (lastSavedText[currentAuthor] || '')) return;
+      setStatus('Saving…', 'saving');
       try {
         const r = await fetch(SB_URL + '/rest/v1/lesson_notes', {
           method: 'POST',
           headers: { ...HEADERS, 'Prefer': 'return=representation' },
-          body: JSON.stringify({ author: AUTHOR, content: text }),
+          body: JSON.stringify({ author: currentAuthor, content: text }),
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        input.value = '';
-        document.getElementById('lpCharHint').textContent = '';
+        lastSavedText[currentAuthor] = text;
+        draft.value = '';
+        localStorage.removeItem('lpDraft_' + currentAuthor);
+        setStatus('✓ Saved', 'saved');
+        setTimeout(() => setStatus('', ''), 2500);
         await fetchNotes();
-        const feed = document.getElementById('lpFeed');
-        if (feed) feed.scrollTop = feed.scrollHeight;
+        const body = document.getElementById('lpDocBody');
+        if (body) body.scrollTop = body.scrollHeight;
       } catch(e) {
-        alert('Failed to save note: ' + e.message);
-        console.error(e);
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Add Note';
+        setStatus('Save failed', '');
+        console.error('LP save:', e);
       }
     }
 
-    // Char hint
-    const input = document.getElementById('lpInput');
-    if (input) {
-      input.addEventListener('input', () => {
-        const len = input.value.length;
-        document.getElementById('lpCharHint').textContent = len ? len + ' chars' : '';
+    const draft = document.getElementById('lpDraft');
+    if (draft) {
+      draft.addEventListener('input', () => {
+        localStorage.setItem('lpDraft_' + currentAuthor, draft.value);
+        clearTimeout(saveTimer);
+        if (draft.value.trim()) {
+          setStatus('…', 'saving');
+          saveTimer = setTimeout(flushDraft, 1500);
+        }
       });
-      input.addEventListener('keydown', e => {
-        if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) addNote();
+      // Also flush on blur so switching tabs saves immediately
+      draft.addEventListener('blur', () => {
+        clearTimeout(saveTimer);
+        flushDraft();
       });
     }
-    const addBtn = document.getElementById('lpAddBtn');
-    if (addBtn) addBtn.addEventListener('click', addNote);
 
-    // Lazy load + 30s refresh
+    // ── Lazy load + 30s poll ────────────────────────────────────────────────
     let lpLoaded = false;
     let lpTimer  = null;
     function startLp() {
+      applyAuthorUI();
       if (!lpLoaded) { lpLoaded = true; fetchNotes(); }
       if (!lpTimer)  { lpTimer = setInterval(fetchNotes, 30000); }
     }
