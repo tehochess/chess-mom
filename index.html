@@ -1151,10 +1151,9 @@
   <section class="tab-panel" id="panel-scout" role="tabpanel">
     <div class="scout-intro">
       <h2>🔍 Scout Dad</h2>
-      <p class="subtitle">Enter his Chess.com username to pull his recent games and get an AI breakdown of how to beat him.</p>
+      <p class="subtitle">Pull Dad's recent games from Chess.com and get an AI breakdown of how to beat him.</p>
       <div class="scout-input-row">
-        <input type="text" id="usernameInput" class="scout-text-input" placeholder="Chess.com username" autocomplete="off" spellcheck="false">
-        <button id="fetchBtn" class="scout-btn">Fetch &amp; Analyze</button>
+        <button id="fetchBtn" class="scout-btn">Analyze Dad</button>
       </div>
       <div id="scoutStatus"></div>
       <div id="scoutError"></div>
@@ -1339,7 +1338,7 @@
   // ── Scout Dad ──────────────────────────────────────────────────────────────
   // NOTE: Direct browser calls to the Anthropic API expose your API key.
   // For production, proxy this through a backend. Fine for personal/local use.
-  const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_KEY_HERE';
+  const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_KEY_HERE'; // paste your key here locally — do not commit it
 
   const SCOUT_SYSTEM = `You are an expert chess coach analyzing games to help a beginner beat this specific opponent. Analyze these games and return a report with these sections:
 1) OPENINGS: What openings does this player favor as White and Black?
@@ -1406,10 +1405,10 @@ Keep it beginner friendly and actionable.`;
     document.getElementById('scoutReport').innerHTML = html;
   }
 
-  async function runScout() {
-    const username = document.getElementById('usernameInput').value.trim();
-    if (!username) { document.getElementById('usernameInput').focus(); return; }
+  const SCOUT_USERNAME = 'blackactive';
+  const CORS_PROXY = 'https://corsproxy.io/?';
 
+  async function runScout() {
     const btn = document.getElementById('fetchBtn');
     btn.disabled = true;
     document.getElementById('scoutReport').innerHTML = '';
@@ -1418,14 +1417,14 @@ Keep it beginner friendly and actionable.`;
     try {
       // 1. Get archives list
       setScoutStatus('Fetching game archives from Chess.com…');
-      const archRes = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(username)}/games/archives`);
-      if (!archRes.ok) throw new Error(`Player "${username}" not found on Chess.com (${archRes.status})`);
+      const archRes = await fetch(`${CORS_PROXY}https://api.chess.com/pub/player/${encodeURIComponent(SCOUT_USERNAME)}/games/archives`);
+      if (!archRes.ok) throw new Error(`Could not fetch archives for "${SCOUT_USERNAME}" (${archRes.status})`);
       const { archives } = await archRes.json();
-      if (!archives || archives.length === 0) throw new Error('No game archives found for this player.');
+      if (!archives || archives.length === 0) throw new Error('No game archives found.');
 
       // 2. Fetch most recent monthly archive
       setScoutStatus('Loading most recent games…');
-      const latestRes = await fetch(archives[archives.length - 1]);
+      const latestRes = await fetch(`${CORS_PROXY}${archives[archives.length - 1]}`);
       if (!latestRes.ok) throw new Error('Could not fetch the most recent game archive.');
       const { games = [] } = await latestRes.json();
       if (games.length === 0) throw new Error('No games found in the most recent archive.');
@@ -1485,9 +1484,6 @@ Keep it beginner friendly and actionable.`;
     setInterval(() => tickCountdown(matchDate), 1000);
     initLessons();
     document.getElementById('fetchBtn').addEventListener('click', runScout);
-    document.getElementById('usernameInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') runScout();
-    });
   }
 </script>
 </body>
