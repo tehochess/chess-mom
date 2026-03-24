@@ -8,7 +8,7 @@ SB_URL      = os.environ.get("SUPABASE_URL", "")
 SB_KEY      = os.environ.get("SUPABASE_KEY", "")
 RESEND_KEY  = os.environ.get("RESEND_API_KEY", "")
 TO_EMAIL    = os.environ.get("TO_EMAIL", "")
-GEMINI_KEY  = os.environ.get("GEMINI_API_KEY", "")
+ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 SB_HEADERS = {
     "apikey": SB_KEY,
@@ -23,7 +23,7 @@ def fetch_entries():
     r.raise_for_status()
     return r.json()
 
-# ── 2. Build Gemini prompt ────────────────────────────────────────────────────
+# ── 2. Build Claude prompt ───────────────────────────────────────────────────
 def build_prompt(entries):
     lines = []
     for e in entries:
@@ -41,7 +41,7 @@ def build_prompt(entries):
         )
     return "\n".join(lines)
 
-def call_gemini(entries):
+def call_claude(entries):
     system = (
         "You are Coach Samuel, a warm and encouraging chess coach helping a beginner "
         "named Mom prepare for a match against Dad. Write a weekly report card in a "
@@ -54,24 +54,28 @@ def call_gemini(entries):
     )
     journal_text = build_prompt(entries)
     payload = {
-        "contents": [
+        "model": "claude-sonnet-4-20250514",
+        "max_tokens": 600,
+        "system": system,
+        "messages": [
             {
                 "role": "user",
-                "parts": [
-                    {"text": f"{system}\n\nHere is Mom's training journal for the week:\n\n{journal_text}"}
-                ],
+                "content": f"Here is Mom's training journal for the week:\n\n{journal_text}",
             }
         ],
-        "generationConfig": {"temperature": 0.7, "maxOutputTokens": 400},
     }
-    url = (
-        f"https://generativelanguage.googleapis.com/v1beta/models/"
-        f"gemini-2.0-flash:generateContent?key={GEMINI_KEY}"
+    r = requests.post(
+        "https://api.anthropic.com/v1/messages",
+        headers={
+            "x-api-key": ANTHROPIC_KEY,
+            "anthropic-version": "2023-06-01",
+            "Content-Type": "application/json",
+        },
+        json=payload,
+        timeout=30,
     )
-    r = requests.post(url, json=payload, timeout=30)
     r.raise_for_status()
-    data = r.json()
-    return data["candidates"][0]["content"]["parts"][0]["text"].strip()
+    return r.json()["content"][0]["text"].strip()
 
 # ── 3. Compute averages ───────────────────────────────────────────────────────
 def avg(entries, key):
@@ -239,8 +243,8 @@ def main():
     week_label = f"{week_start} – {week_end}"
     subject    = f"♟ Mom's Chess Week · {week_label}"
 
-    print(f"Fetched {len(entries)} entries. Calling Gemini...")
-    ai_report = call_gemini(entries)
+    print(f"Fetched {len(entries)} entries. Calling Claude...")
+    ai_report = call_claude(entries)
 
     html = build_html(entries, ai_report, week_label)
 
