@@ -1276,18 +1276,18 @@
   const savedTab = localStorage.getItem('activeTab');
   if (savedTab) switchTab(savedTab);
 
-  // ── Q&A Tracker ──────────────────────────────────────────────────────────────
+  // ── Q&A Tracker (Supabase) ────────────────────────────────────────────────────
   (function() {
+    const SB_URL = 'https://kclmbxgqiomaffczqgwx.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
+    const HEADERS = {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+    };
+
     const isCoach = new URLSearchParams(window.location.search).get('coach') === 'true';
     if (isCoach) document.getElementById('panel-coach').classList.add('coach-mode');
-
-    const STORE_KEY = 'coachQuestions';
-
-    function loadQs() {
-      try { return JSON.parse(localStorage.getItem(STORE_KEY)) || []; }
-      catch { return []; }
-    }
-    function saveQs(qs) { localStorage.setItem(STORE_KEY, JSON.stringify(qs)); }
 
     function esc(s) {
       return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
@@ -1301,12 +1301,34 @@
     }
 
     let currentFilter = 'All';
+    let allQuestions  = [];
+
+    function setFeedLoading() {
+      document.getElementById('qaFeed').innerHTML =
+        '<div class="qa-empty" style="opacity:.5">Loading questions…</div>';
+    }
+
+    async function fetchQuestions() {
+      setFeedLoading();
+      try {
+        const res = await fetch(
+          `${SB_URL}/rest/v1/questions?order=created_at.desc`,
+          { headers: HEADERS }
+        );
+        if (!res.ok) throw new Error('Failed to load questions');
+        allQuestions = await res.json();
+        renderFeed();
+      } catch (err) {
+        document.getElementById('qaFeed').innerHTML =
+          `<div class="qa-empty" style="color:#991b1b;">Could not load questions.<br><small>${esc(err.message)}</small></div>`;
+      }
+    }
 
     function renderFeed() {
       const feed = document.getElementById('qaFeed');
-      const all  = loadQs();
-      const allRev = all.slice().reverse();
-      const qs   = currentFilter === 'All' ? allRev : allRev.filter(q => q.cat === currentFilter);
+      const qs   = currentFilter === 'All'
+        ? allQuestions
+        : allQuestions.filter(q => q.category === currentFilter);
 
       if (qs.length === 0) {
         feed.innerHTML = `<div class="qa-empty">
@@ -1317,7 +1339,6 @@
       }
 
       feed.innerHTML = qs.map(q => {
-        const realIdx = all.findIndex(x => x.ts === q.ts);
         const answerHtml = q.answer
           ? `<div class="qa-answer-box">
                <div class="qa-answer-label">♞ Coach Samuel</div>
@@ -1325,20 +1346,20 @@
              </div>`
           : `<p class="qa-awaiting">Awaiting Coach Samuel's answer…</p>`;
 
-        return `<div class="qa-card" data-idx="${realIdx}">
+        return `<div class="qa-card" data-id="${esc(q.id)}">
           <div class="qa-card-top">
-            <span class="qa-badge qa-badge-${esc(q.cat)}">${esc(q.cat)}</span>
-            <span class="qa-ts">${fmtDate(q.ts)}</span>
+            <span class="qa-badge qa-badge-${esc(q.category)}">${esc(q.category)}</span>
+            <span class="qa-ts">${fmtDate(q.created_at)}</span>
           </div>
-          <div class="qa-question">${esc(q.text)}</div>
+          <div class="qa-question">${esc(q.question)}</div>
           <div class="qa-answer-wrap">
             ${answerHtml}
-            <button class="qa-add-answer-btn" data-idx="${realIdx}">
+            <button class="qa-add-answer-btn" data-id="${esc(q.id)}">
               ${q.answer ? 'Edit Answer' : '+ Add Answer'}
             </button>
-            <div class="qa-answer-form" data-form="${realIdx}">
+            <div class="qa-answer-form" data-form="${esc(q.id)}">
               <textarea placeholder="Type Coach Samuel's answer here...">${q.answer ? esc(q.answer) : ''}</textarea>
-              <button class="qa-save-btn" data-save="${realIdx}">Save Answer</button>
+              <button class="qa-save-btn" data-id="${esc(q.id)}">Save Answer</button>
             </div>
           </div>
         </div>`;
@@ -1346,37 +1367,61 @@
 
       feed.querySelectorAll('.qa-add-answer-btn').forEach(btn => {
         btn.addEventListener('click', () => {
-          const form = feed.querySelector(`.qa-answer-form[data-form="${btn.dataset.idx}"]`);
+          const form = feed.querySelector(`.qa-answer-form[data-form="${btn.dataset.id}"]`);
           form.classList.toggle('open');
         });
       });
 
       feed.querySelectorAll('.qa-save-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const idx  = parseInt(btn.dataset.save, 10);
-          const form = feed.querySelector(`.qa-answer-form[data-form="${idx}"]`);
+        btn.addEventListener('click', async () => {
+          const id   = btn.dataset.id;
+          const form = feed.querySelector(`.qa-answer-form[data-form="${id}"]`);
           const text = form.querySelector('textarea').value.trim();
-          const qs   = loadQs();
-          qs[idx].answer = text;
-          saveQs(qs);
-          renderFeed();
+          btn.disabled = true;
+          try {
+            const res = await fetch(
+              `${SB_URL}/rest/v1/questions?id=eq.${encodeURIComponent(id)}`,
+              {
+                method: 'PATCH',
+                headers: HEADERS,
+                body: JSON.stringify({ answer: text }),
+              }
+            );
+            if (!res.ok) throw new Error('Save failed');
+            await fetchQuestions();
+          } catch (err) {
+            alert('Error saving answer: ' + err.message);
+            btn.disabled = false;
+          }
         });
       });
     }
 
-    document.getElementById('qaSubmit').addEventListener('click', () => {
+    document.getElementById('qaSubmit').addEventListener('click', async () => {
       const input = document.getElementById('qaInput');
       const cat   = document.getElementById('qaCat').value;
       const text  = input.value.trim();
       if (!text) { input.focus(); return; }
-      const qs = loadQs();
-      qs.push({ text, cat, ts: new Date().toISOString(), answer: '' });
-      saveQs(qs);
-      input.value = '';
-      const msg = document.getElementById('qaSuccess');
-      msg.classList.add('show');
-      setTimeout(() => msg.classList.remove('show'), 3000);
-      renderFeed();
+
+      const submitBtn = document.getElementById('qaSubmit');
+      submitBtn.disabled = true;
+      try {
+        const res = await fetch(`${SB_URL}/rest/v1/questions`, {
+          method: 'POST',
+          headers: { ...HEADERS, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ question: text, category: cat }),
+        });
+        if (!res.ok) throw new Error('Submit failed');
+        input.value = '';
+        const msg = document.getElementById('qaSuccess');
+        msg.classList.add('show');
+        setTimeout(() => msg.classList.remove('show'), 3000);
+        await fetchQuestions();
+      } catch (err) {
+        alert('Error submitting question: ' + err.message);
+      } finally {
+        submitBtn.disabled = false;
+      }
     });
 
     document.getElementById('qaFilters').addEventListener('click', e => {
@@ -1388,7 +1433,7 @@
       renderFeed();
     });
 
-    renderFeed();
+    fetchQuestions();
   })();
 
   // ── Scout Dad ──────────────────────────────────────────────────────────────
