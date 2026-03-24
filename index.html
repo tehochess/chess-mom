@@ -5,10 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Samuel's Chess Academy</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟</text></svg>">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
-  <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -296,71 +293,97 @@
     }
 
     /* ── SCOUT DAD ───────────────────────────────────── */
-    .scout-wrap { max-width: 720px; margin: 0 auto; padding: 0 0 60px; }
+    .scout-wrap { max-width: 680px; margin: 0 auto; padding: 0 0 60px; }
 
-    .scout-card {
-      background: var(--white);
-      border: 1px solid var(--cream3);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      margin-bottom: 20px;
+    .scout-section {
+      background: var(--white); border: 1px solid var(--cream3);
+      border-radius: var(--radius); padding: 22px 24px;
+      box-shadow: 0 2px 12px rgba(26,46,26,.08); margin-bottom: 14px;
     }
-    .scout-card h2 {
-      font-size: 1.2rem; font-weight: 700; color: var(--green-dark);
-      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
+    .scout-section-head {
+      font-size: 1rem; font-weight: 700; color: var(--green-dark);
+      margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
     }
-    .scout-subtitle { font-size: .88rem; color: var(--muted); margin-bottom: 18px; }
 
-    .scout-game-meta { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
-    .scout-meta-chip {
-      background: var(--cream2); border: 1px solid var(--cream3);
-      border-radius: 999px; padding: 3px 12px;
-      font-size: .78rem; color: var(--muted); font-weight: 500;
+    /* Board */
+    .scout-board-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .scout-game-tag {
+      width: 100%; display: flex; justify-content: space-between;
+      align-items: center; flex-wrap: wrap; gap: 6px;
+      font-size: .8rem; color: var(--muted); font-weight: 500;
     }
-    .scout-meta-chip strong { color: var(--text); }
+    .scout-result-badge {
+      background: #fee2e2; color: #991b1b;
+      border-radius: 999px; padding: 3px 12px; font-size: .75rem; font-weight: 700;
+    }
+    #scoutBoard {
+      display: grid; grid-template-columns: repeat(8, 1fr);
+      width: min(320px, 100%);
+      border: 2px solid var(--green-dark); border-radius: 3px;
+      overflow: hidden; box-shadow: 0 4px 20px rgba(26,46,26,.3);
+    }
+    #scoutBoard > div { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
+    .sq-l { background: #f0d9b5; }
+    .sq-d { background: #b58863; }
+    .sq-l.sq-from, .sq-l.sq-to { background: #cdd26a; }
+    .sq-d.sq-from, .sq-d.sq-to { background: #aaa23a; }
+    .pw, .pb { font-size: clamp(16px, 5.5vw, 32px); line-height: 1; user-select: none; display: block; }
+    .pw { color: #fff; text-shadow: 0 0 2px #555, 0 0 3px #333; }
+    .pb { color: #1a1a1a; }
 
-    .scout-board-wrap { display: flex; flex-direction: column; align-items: flex-start; gap: 14px; }
-    #scoutBoard { width: 100%; max-width: 380px; }
-
-    .scout-controls { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .scout-controls {
+      display: flex; align-items: center; gap: 10px; width: min(320px, 100%);
+    }
     .scout-nav-btn {
-      padding: 8px 18px; background: var(--green-mid); color: var(--cream);
-      border: none; border-radius: var(--radius-sm); font-size: .95rem;
-      font-weight: 700; cursor: pointer; transition: background .15s, transform .1s;
+      width: 40px; height: 40px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      background: var(--green-mid); color: var(--cream);
+      border: none; border-radius: var(--radius-sm);
+      font-size: 1rem; cursor: pointer; transition: background .15s, transform .1s;
     }
     .scout-nav-btn:hover:not(:disabled) { background: var(--green-light); }
-    .scout-nav-btn:active:not(:disabled) { transform: scale(.97); }
-    .scout-nav-btn:disabled { opacity: .45; cursor: not-allowed; }
+    .scout-nav-btn:active:not(:disabled) { transform: scale(.93); }
+    .scout-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
+    .scout-move-display { flex: 1; text-align: center; }
+    .scout-move-info { font-size: .72rem; color: var(--muted); display: block; }
+    .scout-move-san  { font-size: 1rem; font-weight: 700; color: var(--green-dark); font-family: monospace; display: block; min-height: 1.3em; }
+    .scout-kbd-hint  { font-size: .72rem; color: var(--muted); text-align: center; }
 
-    .scout-move-info { font-size: .88rem; color: var(--muted); font-weight: 500; min-width: 90px; }
-    .scout-move-text {
-      background: var(--cream2); border: 1px solid var(--cream3);
-      border-radius: var(--radius-sm); padding: 4px 10px;
-      font-size: .88rem; font-weight: 700; color: var(--green-dark);
-      font-family: monospace; min-width: 40px; text-align: center;
-    }
+    /* Narrative */
+    .scout-prose { font-size: .9rem; color: var(--text); line-height: 1.75; margin-bottom: 10px; }
+    .scout-prose:last-child { margin-bottom: 0; }
 
-    .scout-prompt-textarea {
-      width: 100%; min-height: 340px;
-      border: 1.5px solid var(--cream3); border-radius: var(--radius-sm);
-      padding: 12px 14px; font-size: .82rem; font-family: 'Courier New', monospace;
-      color: var(--text); background: var(--cream); resize: vertical;
-      outline: none; transition: border-color .2s, box-shadow .2s;
-      line-height: 1.55; margin-bottom: 10px;
+    /* Weaknesses */
+    .scout-insights {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;
     }
-    .scout-prompt-textarea:focus {
-      border-color: var(--green-accent);
-      box-shadow: 0 0 0 3px rgba(78,158,78,.15);
-      background: var(--white);
+    .scout-insight {
+      background: var(--cream); border: 1px solid var(--cream3);
+      border-left: 3px solid var(--green-accent);
+      border-radius: var(--radius-sm); padding: 12px 14px;
     }
-    .scout-copy-btn {
-      padding: 8px 20px; background: var(--green-mid); color: var(--cream);
-      border: none; border-radius: var(--radius-sm); font-size: .88rem;
-      font-weight: 700; cursor: pointer; transition: background .15s;
+    .scout-insight strong { display: block; font-size: .87rem; color: var(--green-dark); margin-bottom: 5px; }
+    .scout-insight p { font-size: .83rem; color: var(--muted); line-height: 1.6; margin: 0; }
+
+    /* Plan */
+    .scout-plan { display: flex; flex-direction: column; gap: 12px; }
+    .scout-plan-item { display: flex; gap: 14px; align-items: flex-start; }
+    .scout-plan-num {
+      flex-shrink: 0; width: 28px; height: 28px;
+      background: var(--green-mid); color: var(--cream);
+      border-radius: 50%; display: flex; align-items: center; justify-content: center;
+      font-size: .82rem; font-weight: 700; margin-top: 2px;
     }
-    .scout-copy-btn:hover { background: var(--green-light); }
-    .scout-copy-btn.copied { background: var(--green-dark); }
+    .scout-plan-text { font-size: .88rem; color: var(--text); line-height: 1.65; }
+    .scout-plan-text strong { color: var(--green-dark); display: block; margin-bottom: 2px; }
+
+    /* Summary */
+    .scout-summary { background: var(--green-dark); border-radius: var(--radius); padding: 20px 24px; margin-bottom: 14px; }
+    .scout-summary-label {
+      font-size: .7rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--gold); display: block; margin-bottom: 8px;
+    }
+    .scout-summary-text { font-size: .95rem; font-style: italic; color: var(--cream); line-height: 1.65; margin: 0; }
 
     /* ── HOME / HERO ─────────────────────────────────── */
     .hero {
@@ -1089,33 +1112,92 @@
   <!-- Scout Dad -->
   <section class="tab-panel" id="panel-scout" role="tabpanel">
     <div class="scout-wrap">
-      <!-- Board card -->
-      <div class="scout-card">
-        <h2>🔍 Scout Dad</h2>
-        <p class="scout-subtitle">Step through Dad's game move by move to spot his patterns.</p>
-        <div class="scout-game-meta">
-          <span class="scout-meta-chip">White: <strong>elijahaleje49</strong></span>
-          <span class="scout-meta-chip">Black (Dad): <strong>BlackActive</strong></span>
-          <span class="scout-meta-chip">📅 <strong>Mar 18, 2026</strong></span>
-          <span class="scout-meta-chip">Result: <strong>1-0</strong></span>
-        </div>
-        <div class="scout-board-wrap">
+
+      <!-- Board -->
+      <div class="scout-section">
+        <div class="scout-board-inner">
+          <div class="scout-game-tag">
+            <span>♟ BlackActive (Dad) · Black · Mar 18 2026</span>
+            <span class="scout-result-badge">Lost · Resigned</span>
+          </div>
           <div id="scoutBoard"></div>
           <div class="scout-controls">
-            <button class="scout-nav-btn" id="scoutPrev">◀ Prev</button>
-            <button class="scout-nav-btn" id="scoutNext">Next ▶</button>
-            <span class="scout-move-info" id="scoutMoveInfo">Start</span>
-            <span class="scout-move-text" id="scoutMoveText">&nbsp;</span>
+            <button class="scout-nav-btn" id="scoutPrev" title="Previous move (←)">◀</button>
+            <div class="scout-move-display">
+              <span class="scout-move-info" id="scoutMoveInfo">Starting position</span>
+              <span class="scout-move-san"  id="scoutMoveSan">&nbsp;</span>
+            </div>
+            <button class="scout-nav-btn" id="scoutNext" title="Next move (→)">▶</button>
+          </div>
+          <p class="scout-kbd-hint">← → arrow keys also work</p>
+        </div>
+      </div>
+
+      <!-- Narrative -->
+      <div class="scout-section">
+        <h3 class="scout-section-head"><span>🎯</span> How the Game Went</h3>
+        <p class="scout-prose">Dad opened with the Owen's Defense — putting his bishop on b7 to pressure the center from the side. It's an unusual choice that only works with very precise play. White immediately grabbed the center with four pawns and launched a kingside pawn charge straight toward Dad's king.</p>
+        <p class="scout-prose">Dad fell behind early: a pointless pawn push on move 6, his queen brought out too soon and then chased around for four turns, the same knight moved twice just to end up where it started. Every wasted move gave White a free turn to build the attack.</p>
+        <p class="scout-prose">The killing blow came on move 23 — White pushed a pawn all the way to the back row and promoted it to a queen <em>while the game was still going</em>. With two queens and no defense, Dad resigned on move 34.</p>
+      </div>
+
+      <!-- Weaknesses -->
+      <div class="scout-section">
+        <h3 class="scout-section-head"><span>🔍</span> Key Weaknesses to Exploit</h3>
+        <div class="scout-insights">
+          <div class="scout-insight">
+            <strong>He wastes moves in the opening</strong>
+            <p>Pointless pawn push, queen chased around for four turns, knight that traveled forward and back. Each wasted move is a free turn for you.</p>
+          </div>
+          <div class="scout-insight">
+            <strong>His pieces block each other</strong>
+            <p>His whole plan was to use his bishop on b7 — then he played pawns that blocked it completely. His best piece was useless all game.</p>
+          </div>
+          <div class="scout-insight">
+            <strong>He falls apart under direct attack</strong>
+            <p>When pawns came at his king, Dad panicked and grabbed random material instead of defending. Pressure breaks his game completely.</p>
+          </div>
+          <div class="scout-insight">
+            <strong>He misses the biggest threat</strong>
+            <p>He was busy capturing pieces while White's pawns were marching toward promotion. He grabbed small wins and missed the disaster coming.</p>
           </div>
         </div>
       </div>
-      <!-- Prompt card -->
-      <div class="scout-card">
-        <h2>📋 Claude Prompt Template</h2>
-        <p class="scout-subtitle">Copy this and paste into Claude to generate the scouting report.</p>
-        <textarea class="scout-prompt-textarea" id="scoutPrompt" readonly></textarea>
-        <button class="scout-copy-btn" id="scoutCopy">Copy Prompt</button>
+
+      <!-- Plan -->
+      <div class="scout-section">
+        <h3 class="scout-section-head"><span>♟</span> Mom's Game Plan</h3>
+        <div class="scout-plan">
+          <div class="scout-plan-item">
+            <span class="scout-plan-num">1</span>
+            <div class="scout-plan-text">
+              <strong>Play e4 and take the center</strong>
+              If Dad plays b6, just keep going: d4 next, get your knights and bishops out, then castle. Whoever finishes developing first will be in control.
+            </div>
+          </div>
+          <div class="scout-plan-item">
+            <span class="scout-plan-num">2</span>
+            <div class="scout-plan-text">
+              <strong>Attack once you're castled</strong>
+              Push pawns toward whichever side Dad's king is on. He doesn't handle pawn attacks — he'll panic and hand you pieces or make a blunder.
+            </div>
+          </div>
+          <div class="scout-plan-item">
+            <span class="scout-plan-num">3</span>
+            <div class="scout-plan-text">
+              <strong>Keep the queens on the board</strong>
+              Dad prefers quiet, slow games. Keep it sharp and active — the pressure will force the mistakes he always makes.
+            </div>
+          </div>
+        </div>
       </div>
+
+      <!-- Summary -->
+      <div class="scout-summary">
+        <span class="scout-summary-label">Dad in one sentence</span>
+        <p class="scout-summary-text">A patient, indirect player who completely falls apart when you attack him early and directly — so that's exactly what you should do.</p>
+      </div>
+
     </div>
   </section>
 
@@ -1394,136 +1476,82 @@
 
   // ── Scout Dad ──────────────────────────────────────────────────────────────
   (function() {
-    const PGN = `[Event "Live Chess"]
-[Site "Chess.com"]
-[Date "2026.03.18"]
-[White "elijahaleje49"]
-[Black "BlackActive"]
-[Result "1-0"]
+    const PIECES = {
+      K:'♔', Q:'♕', R:'♖', B:'♗', N:'♘', P:'♙',
+      k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟',
+    };
+
+    const game = new Chess();
+    game.load_pgn(`[Event "Live Chess"][Site "Chess.com"][Date "2026.03.18"][White "elijahaleje49"][Black "BlackActive"][Result "1-0"]
 1. e4 b6 2. d4 Bb7 3. f3 e6 4. c4 d6 5. Nc3 Nd7 6. Be3 a6 7. d5 e5 8. f4 Qf6
 9. f5 O-O-O 10. g4 Qe7 11. g5 f6 12. h4 Nc5 13. Bg2 Kb8 14. b4 Nd7 15. a4 Qe8
 16. Nge2 Be7 17. Ng3 g6 18. Bf3 Rc8 19. h5 fxg5 20. hxg6 h6 21. Bh5 Ndf6
 22. g7 Nxh5 23. gxh8=Q Nxg3 24. Qg4 Nxh1 25. O-O-O Bf6 26. Qh7 Bd8 27. Rxh1 Nf6
 28. Qg6 Nxg4 29. Qxe8 Nxe3 30. Rxh6 Nxc4 31. f6 g4 32. f7 Bg5+ 33. Kc2 Rxe8
-34. fxe8=Q+ 1-0`;
+34. fxe8=Q+ 1-0`);
 
-    const PROMPT = `You are helping me build a chess-learning website for my mom at
-tehochess.github.io/chess-mom. The site is built with vanilla HTML/CSS/JS
-(no frameworks). One of the tabs is "Scout Dad," where I show a few of my dad's
-games and generate a friendly, beginner-focused scouting report explaining
-his weaknesses and how my mom can beat him.
+    const moves = game.history({ verbose: true });
+    let idx = 0;
 
-Below is one PGN of my dad (username: BlackActive) playing Black.
-Please analyze the game in plain English for a total beginner.
-
-Your goals:
-
-1. Explain the game in simple English:
-   - What happened?
-   - Where did Dad go wrong?
-   - What were the turning points?
-
-2. Identify Dad's recurring weaknesses using these Key Principles:
-   - Control the center
-   - Knights before bishops
-   - Don't move the same piece twice
-   - Castle early
-   - Don't bring the queen out early
-   - Connect your rooks
-   - Avoid unnecessary pawn moves
-   - Check for hanging pieces
-   - Know your piece values
-   - Look for checks, captures, threats
-   - Forks, pins, discovered attacks
-   - Trade wisely
-   - Rooks on open files
-   - Knights love outposts
-   - Don't block your own bishops
-   - Improve your worst piece
-   - Create two weaknesses
-   - Space advantage
-   - Endgame fundamentals
-
-3. Extract patterns Mom can exploit.
-
-4. Give Mom a simple, actionable plan:
-   - What opening she should play
-   - What positions to steer toward
-   - What mistakes Dad reliably makes
-
-5. Tone:
-   - Friendly, encouraging, beginner-safe
-   - No jargon unless explained
-   - No engine lines
-
-Here is the PGN to analyze:
-
-${PGN}`;
-
-    document.getElementById('scoutPrompt').value = PROMPT;
-
-    const game = new Chess();
-    game.load_pgn(PGN);
-    const moves = game.history();
-    let index = 0;
-    let board  = null;
-
-    function initBoard() {
-      if (board) return;
-      board = Chessboard('scoutBoard', {
-        position: 'start',
-        pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png',
-      });
-      renderBoard();
+    function buildBoard(fen, lm) {
+      const rows = fen.split(' ')[0].split('/');
+      let html = '';
+      for (let r = 0; r < 8; r++) {
+        let c = 0;
+        for (const ch of rows[r]) {
+          if (ch >= '1' && ch <= '8') {
+            for (let i = 0, n = +ch; i < n; i++) { html += cell(r, c++, null, lm); }
+          } else { html += cell(r, c++, ch, lm); }
+        }
+      }
+      return html;
     }
 
-    function renderBoard() {
+    function cell(r, c, piece, lm) {
+      const sqName = 'abcdefgh'[c] + (8 - r);
+      let cls = (r + c) % 2 === 0 ? 'sq-l' : 'sq-d';
+      if (lm && sqName === lm.from) cls += ' sq-from';
+      if (lm && sqName === lm.to)   cls += ' sq-to';
+      const inner = piece
+        ? `<span class="${piece === piece.toUpperCase() ? 'pw' : 'pb'}">${PIECES[piece]}</span>`
+        : '';
+      return `<div class="${cls}">${inner}</div>`;
+    }
+
+    function render() {
       const g = new Chess();
-      for (let i = 0; i < index; i++) g.move(moves[i]);
-      if (board) board.position(g.fen(), false);
+      for (let i = 0; i < idx; i++) g.move(moves[i].san);
+      const lm = idx > 0 ? moves[idx - 1] : null;
 
-      document.getElementById('scoutPrev').disabled = index === 0;
-      document.getElementById('scoutNext').disabled = index === moves.length;
+      document.getElementById('scoutBoard').innerHTML = buildBoard(g.fen(), lm);
+      document.getElementById('scoutPrev').disabled = idx === 0;
+      document.getElementById('scoutNext').disabled = idx === moves.length;
 
-      const infoEl = document.getElementById('scoutMoveInfo');
-      const textEl = document.getElementById('scoutMoveText');
-      if (index === 0) {
-        infoEl.textContent = 'Start';
-        textEl.innerHTML   = '&nbsp;';
+      if (idx === 0) {
+        document.getElementById('scoutMoveInfo').textContent = 'Starting position';
+        document.getElementById('scoutMoveSan').innerHTML = '&nbsp;';
       } else {
-        const moveNum = Math.ceil(index / 2);
-        const side    = index % 2 === 1 ? 'White' : 'Black (Dad)';
-        infoEl.textContent = `Move ${moveNum} · ${side}`;
-        textEl.textContent = moves[index - 1];
+        document.getElementById('scoutMoveInfo').textContent =
+          `Move ${Math.ceil(idx / 2)} · ${idx % 2 === 1 ? 'White' : 'Black (Dad)'}`;
+        document.getElementById('scoutMoveSan').textContent = moves[idx - 1].san;
       }
     }
 
     document.getElementById('scoutNext').addEventListener('click', () => {
-      if (index < moves.length) { index++; renderBoard(); }
+      if (idx < moves.length) { idx++; render(); }
     });
     document.getElementById('scoutPrev').addEventListener('click', () => {
-      if (index > 0) { index--; renderBoard(); }
+      if (idx > 0) { idx--; render(); }
     });
 
-    // Init board lazily when Scout Dad tab first becomes visible
-    document.querySelectorAll('.tab-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.dataset.tab === 'scout') setTimeout(initBoard, 50);
-      });
+    // Arrow key navigation when scout tab is active
+    document.addEventListener('keydown', e => {
+      if (!document.getElementById('panel-scout').classList.contains('active')) return;
+      if (e.key === 'ArrowRight' && idx < moves.length) { idx++; render(); }
+      if (e.key === 'ArrowLeft'  && idx > 0)            { idx--; render(); }
     });
-    if (document.getElementById('panel-scout').classList.contains('active')) {
-      setTimeout(initBoard, 50);
-    }
 
-    // Copy prompt button
-    document.getElementById('scoutCopy').addEventListener('click', () => {
-      const btn = document.getElementById('scoutCopy');
-      navigator.clipboard.writeText(PROMPT).then(() => {
-        btn.textContent = 'Copied!';
-        btn.classList.add('copied');
-        setTimeout(() => { btn.textContent = 'Copy Prompt'; btn.classList.remove('copied'); }, 2000);
-      });
-    });
+    render(); // Draw immediately — no lazy init needed
   })();
 
   // ── Init ───────────────────────────────────────────────────────────────────
