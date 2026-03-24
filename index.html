@@ -291,150 +291,140 @@
       .qa-category-select, .qa-submit-btn { width: 100%; }
     }
 
-    /* ── LESSON PLAN — GOOGLE DOC STYLE ──────────────── */
+    /* ── LESSON PLAN — NOTION / DOC STYLE ────────────── */
+    #panel-lessonplan {
+      padding: 0;          /* override default tab padding */
+      display: none;       /* keep hidden until active */
+    }
+    #panel-lessonplan.active { display: flex; flex-direction: column; min-height: calc(100vh - 120px); }
+
     .lp-wrap {
-      max-width: 780px; margin: 0 auto; padding: 0 0 80px;
-      display: flex; flex-direction: column; gap: 0;
+      max-width: 900px; width: 100%; margin: 0 auto;
+      padding: 0 20px 60px;
+      display: flex; flex-direction: column; flex: 1;
     }
 
-    /* Toolbar bar */
-    .lp-toolbar {
-      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
-      background: #fff; border: 1px solid #e8e2d6;
-      border-radius: var(--radius) var(--radius) 0 0;
-      padding: 14px 20px;
-      box-shadow: 0 2px 8px rgba(0,0,0,.06);
-      border-bottom: none;
+    /* ── Minimal top bar ── */
+    .lp-topbar {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 0 16px; gap: 12px; flex-wrap: wrap;
     }
-    .lp-toolbar-left { display: flex; align-items: center; gap: 12px; }
-    .lp-doc-icon { font-size: 1.5rem; line-height: 1; }
-    .lp-doc-title { font-size: 1.05rem; font-weight: 700; color: var(--green-dark); }
-    .lp-doc-sub   { font-size: .75rem; color: var(--muted); margin-top: 1px; }
-
-    /* Author dropdown */
-    .lp-author-select-wrap {
-      position: relative; display: flex; align-items: center;
+    .lp-doc-title {
+      font-size: 1.3rem; font-weight: 700; color: var(--green-dark); letter-spacing: -.3px;
     }
-    .lp-author-dot {
-      position: absolute; left: 12px; width: 9px; height: 9px;
-      border-radius: 50%; pointer-events: none; flex-shrink: 0;
-    }
-    .lp-author-select {
-      appearance: none; -webkit-appearance: none;
-      padding: 7px 32px 7px 28px;
-      border-radius: 999px; border: 2px solid #ccc;
-      font-size: .83rem; font-weight: 600; cursor: pointer;
-      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23999'/%3E%3C/svg%3E") no-repeat right 10px center;
-      transition: border-color .2s, color .2s, box-shadow .2s;
-      outline: none;
-    }
-    .lp-author-select:focus { box-shadow: 0 0 0 3px rgba(0,0,0,.08); }
-
-    /* Save status pill */
+    .lp-topbar-right { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
     .lp-save-status {
-      font-size: .75rem; color: #aaa; display: flex; align-items: center; gap: 5px;
-      transition: color .3s;
+      font-size: .75rem; color: #bbb; min-width: 60px; text-align: right;
+      transition: color .25s;
     }
     .lp-save-status.saving { color: #F59E0B; }
     .lp-save-status.saved  { color: #10B981; }
 
-    /* Document body */
-    .lp-doc-outer {
+    /* Dropdown */
+    .lp-author-select-wrap { position: relative; display: inline-flex; align-items: center; }
+    .lp-author-dot {
+      position: absolute; left: 11px; width: 8px; height: 8px;
+      border-radius: 50%; pointer-events: none;
+    }
+    .lp-author-select {
+      appearance: none; -webkit-appearance: none;
+      padding: 8px 30px 8px 26px;
+      border-radius: 8px; border: 2px solid #ccc;
+      font-size: .85rem; font-weight: 600; cursor: pointer;
+      background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23aaa'/%3E%3C/svg%3E") no-repeat right 9px center;
+      outline: none; transition: border-color .2s, color .2s;
+    }
+    .lp-author-select:focus { box-shadow: 0 0 0 3px rgba(0,0,0,.07); }
+
+    /* ── The big single document card ── */
+    .lp-page {
       background: #fff;
-      border: 1px solid #e8e2d6;
-      border-top: none;
-      border-radius: 0 0 var(--radius) var(--radius);
-      box-shadow: 0 4px 24px rgba(0,0,0,.08);
+      border-radius: var(--radius);
+      box-shadow: 0 2px 8px rgba(0,0,0,.07), 0 12px 40px rgba(0,0,0,.06);
+      border: 1px solid #e6e0d4;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
       overflow: hidden;
     }
 
-    /* Scrollable history area */
+    /* Saved paragraphs area */
     .lp-doc-body {
-      min-height: 280px;
-      max-height: 460px;
+      flex: 1;
+      min-height: 600px;
       overflow-y: auto;
-      padding: 32px 40px 24px;
-      background:
-        repeating-linear-gradient(
-          transparent,
-          transparent 27px,
-          #f0ece4 28px
-        );
-      background-color: #fdfaf5;
+      padding: 40px 48px 24px 32px;
     }
-    .lp-doc-body::-webkit-scrollbar { width: 6px; }
+    .lp-doc-body::-webkit-scrollbar { width: 5px; }
     .lp-doc-body::-webkit-scrollbar-track { background: transparent; }
-    .lp-doc-body::-webkit-scrollbar-thumb { background: #d6cdb8; border-radius: 99px; }
+    .lp-doc-body::-webkit-scrollbar-thumb { background: #ddd8ce; border-radius: 99px; }
 
     .lp-doc-empty {
-      color: #c0b898; font-style: italic;
-      font-size: .95rem; padding: 24px 0; text-align: center;
-      font-family: Georgia, 'Times New Roman', serif;
+      color: #c8bfaa; font-style: italic; font-size: 1.06rem;
+      font-family: Georgia, serif; padding: 48px 0; text-align: center;
     }
 
-    /* Each saved paragraph in the doc */
+    /* Two-column paragraph: margin label | content */
     .lp-para {
       display: grid;
-      grid-template-columns: 52px 1fr;
-      gap: 0 12px;
-      margin-bottom: 18px;
-      line-height: 28px; /* match ruled lines */
+      grid-template-columns: 80px 1fr;
+      gap: 0;
+      margin-bottom: 20px;
     }
-    .lp-para-annotation {
-      text-align: right;
-      padding-top: 2px;
+    .lp-para-margin {
+      padding-top: 3px; padding-right: 12px;
+      text-align: right; flex-shrink: 0;
     }
-    .lp-para-tag {
-      display: inline-block;
-      font-size: .64rem; font-weight: 700; letter-spacing: .05em;
-      text-transform: uppercase;
-      padding: 2px 6px; border-radius: 4px;
-      color: #fff; white-space: nowrap;
-      line-height: 1.4;
+    .lp-para-author-name {
+      display: block; font-size: .68rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .06em;
+      white-space: nowrap;
     }
-    .lp-para-time {
-      font-size: .6rem; color: #bbb; display: block;
-      text-align: right; margin-top: 2px; white-space: nowrap;
+    .lp-para-ts {
+      display: block; font-size: .6rem; color: #bbb; margin-top: 2px; white-space: nowrap;
     }
-    .lp-para-text {
+    .lp-para-body {
       font-family: Georgia, 'Times New Roman', serif;
-      font-size: .97rem; color: #1a1a1a;
+      font-size: 1.06rem; line-height: 1.8; color: #1c1c1c;
       white-space: pre-wrap; word-break: break-word;
-      padding-left: 4px;
-      border-left: 2px solid transparent;
-      transition: border-color .2s;
+      border-left: 3px solid transparent;
+      padding: 6px 14px 6px 14px;
+      border-radius: 0 6px 6px 0;
+      transition: background .2s;
     }
-    .lp-para:hover .lp-para-text { border-left-color: #e0d8c8; }
 
-    /* Divider between toolbar/doc and composer */
-    .lp-composer-wrap {
-      margin-top: 20px;
-      background: #fff;
-      border: 1px solid #e8e2d6;
-      border-radius: var(--radius);
-      box-shadow: 0 2px 12px rgba(0,0,0,.06);
-      overflow: hidden;
+    /* Divider between saved content and draft area */
+    .lp-divider {
+      border: none; border-top: 1px solid #f0ece4; margin: 0;
     }
-    .lp-composer-label {
-      padding: 10px 20px 0;
-      font-size: .72rem; font-weight: 700; letter-spacing: .08em;
-      text-transform: uppercase; color: #bbb;
+
+    /* Draft / input area — part of the same card */
+    .lp-draft-row {
+      display: grid;
+      grid-template-columns: 80px 1fr;
+      gap: 0;
+      padding: 0 0 4px;
+    }
+    .lp-draft-margin {
+      padding-top: 14px; padding-right: 12px;
+      text-align: right;
+    }
+    .lp-draft-author-label {
+      font-size: .68rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; display: block;
     }
     .lp-draft-area {
       width: 100%; border: none; outline: none; resize: none;
-      padding: 12px 20px 14px;
+      padding: 12px 14px;
       font-family: Georgia, 'Times New Roman', serif;
-      font-size: .97rem; line-height: 1.75; color: #1a1a1a;
-      background: transparent;
-      min-height: 88px;
+      font-size: 1.06rem; line-height: 1.8; color: #1c1c1c;
+      background: transparent; min-height: 80px;
     }
     .lp-draft-area::placeholder { color: #c8bfaa; font-style: italic; }
-    .lp-composer-footer {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 8px 20px 12px; border-top: 1px solid #f0ece4;
-      gap: 8px;
+    .lp-status-bar {
+      padding: 6px 14px 10px 32px;
+      font-size: .72rem; color: #ccc; letter-spacing: .02em;
     }
-    .lp-hint { font-size: .74rem; color: #bbb; }
 
     /* ── SCOUT DAD ───────────────────────────────────── */
     .scout-wrap { max-width: 680px; margin: 0 auto; padding: 0 0 60px; }
@@ -1558,16 +1548,10 @@
   <section class="tab-panel" id="panel-lessonplan" role="tabpanel">
     <div class="lp-wrap">
 
-      <!-- Toolbar -->
-      <div class="lp-toolbar">
-        <div class="lp-toolbar-left">
-          <span class="lp-doc-icon">📄</span>
-          <div>
-            <div class="lp-doc-title">Lesson Plan</div>
-            <div class="lp-doc-sub">Shared document · Mom, Daniel &amp; Hesam</div>
-          </div>
-        </div>
-        <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+      <!-- Minimal top bar -->
+      <div class="lp-topbar">
+        <span class="lp-doc-title">Lesson Plan</span>
+        <div class="lp-topbar-right">
           <span class="lp-save-status" id="lpSaveStatus"></span>
           <div class="lp-author-select-wrap">
             <span class="lp-author-dot" id="lpAuthorDot"></span>
@@ -1580,23 +1564,28 @@
         </div>
       </div>
 
-      <!-- Document body (saved paragraphs) -->
-      <div class="lp-doc-outer">
+      <!-- Single document page card -->
+      <div class="lp-page">
+
+        <!-- Saved paragraphs flow -->
         <div class="lp-doc-body" id="lpDocBody">
           <div class="lp-doc-empty">Start writing below — your notes will appear here.</div>
         </div>
-      </div>
 
-      <!-- Composer -->
-      <div class="lp-composer-wrap">
-        <div class="lp-composer-label" id="lpComposerLabel">Writing as Mom</div>
-        <textarea class="lp-draft-area" id="lpDraft" placeholder="Start typing your note… it saves automatically."></textarea>
-        <div class="lp-composer-footer">
-          <span class="lp-hint">Saves as you type · Enter for new line · your draft is kept locally until saved</span>
+        <hr class="lp-divider">
+
+        <!-- Draft input — same card, below content -->
+        <div class="lp-draft-row">
+          <div class="lp-draft-margin">
+            <span class="lp-draft-author-label" id="lpDraftLabel">Mom</span>
+          </div>
+          <textarea class="lp-draft-area" id="lpDraft" placeholder="Continue writing…"></textarea>
         </div>
-      </div>
+        <div class="lp-status-bar" id="lpStatusBar">Saves automatically as you type</div>
 
-    </div>
+      </div><!-- .lp-page -->
+
+    </div><!-- .lp-wrap -->
   </section>
 
   <!-- Scout Dad -->
@@ -2240,7 +2229,6 @@
    *   created_at timestamptz not null default now()
    * );
    *
-   * -- Allow public read/insert (anon role):
    * alter table lesson_notes enable row level security;
    * create policy "public read"   on lesson_notes for select using (true);
    * create policy "public insert" on lesson_notes for insert with check (true);
@@ -2255,106 +2243,95 @@
     };
 
     const AUTHORS = {
-      mom:    { label: 'Mom',    color: '#F59E0B' },
-      daniel: { label: 'Daniel', color: '#3B82F6' },
-      hesam:  { label: 'Hesam',  color: '#10B981' },
+      mom:    { label: 'Mom',    color: '#F59E0B', bg: '#FEF3C7' },
+      daniel: { label: 'Daniel', color: '#3B82F6', bg: '#DBEAFE' },
+      hesam:  { label: 'Hesam',  color: '#10B981', bg: '#D1FAE5' },
     };
 
-    // ── Author state ────────────────────────────────────────────────────────
+    // ── Author state ─────────────────────────────────────────────────────────
     const urlUser = new URLSearchParams(window.location.search).get('user') || '';
     let currentAuthor = AUTHORS[urlUser] ? urlUser : 'mom';
 
     function applyAuthorUI() {
-      const cfg  = AUTHORS[currentAuthor];
-      const sel  = document.getElementById('lpAuthorSelect');
-      const dot  = document.getElementById('lpAuthorDot');
-      const lbl  = document.getElementById('lpComposerLabel');
-      if (sel) {
-        sel.value = currentAuthor;
-        sel.style.color       = cfg.color;
-        sel.style.borderColor = cfg.color;
-      }
-      if (dot)  dot.style.background = cfg.color;
-      if (lbl)  lbl.textContent = 'Writing as ' + cfg.label;
-      lbl && (lbl.style.color = cfg.color);
-      // Restore any saved draft for this author
+      const cfg = AUTHORS[currentAuthor];
+      const sel = document.getElementById('lpAuthorSelect');
+      const dot = document.getElementById('lpAuthorDot');
+      const lbl = document.getElementById('lpDraftLabel');
+      if (sel) { sel.value = currentAuthor; sel.style.color = cfg.color; sel.style.borderColor = cfg.color; }
+      if (dot) dot.style.background = cfg.color;
+      if (lbl) { lbl.textContent = cfg.label; lbl.style.color = cfg.color; }
+      // Restore draft for this author
       const draft = document.getElementById('lpDraft');
-      if (draft) draft.value = localStorage.getItem('lpDraft_' + currentAuthor) || '';
+      if (draft) {
+        draft.value = localStorage.getItem('lpDraft_' + currentAuthor) || '';
+        draft.style.borderLeft = '3px solid ' + cfg.color + '44';
+      }
     }
 
-    const sel = document.getElementById('lpAuthorSelect');
-    if (sel) {
-      sel.addEventListener('change', () => {
-        // Save current draft before switching
-        const draft = document.getElementById('lpDraft');
-        if (draft) localStorage.setItem('lpDraft_' + currentAuthor, draft.value);
-        currentAuthor = sel.value;
-        // Update URL without reload
-        const u = new URL(window.location.href);
-        u.searchParams.set('user', currentAuthor);
-        history.replaceState(null, '', u.toString());
-        applyAuthorUI();
-      });
-    }
+    document.getElementById('lpAuthorSelect').addEventListener('change', function() {
+      const draft = document.getElementById('lpDraft');
+      if (draft) localStorage.setItem('lpDraft_' + currentAuthor, draft.value);
+      currentAuthor = this.value;
+      const u = new URL(window.location.href);
+      u.searchParams.set('user', currentAuthor);
+      history.replaceState(null, '', u.toString());
+      applyAuthorUI();
+    });
 
-    // ── Helpers ─────────────────────────────────────────────────────────────
-    function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
+    // ── Helpers ──────────────────────────────────────────────────────────────
+    function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
     function fmtTime(iso) {
-      return new Date(iso).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit',
-      });
+      return new Date(iso).toLocaleString(undefined, { month:'short', day:'numeric', hour:'numeric', minute:'2-digit' });
     }
     function setStatus(msg, cls) {
       const el = document.getElementById('lpSaveStatus');
-      if (!el) return;
-      el.textContent = msg;
-      el.className = 'lp-save-status ' + (cls || '');
+      if (el) { el.textContent = msg; el.className = 'lp-save-status' + (cls ? ' ' + cls : ''); }
+    }
+    function setStatusBar(msg) {
+      const el = document.getElementById('lpStatusBar');
+      if (el) el.textContent = msg;
     }
 
-    // ── Render doc ──────────────────────────────────────────────────────────
+    // ── Render saved paragraphs ───────────────────────────────────────────────
     function renderDoc(notes) {
       const body = document.getElementById('lpDocBody');
       if (!body) return;
-      const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 60;
+      const atBottom = body.scrollHeight - body.scrollTop - body.clientHeight < 80;
       if (!notes.length) {
         body.innerHTML = '<div class="lp-doc-empty">Start writing below — your notes will appear here.</div>';
         return;
       }
       body.innerHTML = notes.map(n => {
-        const cfg = AUTHORS[n.author] || { label: n.author, color: '#888' };
+        const cfg = AUTHORS[n.author] || { label: n.author, color: '#888', bg: '#f5f5f5' };
         return `<div class="lp-para">
-          <div class="lp-para-annotation">
-            <span class="lp-para-tag" style="background:${cfg.color}">${esc(cfg.label)}</span>
-            <span class="lp-para-time">${fmtTime(n.created_at)}</span>
+          <div class="lp-para-margin">
+            <span class="lp-para-author-name" style="color:${cfg.color}">${esc(cfg.label)}</span>
+            <span class="lp-para-ts">${fmtTime(n.created_at)}</span>
           </div>
-          <div class="lp-para-text" style="border-left-color:${cfg.color}33">${esc(n.content)}</div>
+          <div class="lp-para-body" style="border-left-color:${cfg.color};background:${cfg.bg};">${esc(n.content)}</div>
         </div>`;
       }).join('');
       if (atBottom) body.scrollTop = body.scrollHeight;
     }
 
-    // ── Fetch all notes ─────────────────────────────────────────────────────
+    // ── Fetch ────────────────────────────────────────────────────────────────
     async function fetchNotes() {
       try {
         const r = await fetch(SB_URL + '/rest/v1/lesson_notes?order=created_at.asc&select=*', { headers: HEADERS });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         renderDoc(await r.json());
-      } catch(e) {
-        console.error('LP fetch:', e);
-      }
+      } catch(e) { console.error('LP fetch:', e); }
     }
 
-    // ── Auto-save (debounced 1.5s) ──────────────────────────────────────────
+    // ── Auto-save debounced 1.5s ─────────────────────────────────────────────
     let saveTimer = null;
-    let lastSavedText = {};  // author → last saved content
+    let lastSaved = {};
 
     async function flushDraft() {
       const draft = document.getElementById('lpDraft');
       if (!draft) return;
       const text = draft.value.trim();
-      if (!text || text === (lastSavedText[currentAuthor] || '')) return;
+      if (!text || text === (lastSaved[currentAuthor] || '')) return;
       setStatus('Saving…', 'saving');
       try {
         const r = await fetch(SB_URL + '/rest/v1/lesson_notes', {
@@ -2363,10 +2340,11 @@
           body: JSON.stringify({ author: currentAuthor, content: text }),
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        lastSavedText[currentAuthor] = text;
+        lastSaved[currentAuthor] = text;
         draft.value = '';
         localStorage.removeItem('lpDraft_' + currentAuthor);
         setStatus('✓ Saved', 'saved');
+        setStatusBar('Last saved ' + new Date().toLocaleTimeString(undefined, { hour:'numeric', minute:'2-digit' }));
         setTimeout(() => setStatus('', ''), 2500);
         await fetchNotes();
         const body = document.getElementById('lpDocBody');
@@ -2387,14 +2365,10 @@
           saveTimer = setTimeout(flushDraft, 1500);
         }
       });
-      // Also flush on blur so switching tabs saves immediately
-      draft.addEventListener('blur', () => {
-        clearTimeout(saveTimer);
-        flushDraft();
-      });
+      draft.addEventListener('blur', () => { clearTimeout(saveTimer); flushDraft(); });
     }
 
-    // ── Lazy load + 30s poll ────────────────────────────────────────────────
+    // ── Lazy init + 30s poll ─────────────────────────────────────────────────
     let lpLoaded = false;
     let lpTimer  = null;
     function startLp() {
