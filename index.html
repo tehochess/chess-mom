@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Samuel's Chess Academy</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟</text></svg>">
-  <link rel="stylesheet" href="https://unpkg.com/lichess-pgn-viewer/dist/lichess-pgn-viewer.css">
-  <script src="https://unpkg.com/lichess-pgn-viewer/dist/lichess-pgn-viewer.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -306,18 +304,18 @@
       margin-bottom: 14px; display: flex; align-items: center; gap: 8px;
     }
 
-    /* Board */
-    .scout-board-inner { display: flex; flex-direction: column; gap: 12px; }
-    .scout-game-tag {
-      display: flex; justify-content: space-between;
-      align-items: center; flex-wrap: wrap; gap: 6px;
-      font-size: .8rem; color: var(--muted); font-weight: 500;
+    .scout-game-link {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--green-mid); color: var(--cream);
+      border-radius: var(--radius); padding: 16px 22px;
+      text-decoration: none; font-weight: 700; font-size: .95rem;
+      margin-bottom: 14px; transition: background .18s;
+      box-shadow: var(--shadow);
     }
-    .scout-result-badge {
-      background: #fee2e2; color: #991b1b;
-      border-radius: 999px; padding: 3px 12px; font-size: .75rem; font-weight: 700;
-    }
-    #lpv-container { width: 100%; }
+    .scout-game-link:hover { background: var(--green-light); }
+    .scout-game-link-icon { font-size: 1.4rem; flex-shrink: 0; }
+    .scout-game-link-text { flex: 1; }
+    .scout-game-link-arrow { font-size: 1.1rem; opacity: .7; }
 
     /* ── SCOUT PASSWORD OVERLAY ─────────────────────── */
     #scoutOverlay {
@@ -390,6 +388,167 @@
       letter-spacing: 1px; color: var(--gold); display: block; margin-bottom: 8px;
     }
     .scout-summary-text { font-size: .95rem; font-style: italic; color: var(--cream); line-height: 1.65; margin: 0; }
+
+    /* ── PROGRESS TRACKER ───────────────────────────── */
+    .prog-wrap { max-width: 960px; margin: 0 auto; padding: 0 0 60px; }
+
+    /* Stats row */
+    .prog-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px;
+      margin-bottom: 20px;
+    }
+    .prog-stat-card {
+      background: var(--white); border: 1px solid var(--cream3);
+      border-radius: var(--radius); padding: 16px 18px;
+      box-shadow: 0 2px 8px rgba(26,46,26,.07); text-align: center;
+    }
+    .prog-stat-val { font-size: 1.8rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
+    .prog-stat-label { font-size: .75rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .6px; margin-top: 4px; }
+
+    /* Two-panel layout */
+    .prog-layout {
+      display: grid; grid-template-columns: 220px 1fr; gap: 16px; align-items: start;
+    }
+    @media (max-width: 640px) {
+      .prog-layout { grid-template-columns: 1fr; }
+      .prog-stats { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+      .prog-stat-card { padding: 12px 10px; }
+      .prog-stat-val { font-size: 1.4rem; }
+    }
+
+    /* Day list */
+    .prog-day-list {
+      background: var(--white); border: 1px solid var(--cream3);
+      border-radius: var(--radius); overflow: hidden;
+      box-shadow: 0 2px 8px rgba(26,46,26,.07);
+      max-height: 600px; overflow-y: auto; scrollbar-width: thin;
+    }
+    .prog-day-list-header {
+      background: var(--green-dark); color: var(--cream);
+      padding: 12px 16px; font-size: .8rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .8px; position: sticky; top: 0; z-index: 1;
+    }
+    .prog-day-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; cursor: pointer;
+      border-bottom: 1px solid var(--cream2);
+      transition: background .12s;
+    }
+    .prog-day-item:nth-child(even) { background: var(--cream); }
+    .prog-day-item:hover { background: var(--cream2); }
+    .prog-day-item.active { background: #e6f0e6; border-left: 3px solid var(--green-mid); }
+    .prog-day-item.today { background: #f0f7f0; }
+    .prog-day-num { font-size: .82rem; font-weight: 700; color: var(--green-dark); min-width: 36px; }
+    .prog-day-date { font-size: .75rem; color: var(--muted); flex: 1; }
+    .prog-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .prog-dot-filled { background: var(--green-accent); }
+    .prog-dot-empty  { background: var(--cream3); border: 1px solid #ccc; }
+
+    /* Entry panel */
+    .prog-entry-panel {
+      background: var(--white); border: 1px solid var(--cream3);
+      border-radius: var(--radius); padding: 28px 26px;
+      box-shadow: 0 2px 8px rgba(26,46,26,.07);
+    }
+    .prog-entry-header { margin-bottom: 24px; }
+    .prog-entry-day { font-size: 1.6rem; font-weight: 800; color: var(--green-dark); line-height: 1; }
+    .prog-entry-date-sub { font-size: .85rem; color: var(--muted); margin-top: 4px; }
+    .prog-today-tag {
+      display: inline-block; background: var(--green-mid); color: var(--cream);
+      border-radius: 999px; padding: 2px 10px; font-size: .72rem; font-weight: 700;
+      margin-left: 10px; vertical-align: middle;
+    }
+
+    /* Section headers */
+    .prog-section { margin-bottom: 26px; }
+    .prog-section-title {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--green-mid); margin-bottom: 14px;
+      padding-bottom: 6px; border-bottom: 1px solid var(--cream2);
+    }
+
+    /* Sliders */
+    .prog-slider-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .prog-slider-label { font-size: .85rem; font-weight: 600; color: var(--text); min-width: 110px; }
+    .prog-slider-wrap { flex: 1; position: relative; }
+    .prog-slider {
+      -webkit-appearance: none; appearance: none;
+      width: 100%; height: 6px; border-radius: 3px; outline: none; cursor: pointer;
+    }
+    .prog-slider::-webkit-slider-thumb {
+      -webkit-appearance: none; width: 18px; height: 18px;
+      border-radius: 50%; background: var(--green-mid);
+      cursor: pointer; border: 2px solid var(--white);
+      box-shadow: 0 1px 4px rgba(0,0,0,.25);
+    }
+    .prog-slider::-moz-range-thumb {
+      width: 18px; height: 18px; border-radius: 50%;
+      background: var(--green-mid); cursor: pointer;
+      border: 2px solid var(--white); box-shadow: 0 1px 4px rgba(0,0,0,.25);
+    }
+    .prog-slider-val {
+      min-width: 36px; text-align: right; font-size: .85rem;
+      font-weight: 700; color: var(--green-dark); font-variant-numeric: tabular-nums;
+    }
+
+    /* Text fields */
+    .prog-field { margin-bottom: 14px; }
+    .prog-field label { display: block; font-size: .82rem; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+    .prog-textarea {
+      width: 100%; min-height: 90px; border: 1.5px solid var(--cream3);
+      border-radius: var(--radius-sm); padding: 10px 12px;
+      font-size: .88rem; font-family: inherit; color: var(--text);
+      background: var(--cream); resize: vertical; outline: none;
+      transition: border-color .18s, box-shadow .18s; line-height: 1.6;
+    }
+    .prog-textarea:focus {
+      border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,158,78,.14);
+      background: var(--white);
+    }
+    .prog-input {
+      width: 100%; border: 1.5px solid var(--cream3);
+      border-radius: var(--radius-sm); padding: 9px 12px;
+      font-size: .88rem; font-family: inherit; color: var(--text);
+      background: var(--cream); outline: none;
+      transition: border-color .18s, box-shadow .18s;
+    }
+    .prog-input:focus {
+      border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,158,78,.14);
+      background: var(--white);
+    }
+
+    /* Coach notes */
+    .prog-coach-section {
+      background: #faf6e8; border: 1px solid #e8d99a;
+      border-radius: var(--radius); padding: 18px 20px; margin-bottom: 24px;
+    }
+    .prog-coach-label {
+      font-size: .72rem; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 1px; color: #8a6d00; margin-bottom: 12px;
+      display: flex; align-items: center; gap: 7px;
+    }
+    .prog-coach-empty { font-style: italic; color: var(--muted); font-size: .88rem; }
+
+    /* Save button */
+    .prog-save-btn {
+      padding: 12px 32px; background: var(--green-mid); color: var(--cream);
+      border: none; border-radius: var(--radius-sm); font-size: .95rem;
+      font-weight: 700; cursor: pointer; transition: background .18s, transform .1s;
+    }
+    .prog-save-btn:hover:not(:disabled) { background: var(--green-light); }
+    .prog-save-btn:active:not(:disabled) { transform: scale(.98); }
+    .prog-save-btn:disabled { opacity: .5; cursor: not-allowed; }
+    .prog-save-status {
+      display: inline-block; margin-left: 14px; font-size: .85rem;
+      font-weight: 600; color: var(--green-mid);
+    }
+    .prog-save-status.err { color: #991b1b; }
+
+    /* Empty state */
+    .prog-empty-state {
+      text-align: center; padding: 60px 20px; color: var(--muted);
+      font-size: .9rem; line-height: 1.7;
+    }
 
     /* ── HOME / HERO ─────────────────────────────────── */
     .hero {
@@ -682,6 +841,7 @@
   <button class="tab-btn active" role="tab" data-tab="home">Home</button>
   <button class="tab-btn"        role="tab" data-tab="lessons">Weekly Lessons</button>
   <button class="tab-btn"        role="tab" data-tab="puzzles">Key Principles</button>
+  <button class="tab-btn" role="tab" data-tab="progress">Progress</button>
   <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach</button>
   <button class="tab-btn"        role="tab" data-tab="scout">Scout Dad</button>
 </nav>
@@ -1077,6 +1237,139 @@
 
   </section>
 
+  <!-- Progress Tracker -->
+  <section class="tab-panel" id="panel-progress" role="tabpanel">
+    <div class="prog-wrap">
+
+      <!-- Stats -->
+      <div class="prog-stats">
+        <div class="prog-stat-card">
+          <div class="prog-stat-val" id="progStreak">—</div>
+          <div class="prog-stat-label">Current Streak</div>
+        </div>
+        <div class="prog-stat-card">
+          <div class="prog-stat-val" id="progAvgConf">—</div>
+          <div class="prog-stat-label">Avg Confidence</div>
+        </div>
+        <div class="prog-stat-card">
+          <div class="prog-stat-val" id="progLogged">0</div>
+          <div class="prog-stat-label">Days Logged</div>
+        </div>
+      </div>
+
+      <div class="prog-layout">
+        <!-- Day list -->
+        <div>
+          <div class="prog-day-list" id="progDayList">
+            <div class="prog-day-list-header">60-Day Journal</div>
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+        <!-- Entry panel -->
+        <div id="progEntryPanel">
+          <div class="prog-empty-state" id="progEmptyState">
+            Select a day from the list to view or log an entry.
+          </div>
+          <div id="progEntryForm" style="display:none;">
+            <div class="prog-entry-header">
+              <div>
+                <span class="prog-entry-day" id="progEntryDay"></span>
+                <span class="prog-today-tag" id="progTodayTag" style="display:none;">Today</span>
+              </div>
+              <div class="prog-entry-date-sub" id="progEntryDateSub"></div>
+            </div>
+
+            <!-- Session Ratings -->
+            <div class="prog-section">
+              <div class="prog-section-title">Session Ratings</div>
+              <div class="prog-slider-row">
+                <span class="prog-slider-label">Confidence</span>
+                <div class="prog-slider-wrap">
+                  <input type="range" class="prog-slider" id="sConfidence" min="0" max="100" value="50">
+                </div>
+                <span class="prog-slider-val" id="vConfidence">50</span>
+              </div>
+              <div class="prog-slider-row">
+                <span class="prog-slider-label">Understanding</span>
+                <div class="prog-slider-wrap">
+                  <input type="range" class="prog-slider" id="sUnderstanding" min="0" max="100" value="50">
+                </div>
+                <span class="prog-slider-val" id="vUnderstanding">50</span>
+              </div>
+              <div class="prog-slider-row">
+                <span class="prog-slider-label">Focus</span>
+                <div class="prog-slider-wrap">
+                  <input type="range" class="prog-slider" id="sFocus" min="0" max="100" value="50">
+                </div>
+                <span class="prog-slider-val" id="vFocus">50</span>
+              </div>
+              <div class="prog-slider-row">
+                <span class="prog-slider-label">Momentum</span>
+                <div class="prog-slider-wrap">
+                  <input type="range" class="prog-slider" id="sMomentum" min="0" max="100" value="50">
+                </div>
+                <span class="prog-slider-val" id="vMomentum">50</span>
+              </div>
+            </div>
+
+            <!-- Free response -->
+            <div class="prog-section">
+              <div class="prog-section-title">Session Notes</div>
+              <div class="prog-field">
+                <label for="fWorkedOn">What did I work on today?</label>
+                <textarea class="prog-textarea" id="fWorkedOn" placeholder="Topics, drills, games played..."></textarea>
+              </div>
+              <div class="prog-field">
+                <label for="fClicked">What clicked for me?</label>
+                <textarea class="prog-textarea" id="fClicked" placeholder="Moments of understanding, patterns I recognized..."></textarea>
+              </div>
+              <div class="prog-field">
+                <label for="fConfused">What am I still confused about?</label>
+                <textarea class="prog-textarea" id="fConfused" placeholder="Questions to ask, concepts to revisit..."></textarea>
+              </div>
+              <div class="prog-field">
+                <label for="fTakeaway">Biggest takeaway from today</label>
+                <textarea class="prog-textarea" id="fTakeaway" placeholder="The one thing I want to remember..."></textarea>
+              </div>
+            </div>
+
+            <!-- Structured fields -->
+            <div class="prog-section">
+              <div class="prog-section-title">Quick Log</div>
+              <div class="prog-field">
+                <label for="fConcepts">Concepts learned</label>
+                <input class="prog-input" id="fConcepts" type="text" placeholder="e.g. pawn structure, rook endgames...">
+              </div>
+              <div class="prog-field">
+                <label for="fStrengths">Strengths I noticed</label>
+                <input class="prog-input" id="fStrengths" type="text" placeholder="e.g. staying patient, calculating before moving...">
+              </div>
+              <div class="prog-field">
+                <label for="fAreas">Areas to work on</label>
+                <input class="prog-input" id="fAreas" type="text" placeholder="e.g. knight maneuvers, time pressure...">
+              </div>
+            </div>
+
+            <!-- Coach notes -->
+            <div class="prog-coach-section">
+              <div class="prog-coach-label">♞ Coach Samuel</div>
+              <div id="progCoachDisplay"></div>
+              <textarea class="prog-textarea" id="fCoachNotes" style="display:none;" placeholder="Notes for this session..."></textarea>
+            </div>
+
+            <!-- Save -->
+            <div>
+              <button class="prog-save-btn" id="progSaveBtn">Save Entry</button>
+              <span class="prog-save-status" id="progSaveStatus"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
   <!-- Ask Coach -->
   <section class="tab-panel" id="panel-coach" role="tabpanel">
     <div class="qa-wrap">
@@ -1119,16 +1412,12 @@
   <section class="tab-panel" id="panel-scout" role="tabpanel">
     <div class="scout-wrap">
 
-      <!-- Board -->
-      <div class="scout-section">
-        <div class="scout-board-inner">
-          <div class="scout-game-tag">
-            <span>♟ BlackActive (Dad) · Black · Mar 18 2026</span>
-            <span class="scout-result-badge">Lost · Resigned</span>
-          </div>
-          <div id="lpv-container"></div>
-        </div>
-      </div>
+      <!-- Game link -->
+      <a class="scout-game-link" href="https://www.chess.com/game/live/166130138990?username=blackactive&move=0" target="_blank" rel="noopener">
+        <span class="scout-game-link-icon">♟</span>
+        <span class="scout-game-link-text">Watch the Game on Chess.com</span>
+        <span class="scout-game-link-arrow">↗</span>
+      </a>
 
       <!-- Narrative -->
       <div class="scout-section">
@@ -1316,7 +1605,6 @@
     tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
     tabPanels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + id));
     localStorage.setItem('activeTab', id);
-    if (id === 'scout') setTimeout(initScoutLpv, 80);
   }
 
   tabBtns.forEach(btn => btn.addEventListener('click', () => {
@@ -1515,26 +1803,240 @@
     fetchQuestions();
   })();
 
-  // ── Scout Dad (Lichess PGN Viewer) ───────────────────────────────────────────
-  let _lpvDone = false;
-  function initScoutLpv() {
-    if (_lpvDone) return;
-    _lpvDone = true;
-    LichessPgnViewer(document.getElementById('lpv-container'), {
-      pgn: `[Event "Live Chess"]
-[Site "Chess.com"]
-[Date "2026.03.18"]
-[White "elijahaleje49"]
-[Black "BlackActive"]
-[Result "1-0"]
-1. e4 b6 2. d4 Bb7 3. f3 e6 4. c4 d6 5. Nc3 Nd7 6. Be3 a6 7. d5 e5 8. f4 Qf6
-9. f5 O-O-O 10. g4 Qe7 11. g5 f6 12. h4 Nc5 13. Bg2 Kb8 14. b4 Nd7 15. a4 Qe8
-16. Nge2 Be7 17. Ng3 g6 18. Bf3 Rc8 19. h5 fxg5 20. hxg6 h6 21. Bh5 Ndf6
-22. g7 Nxh5 23. gxh8=Q Nxg3 24. Qg4 Nxh1 25. O-O-O Bf6 26. Qh7 Bd8 27. Rxh1 Nf6
-28. Qg6 Nxg4 29. Qxe8 Nxe3 30. Rxh6 Nxc4 31. f6 g4 32. f7 Bg5+ 33. Kc2 Rxe8
-34. fxe8=Q+ 1-0`,
+  // ── Progress Tracker ────────────────────────────────────────────────────────
+  (function() {
+    const SB_URL  = 'https://kclmbxgqiomaffczqgwx.supabase.co';
+    const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
+    const HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
+    const isCoach = new URLSearchParams(window.location.search).get('coach') === 'true';
+
+    // Start date = today minus (today's day number - 1), pinned on first load
+    const START_KEY = 'progStartDate';
+    let startDate = localStorage.getItem(START_KEY);
+    if (!startDate) {
+      startDate = new Date().toISOString().slice(0, 10);
+      localStorage.setItem(START_KEY, startDate);
+    }
+    const start = new Date(startDate + 'T00:00:00');
+
+    function dayDate(n) {
+      const d = new Date(start);
+      d.setDate(d.getDate() + n - 1);
+      return d;
+    }
+    function fmtDate(d) {
+      return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function isoDate(d) { return d.toISOString().slice(0, 10); }
+
+    const todayIso = isoDate(new Date());
+    let entries = {}; // keyed by day_number
+    let currentDay = null;
+
+    // ── Supabase helpers ──────────────────────────────────────────────────────
+    async function fetchAll() {
+      try {
+        const r = await fetch(`${SB_URL}/rest/v1/progress?select=*`, { headers: HEADERS });
+        if (!r.ok) return;
+        const rows = await r.json();
+        entries = {};
+        rows.forEach(row => { entries[row.day_number] = row; });
+        renderDayList();
+        renderStats();
+      } catch (e) { console.error('Progress fetch error', e); }
+    }
+
+    async function upsertEntry(data) {
+      const r = await fetch(`${SB_URL}/rest/v1/progress`, {
+        method: 'POST',
+        headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+        body: JSON.stringify(data),
+      });
+      if (!r.ok) throw new Error('Save failed: ' + r.status);
+      const rows = await r.json();
+      if (rows && rows[0]) entries[rows[0].day_number] = rows[0];
+    }
+
+    // ── Day list ──────────────────────────────────────────────────────────────
+    function renderDayList() {
+      const list = document.getElementById('progDayList');
+      const header = list.querySelector('.prog-day-list-header');
+      list.innerHTML = '';
+      list.appendChild(header);
+      for (let n = 1; n <= 60; n++) {
+        const d    = dayDate(n);
+        const iso  = isoDate(d);
+        const has  = !!entries[n];
+        const isToday = iso === todayIso;
+        const div  = document.createElement('div');
+        div.className = 'prog-day-item' + (isToday ? ' today' : '') + (currentDay === n ? ' active' : '');
+        div.dataset.day = n;
+        div.innerHTML = `
+          <span class="prog-day-num">Day ${n}</span>
+          <span class="prog-day-date">${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+          <span class="prog-dot ${has ? 'prog-dot-filled' : 'prog-dot-empty'}"></span>`;
+        div.addEventListener('click', () => openDay(n));
+        list.appendChild(div);
+      }
+    }
+
+    // ── Stats ─────────────────────────────────────────────────────────────────
+    function renderStats() {
+      const keys = Object.keys(entries).map(Number).sort((a, b) => a - b);
+      document.getElementById('progLogged').textContent = keys.length;
+
+      // Avg confidence
+      if (keys.length) {
+        const avg = Math.round(keys.reduce((s, k) => s + (entries[k].confidence || 0), 0) / keys.length);
+        document.getElementById('progAvgConf').textContent = avg;
+      } else {
+        document.getElementById('progAvgConf').textContent = '—';
+      }
+
+      // Streak: consecutive days ending at the most recent logged day
+      let streak = 0;
+      if (keys.length) {
+        streak = 1;
+        for (let i = keys.length - 1; i > 0; i--) {
+          if (keys[i] - keys[i - 1] === 1) streak++;
+          else break;
+        }
+      }
+      document.getElementById('progStreak').textContent = streak || '—';
+    }
+
+    // ── Slider colour ─────────────────────────────────────────────────────────
+    function updateSlider(input, valEl) {
+      const v = +input.value;
+      valEl.textContent = v;
+      // red → amber → green gradient
+      const pct = v / 100;
+      const r = pct < .5 ? 220 : Math.round(220 - (pct - .5) * 2 * 180);
+      const g = pct < .5 ? Math.round(pct * 2 * 180) : 180;
+      const track = `linear-gradient(to right, rgb(${r},${g},40) 0%, rgb(${r},${g},40) ${v}%, #ddd ${v}%, #ddd 100%)`;
+      input.style.background = track;
+    }
+
+    ['Confidence','Understanding','Focus','Momentum'].forEach(name => {
+      const slider = document.getElementById('s' + name);
+      const val    = document.getElementById('v' + name);
+      slider.addEventListener('input', () => updateSlider(slider, val));
+      updateSlider(slider, val);
     });
-  }
+
+    // ── Open day ──────────────────────────────────────────────────────────────
+    function openDay(n) {
+      currentDay = n;
+      const d    = dayDate(n);
+      const iso  = isoDate(d);
+      const e    = entries[n] || {};
+
+      document.getElementById('progEmptyState').style.display = 'none';
+      document.getElementById('progEntryForm').style.display  = 'block';
+      document.getElementById('progEntryDay').textContent     = 'Day ' + n;
+      document.getElementById('progEntryDateSub').textContent = fmtDate(d);
+      document.getElementById('progTodayTag').style.display   = iso === todayIso ? 'inline-block' : 'none';
+
+      // Sliders
+      [['Confidence','confidence'],['Understanding','understanding'],['Focus','focus'],['Momentum','momentum']]
+        .forEach(([name, col]) => {
+          const sl = document.getElementById('s' + name);
+          const vl = document.getElementById('v' + name);
+          sl.value = e[col] !== undefined ? e[col] : 50;
+          updateSlider(sl, vl);
+        });
+
+      // Text fields
+      document.getElementById('fWorkedOn').value  = e.worked_on  || '';
+      document.getElementById('fClicked').value   = e.clicked    || '';
+      document.getElementById('fConfused').value  = e.confused   || '';
+      document.getElementById('fTakeaway').value  = e.takeaway   || '';
+      document.getElementById('fConcepts').value  = e.concepts   || '';
+      document.getElementById('fStrengths').value = e.strengths  || '';
+      document.getElementById('fAreas').value     = e.areas      || '';
+
+      // Coach notes
+      const coachVal = e.coach_notes || '';
+      const coachDisplay = document.getElementById('progCoachDisplay');
+      const coachTA      = document.getElementById('fCoachNotes');
+      if (isCoach) {
+        coachDisplay.style.display = 'none';
+        coachTA.style.display      = 'block';
+        coachTA.value              = coachVal;
+      } else {
+        coachTA.style.display = 'none';
+        coachDisplay.style.display = 'block';
+        coachDisplay.innerHTML = coachVal
+          ? `<p style="font-size:.88rem;line-height:1.65;color:var(--text);">${coachVal.replace(/\n/g,'<br>')}</p>`
+          : '<p class="prog-coach-empty">No notes from Coach Samuel yet.</p>';
+      }
+
+      document.getElementById('progSaveStatus').textContent = '';
+
+      // Highlight active in list
+      document.querySelectorAll('.prog-day-item').forEach(el => {
+        el.classList.toggle('active', +el.dataset.day === n);
+      });
+
+      // Scroll day into view in the list
+      const activeItem = document.querySelector('.prog-day-item.active');
+      if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
+    }
+
+    // ── Save ──────────────────────────────────────────────────────────────────
+    document.getElementById('progSaveBtn').addEventListener('click', async () => {
+      if (!currentDay) return;
+      const btn    = document.getElementById('progSaveBtn');
+      const status = document.getElementById('progSaveStatus');
+      btn.disabled = true;
+      status.className = 'prog-save-status';
+      status.textContent = 'Saving…';
+
+      const data = {
+        day_number:    currentDay,
+        entry_date:    isoDate(dayDate(currentDay)),
+        confidence:    +document.getElementById('sConfidence').value,
+        understanding: +document.getElementById('sUnderstanding').value,
+        focus:         +document.getElementById('sFocus').value,
+        momentum:      +document.getElementById('sMomentum').value,
+        worked_on:     document.getElementById('fWorkedOn').value.trim(),
+        clicked:       document.getElementById('fClicked').value.trim(),
+        confused:      document.getElementById('fConfused').value.trim(),
+        takeaway:      document.getElementById('fTakeaway').value.trim(),
+        concepts:      document.getElementById('fConcepts').value.trim(),
+        strengths:     document.getElementById('fStrengths').value.trim(),
+        areas:         document.getElementById('fAreas').value.trim(),
+        coach_notes:   isCoach ? document.getElementById('fCoachNotes').value.trim() : (entries[currentDay]?.coach_notes || ''),
+      };
+
+      try {
+        await upsertEntry(data);
+        renderDayList();
+        renderStats();
+        status.textContent = 'Saved.';
+        setTimeout(() => { status.textContent = ''; }, 2500);
+      } catch (err) {
+        status.className = 'prog-save-status err';
+        status.textContent = err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    // Load on tab open (lazy)
+    let loaded = false;
+    function maybeLoad() {
+      if (loaded) return;
+      loaded = true;
+      renderDayList(); // show empty dots immediately
+      fetchAll();      // then fill from Supabase
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      if (btn.dataset.tab === 'progress') btn.addEventListener('click', maybeLoad);
+    });
+    if (document.getElementById('panel-progress').classList.contains('active')) maybeLoad();
+  })();
 
   // ── Init ───────────────────────────────────────────────────────────────────
   const matchDate = getMatchDate();
