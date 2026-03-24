@@ -1151,8 +1151,10 @@
   <section class="tab-panel" id="panel-scout" role="tabpanel">
     <div class="scout-intro">
       <h2>🔍 Scout Dad</h2>
-      <p class="subtitle">Pull Dad's recent games from Chess.com and get an AI breakdown of how to beat him.</p>
-      <div class="scout-input-row">
+      <p class="subtitle">Paste his games and get an AI breakdown of how to beat him.</p>
+      <label for="pgnInput" style="margin-bottom:8px;">Paste up to 10 games in PGN format</label>
+      <textarea id="pgnInput" placeholder="[Event &quot;Live Chess&quot;]&#10;[White &quot;blackactive&quot;]&#10;...paste PGN here..." style="min-height:160px;"></textarea>
+      <div class="scout-input-row" style="margin-top:12px;">
         <button id="fetchBtn" class="scout-btn">Analyze Dad</button>
       </div>
       <div id="scoutStatus"></div>
@@ -1364,7 +1366,7 @@ Keep it beginner friendly and actionable.`;
     return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
 
-  function renderReport(text, username, count) {
+  function renderReport(text, gameCount) {
     const sections = [
       { key: 'OPENINGS',        icon: '📖', label: 'Openings' },
       { key: 'STRENGTHS',       icon: '💪', label: 'Strengths' },
@@ -1373,7 +1375,7 @@ Keep it beginner friendly and actionable.`;
       { key: 'HOW TO BEAT THEM',icon: '🎯', label: 'How to Beat Them' },
     ];
 
-    let html = `<p class="report-meta">Analysis of <strong>${escHtml(username)}</strong> &middot; ${count} recent games</p>`;
+    let html = `<p class="report-meta">${gameCount} game${gameCount === 1 ? '' : 's'} analyzed</p>`;
     let anyFound = false;
 
     sections.forEach((s, i) => {
@@ -1405,41 +1407,20 @@ Keep it beginner friendly and actionable.`;
     document.getElementById('scoutReport').innerHTML = html;
   }
 
-  const SCOUT_USERNAME = 'blackactive';
-  const CORS_PROXY = 'https://corsproxy.io/?url=';
-
   async function runScout() {
+    const pgns = document.getElementById('pgnInput').value.trim();
+    if (!pgns) { document.getElementById('pgnInput').focus(); return; }
+
+    // Count games by number of [Event tags
+    const gameCount = (pgns.match(/\[Event /g) || [pgns]).length;
+
     const btn = document.getElementById('fetchBtn');
     btn.disabled = true;
     document.getElementById('scoutReport').innerHTML = '';
     setScoutError('');
 
     try {
-      // 1. Get archives list
-      setScoutStatus('Fetching game archives from Chess.com…');
-      const archRes = await fetch(`${CORS_PROXY}${encodeURIComponent(`https://api.chess.com/pub/player/${SCOUT_USERNAME}/games/archives`)}`, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-      });
-      if (!archRes.ok) throw new Error(`Could not fetch archives for "${SCOUT_USERNAME}" (${archRes.status})`);
-      const { archives } = await archRes.json();
-      if (!archives || archives.length === 0) throw new Error('No game archives found.');
-
-      // 2. Fetch most recent monthly archive
-      setScoutStatus('Loading most recent games…');
-      const latestRes = await fetch(`${CORS_PROXY}${encodeURIComponent(archives[archives.length - 1])}`, {
-        headers: { 'User-Agent': 'Mozilla/5.0' },
-      });
-      if (!latestRes.ok) throw new Error('Could not fetch the most recent game archive.');
-      const { games = [] } = await latestRes.json();
-      if (games.length === 0) throw new Error('No games found in the most recent archive.');
-
-      // 3. Take last 10 PGNs
-      const last10 = games.slice(-10);
-      const pgns = last10.map(g => g.pgn).filter(Boolean).join('\n\n');
-      if (!pgns) throw new Error('No PGN data available for these games.');
-
-      // 4. Send to Claude
-      setScoutStatus(`Analyzing ${last10.length} games with AI coach…`);
+      setScoutStatus('Analyzing games with AI coach…');
       const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -1453,7 +1434,7 @@ Keep it beginner friendly and actionable.`;
           system: SCOUT_SYSTEM,
           messages: [{
             role: 'user',
-            content: `Here are the last ${last10.length} games for Chess.com user "${username}". Please analyze them:\n\n${pgns}`,
+            content: `Here are ${gameCount} games in PGN format. Please analyze them:\n\n${pgns}`,
           }],
         }),
       });
@@ -1468,7 +1449,7 @@ Keep it beginner friendly and actionable.`;
       if (!reportText) throw new Error('No response received from the AI.');
 
       setScoutStatus('');
-      renderReport(reportText, username, last10.length);
+      renderReport(reportText, gameCount);
 
     } catch (err) {
       setScoutStatus('');
