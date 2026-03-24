@@ -1421,37 +1421,55 @@ Keep it beginner friendly and actionable.`;
 
     try {
       setScoutStatus('Analyzing games with AI coach…');
-      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
-        method: 'POST',
-        headers: {
-          'x-api-key': ANTHROPIC_KEY,
-          'anthropic-version': '2023-06-01',
-          'content-type': 'application/json',
-        },
-        body: JSON.stringify({
-          model: 'claude-sonnet-4-20250514',
-          max_tokens: 2000,
-          system: SCOUT_SYSTEM,
-          messages: [{
-            role: 'user',
-            content: `Here are ${gameCount} games in PGN format. Please analyze them:\n\n${pgns}`,
-          }],
-        }),
-      });
+
+      let claudeRes;
+      try {
+        claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+          method: 'POST',
+          headers: {
+            'x-api-key': ANTHROPIC_KEY,
+            'anthropic-version': '2023-06-01',
+            'content-type': 'application/json',
+          },
+          body: JSON.stringify({
+            model: 'claude-sonnet-4-20250514',
+            max_tokens: 2000,
+            system: SCOUT_SYSTEM,
+            messages: [{
+              role: 'user',
+              content: `Here are ${gameCount} games in PGN format. Please analyze them:\n\n${pgns}`,
+            }],
+          }),
+        });
+      } catch (fetchErr) {
+        console.error('Fetch error (likely CORS or network):', fetchErr);
+        throw new Error(`Network error reaching Claude API — ${fetchErr.name}: ${fetchErr.message}. This is likely a CORS issue; the Anthropic API does not allow direct browser requests.`);
+      }
 
       if (!claudeRes.ok) {
-        const errBody = await claudeRes.json().catch(() => ({}));
-        throw new Error(`Claude API error ${claudeRes.status}: ${errBody?.error?.message || 'unknown error'}`);
+        let errDetail = `status ${claudeRes.status}`;
+        try {
+          const errBody = await claudeRes.json();
+          console.error('Claude API error body:', errBody);
+          errDetail += ` — ${errBody?.error?.message || JSON.stringify(errBody)}`;
+        } catch {
+          const errText = await claudeRes.text().catch(() => '');
+          console.error('Claude API error text:', errText);
+          errDetail += errText ? ` — ${errText}` : '';
+        }
+        throw new Error(`Claude API error: ${errDetail}`);
       }
 
       const claudeData = await claudeRes.json();
+      console.log('Claude response:', claudeData);
       const reportText = claudeData.content?.[0]?.text || '';
-      if (!reportText) throw new Error('No response received from the AI.');
+      if (!reportText) throw new Error('Claude responded but returned no text content.');
 
       setScoutStatus('');
       renderReport(reportText, gameCount);
 
     } catch (err) {
+      console.error('Scout error:', err);
       setScoutStatus('');
       setScoutError(err.message);
     } finally {
