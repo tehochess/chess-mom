@@ -86,17 +86,18 @@
     .tabs-bar {
       background: var(--green-mid);
       display: flex;
-      width: 100%;
+      overflow-x: auto;
+      scrollbar-width: none;
     }
+    .tabs-bar::-webkit-scrollbar { display: none; }
 
     .tab-btn {
-      flex: 1 1 0;
-      min-width: 0;
-      padding: 13px 6px;
+      flex: 0 0 auto;
+      padding: 13px 14px;
       border: none;
       background: transparent;
       color: rgba(250,246,238,.65);
-      font-size: .9rem;
+      font-size: .82rem;
       font-weight: 600;
       cursor: pointer;
       transition: background .2s, color .2s;
@@ -225,6 +226,138 @@
     }
     .msg.success { display: block; background: var(--success-bg); color: var(--success-txt); }
     .msg.error   { display: block; background: var(--error-bg);   color: var(--error-txt); }
+
+    /* ── SCOUT DAD ───────────────────────────────────── */
+    .scout-intro {
+      background: var(--white);
+      border: 1px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+    }
+
+    .scout-intro h2 {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--green-dark);
+      margin-bottom: 6px;
+    }
+
+    .scout-intro .subtitle {
+      font-size: .88rem;
+      color: var(--muted);
+      margin-bottom: 18px;
+    }
+
+    .scout-input-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .scout-text-input {
+      flex: 1 1 180px;
+      padding: 11px 14px;
+      border: 1.5px solid var(--cream3);
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      font-family: inherit;
+      color: var(--text);
+      background: var(--cream);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+
+    .scout-text-input:focus {
+      border-color: var(--green-accent);
+      box-shadow: 0 0 0 3px rgba(78,158,78,.15);
+      background: var(--white);
+    }
+
+    .scout-btn {
+      padding: 11px 20px;
+      background: var(--green-mid);
+      color: var(--cream);
+      border: none;
+      border-radius: var(--radius-sm);
+      font-size: .95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s, transform .1s;
+      white-space: nowrap;
+    }
+
+    .scout-btn:hover:not(:disabled) { background: var(--green-light); }
+    .scout-btn:active:not(:disabled) { transform: scale(.98); }
+    .scout-btn:disabled { opacity: .55; cursor: not-allowed; }
+
+    .scout-status {
+      margin-top: 16px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: .9rem;
+      color: var(--muted);
+    }
+
+    .scout-error {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: var(--error-bg);
+      color: var(--error-txt);
+      border-radius: var(--radius-sm);
+      font-size: .9rem;
+      font-weight: 500;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .spinner {
+      width: 22px;
+      height: 22px;
+      border: 3px solid var(--cream3);
+      border-top-color: var(--green-mid);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .report-meta {
+      font-size: .84rem;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .report-section {
+      background: var(--white);
+      border: 1px solid var(--cream3);
+      border-radius: var(--radius);
+      padding: 20px 22px;
+      margin-bottom: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .report-section-title {
+      font-size: .78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--green-mid);
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .report-section-body p {
+      font-size: .9rem;
+      line-height: 1.7;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .report-section-body p:last-child { margin-bottom: 0; }
 
     /* ── COACH VIEW ──────────────────────────────────── */
     #coachView { display: none; }
@@ -606,6 +739,7 @@
   <button class="tab-btn"        role="tab" data-tab="lessons">Weekly Lessons</button>
   <button class="tab-btn"        role="tab" data-tab="puzzles">Key Principles</button>
   <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach</button>
+  <button class="tab-btn"        role="tab" data-tab="scout">Scout Dad</button>
 </nav>
 
 <!-- CONTENT -->
@@ -1013,6 +1147,21 @@
     </iframe>
   </section>
 
+  <!-- Scout Dad -->
+  <section class="tab-panel" id="panel-scout" role="tabpanel">
+    <div class="scout-intro">
+      <h2>🔍 Scout Dad</h2>
+      <p class="subtitle">Enter his Chess.com username to pull his recent games and get an AI breakdown of how to beat him.</p>
+      <div class="scout-input-row">
+        <input type="text" id="usernameInput" class="scout-text-input" placeholder="Chess.com username" autocomplete="off" spellcheck="false">
+        <button id="fetchBtn" class="scout-btn">Fetch &amp; Analyze</button>
+      </div>
+      <div id="scoutStatus"></div>
+      <div id="scoutError"></div>
+    </div>
+    <div id="scoutReport"></div>
+  </section>
+
 </main>
 
 <!-- COACH VIEW (hidden; access via #coach in URL) -->
@@ -1187,6 +1336,145 @@
     });
   }
 
+  // ── Scout Dad ──────────────────────────────────────────────────────────────
+  // NOTE: Direct browser calls to the Anthropic API expose your API key.
+  // For production, proxy this through a backend. Fine for personal/local use.
+  const ANTHROPIC_KEY = 'YOUR_ANTHROPIC_KEY_HERE';
+
+  const SCOUT_SYSTEM = `You are an expert chess coach analyzing games to help a beginner beat this specific opponent. Analyze these games and return a report with these sections:
+1) OPENINGS: What openings does this player favor as White and Black?
+2) STRENGTHS: What does this player do well?
+3) WEAKNESSES: What are their biggest mistakes and weaknesses?
+4) PATTERNS: What habits or patterns do they repeat?
+5) HOW TO BEAT THEM: Specific simple advice for a beginner to exploit these weaknesses.
+Keep it beginner friendly and actionable.`;
+
+  function setScoutStatus(msg) {
+    document.getElementById('scoutStatus').innerHTML = msg
+      ? `<div class="scout-status"><div class="spinner"></div><span>${msg}</span></div>`
+      : '';
+  }
+
+  function setScoutError(msg) {
+    document.getElementById('scoutError').innerHTML = msg
+      ? `<div class="scout-error">${escHtml(msg)}</div>`
+      : '';
+  }
+
+  function escHtml(s) {
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+
+  function renderReport(text, username, count) {
+    const sections = [
+      { key: 'OPENINGS',        icon: '📖', label: 'Openings' },
+      { key: 'STRENGTHS',       icon: '💪', label: 'Strengths' },
+      { key: 'WEAKNESSES',      icon: '⚠️',  label: 'Weaknesses' },
+      { key: 'PATTERNS',        icon: '🔄', label: 'Patterns' },
+      { key: 'HOW TO BEAT THEM',icon: '🎯', label: 'How to Beat Them' },
+    ];
+
+    let html = `<p class="report-meta">Analysis of <strong>${escHtml(username)}</strong> &middot; ${count} recent games</p>`;
+    let anyFound = false;
+
+    sections.forEach((s, i) => {
+      const re = new RegExp(s.key.replace(/ /g, '\\s+'), 'i');
+      const match = text.search(re);
+      if (match === -1) return;
+      anyFound = true;
+      const nextMatch = sections.slice(i + 1).reduce((pos, ns) => {
+        const nr = new RegExp(ns.key.replace(/ /g, '\\s+'), 'i');
+        const nm = text.search(nr);
+        return (nm > match && (pos === -1 || nm < pos)) ? nm : pos;
+      }, -1);
+      const raw = text.slice(match, nextMatch === -1 ? undefined : nextMatch);
+      const body = raw.replace(re, '').replace(/^[\s\d\):\-\.]+/, '').trim();
+      const paras = body.split('\n').map(l => l.trim()).filter(Boolean)
+        .map(l => `<p>${escHtml(l)}</p>`).join('');
+      html += `<div class="report-section">
+        <div class="report-section-title"><span>${s.icon}</span>${s.label}</div>
+        <div class="report-section-body">${paras}</div>
+      </div>`;
+    });
+
+    if (!anyFound) {
+      const paras = text.split('\n').map(l => l.trim()).filter(Boolean)
+        .map(l => `<p>${escHtml(l)}</p>`).join('');
+      html += `<div class="report-section"><div class="report-section-body">${paras}</div></div>`;
+    }
+
+    document.getElementById('scoutReport').innerHTML = html;
+  }
+
+  async function runScout() {
+    const username = document.getElementById('usernameInput').value.trim();
+    if (!username) { document.getElementById('usernameInput').focus(); return; }
+
+    const btn = document.getElementById('fetchBtn');
+    btn.disabled = true;
+    document.getElementById('scoutReport').innerHTML = '';
+    setScoutError('');
+
+    try {
+      // 1. Get archives list
+      setScoutStatus('Fetching game archives from Chess.com…');
+      const archRes = await fetch(`https://api.chess.com/pub/player/${encodeURIComponent(username)}/games/archives`);
+      if (!archRes.ok) throw new Error(`Player "${username}" not found on Chess.com (${archRes.status})`);
+      const { archives } = await archRes.json();
+      if (!archives || archives.length === 0) throw new Error('No game archives found for this player.');
+
+      // 2. Fetch most recent monthly archive
+      setScoutStatus('Loading most recent games…');
+      const latestRes = await fetch(archives[archives.length - 1]);
+      if (!latestRes.ok) throw new Error('Could not fetch the most recent game archive.');
+      const { games = [] } = await latestRes.json();
+      if (games.length === 0) throw new Error('No games found in the most recent archive.');
+
+      // 3. Take last 10 PGNs
+      const last10 = games.slice(-10);
+      const pgns = last10.map(g => g.pgn).filter(Boolean).join('\n\n');
+      if (!pgns) throw new Error('No PGN data available for these games.');
+
+      // 4. Send to Claude
+      setScoutStatus(`Analyzing ${last10.length} games with AI coach…`);
+      const claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'content-type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 2000,
+          system: SCOUT_SYSTEM,
+          messages: [{
+            role: 'user',
+            content: `Here are the last ${last10.length} games for Chess.com user "${username}". Please analyze them:\n\n${pgns}`,
+          }],
+        }),
+      });
+
+      if (!claudeRes.ok) {
+        const errBody = await claudeRes.json().catch(() => ({}));
+        throw new Error(`Claude API error ${claudeRes.status}: ${errBody?.error?.message || 'unknown error'}`);
+      }
+
+      const claudeData = await claudeRes.json();
+      const reportText = claudeData.content?.[0]?.text || '';
+      if (!reportText) throw new Error('No response received from the AI.');
+
+      setScoutStatus('');
+      renderReport(reportText, username, last10.length);
+
+    } catch (err) {
+      setScoutStatus('');
+      setScoutError(err.message);
+    } finally {
+      btn.disabled = false;
+    }
+  }
+
   // ── Init ───────────────────────────────────────────────────────────────────
   if (window.location.hash === '#coach') {
     initCoachView();
@@ -1196,6 +1484,10 @@
     tickCountdown(matchDate);
     setInterval(() => tickCountdown(matchDate), 1000);
     initLessons();
+    document.getElementById('fetchBtn').addEventListener('click', runScout);
+    document.getElementById('usernameInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') runScout();
+    });
   }
 </script>
 </body>
