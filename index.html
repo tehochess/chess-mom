@@ -506,39 +506,21 @@
       border-top: 1px solid var(--cream3);
     }
 
-    .week-body ul {
-      list-style: none;
-      display: flex;
-      flex-direction: column;
-      gap: 9px;
-    }
-
-    .week-body li {
-      display: flex;
-      gap: 10px;
-      font-size: .88rem;
-      line-height: 1.6;
+    .week-body p {
+      font-size: .9rem;
+      line-height: 1.75;
       color: var(--text);
     }
 
-    .week-body li::before {
-      content: '•';
-      color: var(--green-accent);
-      font-size: 1.1rem;
-      line-height: 1.45;
-      flex-shrink: 0;
-    }
-
-    .why-note {
-      margin-top: 14px;
+    .milestone {
+      margin-top: 16px;
       padding: 10px 14px;
       background: rgba(78,158,78,.09);
       border-left: 3px solid var(--green-accent);
       border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: .85rem;
+      font-size: .86rem;
       color: var(--green-dark);
-      font-style: italic;
-      line-height: 1.55;
+      line-height: 1.6;
     }
 
     .lessons-progress {
@@ -663,24 +645,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w0"></div>
           <span class="week-badge">Week 1</span>
           <div class="week-header-text">
-            <div class="week-title">The Board and Pieces</div>
-            <div class="week-summary">This week you will learn the rules of the game so you never feel lost.</div>
+            <div class="week-title">Know the Rules Cold</div>
+            <div class="week-summary">Before anything else, own the fundamentals completely.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>The board has 64 squares, 8×8. Always set it up with a light square in the bottom-right corner — "light on right."</li>
-            <li>Each side starts with 16 pieces: 1 king, 1 queen, 2 rooks, 2 bishops, 2 knights, 8 pawns.</li>
-            <li>The rook moves in straight lines — horizontal and vertical, any number of squares.</li>
-            <li>The bishop moves diagonally only — it always stays on its starting color.</li>
-            <li>The queen is the most powerful piece — it combines the rook and bishop (any direction, any distance).</li>
-            <li>The king moves one square in any direction — protect it at all costs.</li>
-            <li>The knight moves in an L-shape: 2 squares in one direction, 1 square sideways. It is the only piece that jumps over others.</li>
-            <li>Pawns move forward one square (or two on their very first move) and capture diagonally.</li>
-            <li>Pieces are worth: Pawn=1, Knight=3, Bishop=3, Rook=5, Queen=9. Use this to decide trades.</li>
-          </ul>
-          <div class="why-note">Why this matters: You cannot play if you do not know how the pieces move. Master this before anything else.</div>
+          <p>Before anything else, own the fundamentals completely. Every piece, every special rule, every possible way a game can end. This isn't exciting but it's non-negotiable. A shaky foundation creates bad habits that are hard to unlearn later.</p>
+          <div class="milestone"><strong>Milestone:</strong> You can play a full game and know with certainty that every move you make is legal.</div>
         </div></div>
       </div>
 
@@ -690,21 +662,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w1"></div>
           <span class="week-badge">Week 2</span>
           <div class="week-header-text">
-            <div class="week-title">Check, Checkmate and Special Moves</div>
-            <div class="week-summary">This week you will learn how the game ends and the special rules beginners always miss.</div>
+            <div class="week-title">Learn to Finish Games</div>
+            <div class="week-summary">Train your eyes to see threats before they land.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>Check means your king is under attack — you MUST respond immediately. You have 3 options: move the king, block the attack, or capture the attacker.</li>
-            <li>Checkmate means the king is in check with no legal escape — the game is over.</li>
-            <li>Stalemate is a draw — the opponent has no legal moves but is NOT in check. Avoid accidentally stalemating a losing opponent.</li>
-            <li>Castling: the one move where the king moves 2 squares. The king slides toward a rook, the rook jumps to the other side. Rules: neither piece has moved, no pieces between them, king is not in check.</li>
-            <li>En passant: a special pawn capture that only happens immediately after an opponent moves a pawn 2 squares past yours. If you do not capture on that exact turn, the opportunity is gone forever.</li>
-            <li>Pawn promotion: when a pawn reaches the last rank it becomes any piece you choose — always choose a queen.</li>
-          </ul>
-          <div class="why-note">Why this matters: Knowing these rules means you will never be surprised or make an illegal move.</div>
+          <p>Knowing the rules and knowing how to actually end a game are two different things. This week is about checkmate patterns and basic tactics — forks, pins, skewers. You're training your eyes to see threats before they land, both yours and your opponent's.</p>
+          <div class="milestone"><strong>Milestone:</strong> You stop losing games to things you simply didn't see.</div>
         </div></div>
       </div>
 
@@ -714,20 +679,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w2"></div>
           <span class="week-badge">Week 3</span>
           <div class="week-header-text">
-            <div class="week-title">Piece Values and Hanging Pieces</div>
-            <div class="week-summary">This week you will learn how to stop losing pieces for free — the number one mistake beginners make.</div>
+            <div class="week-title">Understand Opening Principles</div>
+            <div class="week-summary">Internalize why the opening matters — no memorization required.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>Before every single move, ask two questions: 1) Can my opponent take anything of mine for free? 2) Can I take anything of theirs for free?</li>
-            <li>A "hanging" piece is one that is undefended and can be captured for free — never leave pieces hanging.</li>
-            <li>Use the value scale to judge every trade: Pawn=1, Knight=3, Bishop=3, Rook=5, Queen=9. If you trade a rook (5) for a bishop (3) for no reason, you are losing.</li>
-            <li>Count defenders and attackers before capturing: if 2 pieces attack a square and only 1 defends it, the defender will be lost.</li>
-            <li>The golden rule: if in doubt, do not trade. Ask "does this trade help me or my opponent?"</li>
-          </ul>
-          <div class="why-note">Why this matters: 90% of beginner games are decided not by brilliant moves but by someone leaving a piece where it can be taken for free.</div>
+          <p>Don't memorize opening lines. Instead, internalize why the opening matters: you're racing to get your pieces active, control the center of the board, and get your king to safety. Every strong opening move follows from these three ideas. Understanding the principles means you can handle any position your opponent throws at you.</p>
+          <div class="milestone"><strong>Milestone:</strong> You reach a solid, developed position at the start of every game without getting into early trouble.</div>
         </div></div>
       </div>
 
@@ -737,22 +696,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w3"></div>
           <span class="week-badge">Week 4</span>
           <div class="week-header-text">
-            <div class="week-title">Forks, Pins and Skewers</div>
-            <div class="week-summary">This week you will learn the three most common tactics that win material in real games.</div>
+            <div class="week-title">Develop a Middlegame Plan</div>
+            <div class="week-summary">Always have a reason before you move.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>A fork is when one piece attacks two enemy pieces at the same time — your opponent can only save one.</li>
-            <li>Knights are the best forking pieces because they move in unexpected ways. Always look for knight forks on the king and rook.</li>
-            <li>A pin is when a piece cannot move because doing so would expose a more valuable piece behind it. Example: a bishop pins a knight to the king — the knight cannot move.</li>
-            <li>An absolute pin means the piece behind is the king — the pinned piece legally cannot move.</li>
-            <li>A relative pin means the piece behind is valuable but not the king — moving is legal but costly.</li>
-            <li>A skewer is like a reverse pin — you attack a valuable piece, it moves, and you take what was behind it.</li>
-            <li>Every puzzle session this week: look for these three patterns before making any move.</li>
-          </ul>
-          <div class="why-note">Why this matters: these three tactics appear in almost every chess game ever played at every level.</div>
+          <p>This is where most beginners go blank. The opening is over and they just start reacting move by move. The fix is simple in concept: always have a plan, even a basic one. Identify your worst-placed piece and improve it. Look for weaknesses in the opponent's position. Don't just move — have a reason.</p>
+          <div class="milestone"><strong>Milestone:</strong> You can articulate what you're trying to do before you make your move.</div>
         </div></div>
       </div>
 
@@ -762,22 +713,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w4"></div>
           <span class="week-badge">Week 5</span>
           <div class="week-header-text">
-            <div class="week-title">Opening Principles</div>
-            <div class="week-summary">This week you will learn the 6 rules that govern every good opening — no memorization required.</div>
+            <div class="week-title">Learn How Games End</div>
+            <div class="week-summary">A small lead handled correctly is a guaranteed win.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>Rule 1: Control the center — play e4 or d4 on move 1. The center is high ground; whoever controls it controls the game.</li>
-            <li>Rule 2: Develop your pieces — get knights and bishops off the back row in the first 6 moves.</li>
-            <li>Rule 3: Knights before bishops — knights have fewer good squares and must come out early; bishops can wait to see where they are needed.</li>
-            <li>Rule 4: Castle early — within the first 10 moves. Your king is unsafe in the center; castling solves this and connects your rooks.</li>
-            <li>Rule 5: Do not move the same piece twice — each piece should develop once before any piece moves again. Moving the same piece twice gifts your opponent a free turn.</li>
-            <li>Rule 6: Do not bring your queen out early — she will be chased by cheaper pieces and you will waste moves running away.</li>
-            <li>These 6 rules replace memorizing openings entirely at the beginner level.</li>
-          </ul>
-          <div class="why-note">Why this matters: follow these rules and you will have a good position after the opening every single game.</div>
+          <p>Most beginners ignore endgames entirely and pay for it constantly. When you're ahead in material, you need to know how to convert that advantage into an actual win. A small lead handled correctly is a guaranteed win. The same lead handled carelessly is a draw or worse.</p>
+          <div class="milestone"><strong>Milestone:</strong> When you're winning, you can close the game out.</div>
         </div></div>
       </div>
 
@@ -787,21 +730,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w5"></div>
           <span class="week-badge">Week 6</span>
           <div class="week-header-text">
-            <div class="week-title">Your Openings as White and Black</div>
-            <div class="week-summary">This week you will learn one specific opening plan for each color so you always know what to do on moves 1–10.</div>
+            <div class="week-title">Sharpen Tactical Awareness</div>
+            <div class="week-summary">This week tends to produce the biggest visible jump in strength.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>As White: play 1.e4. Then develop knights (Nf3, Nc3), then bishops, then castle kingside. That is your entire plan.</li>
-            <li>As Black vs e4: respond with 1...e5. Mirror White's plan — develop toward the center, castle early, do not do anything unusual.</li>
-            <li>As Black vs d4: respond with 1...d5. Same idea — fight for the center, develop, castle.</li>
-            <li>What NOT to do: do not move pawns repeatedly in the opening, do not develop only one side, do not delay castling.</li>
-            <li>How your opponent punishes opening mistakes: if you bring your queen out early they will develop pieces while attacking it, gaining free moves.</li>
-            <li>You do not need to know theory — you need to know these rules and apply them calmly every game.</li>
-          </ul>
-          <div class="why-note">Why this matters: a consistent opening means you start every game on solid ground with no surprises.</div>
+          <p>Come back to tactics with fresh eyes and go deeper. The patterns from week 2 get reinforced, but now you're also spotting multi-move combinations, recognizing when to sacrifice material for a bigger gain, and seeing the whole board rather than just your own pieces. This week tends to produce the biggest visible jump in strength.</p>
+          <div class="milestone"><strong>Milestone:</strong> You're finding threats your opponent didn't intend to show you.</div>
         </div></div>
       </div>
 
@@ -811,21 +747,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w6"></div>
           <span class="week-badge">Week 7</span>
           <div class="week-header-text">
-            <div class="week-title">Basic Endgames</div>
-            <div class="week-summary">This week you will learn how to convert a winning position into a win — most beginners throw away won games here.</div>
+            <div class="week-title">Play Real Games, Review Honestly</div>
+            <div class="week-summary">One honest post-game review is worth more than five games played and forgotten.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>Activate your king: in the endgame the king is a powerful fighting piece. March it toward the center.</li>
-            <li>King and Queen vs lone King: use your queen to cut the enemy king to the edge, then bring your king over to deliver checkmate. Practice this until it takes under 10 moves.</li>
-            <li>King and Rook vs lone King: same idea — cut the king to the edge with the rook, bring your king over, deliver the "ladder mate."</li>
-            <li>Passed pawns must be pushed: a pawn with no enemy pawns blocking its path is a future queen. Push it every chance you get.</li>
-            <li>When ahead in material: trade pieces, not pawns. Fewer pieces = simpler position = easier win.</li>
-            <li>Stalemate alert: always check your opponent has a legal move before making your final moves — accidental stalemate throws away a won game.</li>
-          </ul>
-          <div class="why-note">Why this matters: knowing these patterns means you will never reach a winning position and fail to close it out.</div>
+          <p>Move from practicing concepts to playing real opponents under real conditions. The goal isn't to win every game — it's to apply everything you've learned under pressure and then review what broke down. One honest post-game review is worth more than five games played and forgotten.</p>
+          <div class="milestone"><strong>Milestone:</strong> You understand exactly why you lost every game you lost.</div>
         </div></div>
       </div>
 
@@ -835,22 +764,14 @@
           <div class="week-check-wrap"><input type="checkbox" id="w7"></div>
           <span class="week-badge">Week 8</span>
           <div class="week-header-text">
-            <div class="week-title">Beat Dad — Patterns and Practice</div>
-            <div class="week-summary">This week you will prepare specifically for the match and build the mental game to win.</div>
+            <div class="week-title">Prepare Specifically for Him</div>
+            <div class="week-summary">Your job is to be better prepared than he expects.</div>
           </div>
           <span class="week-arrow">▾</span>
         </div>
         <div class="week-body"><div class="week-body-inner">
-          <ul>
-            <li>Dad is rated 1700 blitz — he plays fast and relies on opponents making quick mistakes. Your weapon is patience.</li>
-            <li>His likely strategy: open aggressively, create complications, hope you blunder under time pressure.</li>
-            <li>Your counter-strategy: follow your opening rules, avoid unnecessary complications, do not trade pieces without a reason.</li>
-            <li>Before every move run the checklist: 1) What did my opponent just threaten? 2) Can I take anything for free? 3) Does my move hang anything?</li>
-            <li>Play 3 practice games this week against a computer at level 3 or 4 on Lichess. After each game find the one move where things went wrong.</li>
-            <li>ISTJ advantage: you are methodical, you follow rules, you do not panic. A 1700 blitz player who underestimates you is beatable.</li>
-            <li>The goal is not perfection — the goal is to outlast his impatience and punish one mistake.</li>
-          </ul>
-          <div class="why-note">Why this matters: preparation is the difference between hoping to win and having a plan to win.</div>
+          <p>This week is about the actual target. A 1200 player has real patterns — openings they repeat, middlegame tendencies, types of positions they're comfortable or uncomfortable in. Study those patterns. Your job isn't to become a perfect chess player in eight weeks. Your job is to be better prepared than he expects.</p>
+          <div class="milestone"><strong>Milestone:</strong> You walk into the match with a specific read on your opponent and a clear game plan.</div>
         </div></div>
       </div>
 
