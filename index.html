@@ -1406,7 +1406,7 @@ Keep it beginner friendly and actionable.`;
   }
 
   const SCOUT_USERNAME = 'blackactive';
-  const CORS_PROXY = 'https://corsproxy.io/?';
+  const CORS_PROXY = 'https://corsproxy.io/?url=';
 
   async function runScout() {
     const btn = document.getElementById('fetchBtn');
@@ -1417,14 +1417,18 @@ Keep it beginner friendly and actionable.`;
     try {
       // 1. Get archives list
       setScoutStatus('Fetching game archives from Chess.com…');
-      const archRes = await fetch(`${CORS_PROXY}https://api.chess.com/pub/player/${encodeURIComponent(SCOUT_USERNAME)}/games/archives`);
+      const archRes = await fetch(`${CORS_PROXY}${encodeURIComponent(`https://api.chess.com/pub/player/${SCOUT_USERNAME}/games/archives`)}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      });
       if (!archRes.ok) throw new Error(`Could not fetch archives for "${SCOUT_USERNAME}" (${archRes.status})`);
       const { archives } = await archRes.json();
       if (!archives || archives.length === 0) throw new Error('No game archives found.');
 
       // 2. Fetch most recent monthly archive
       setScoutStatus('Loading most recent games…');
-      const latestRes = await fetch(`${CORS_PROXY}${archives[archives.length - 1]}`);
+      const latestRes = await fetch(`${CORS_PROXY}${encodeURIComponent(archives[archives.length - 1])}`, {
+        headers: { 'User-Agent': 'Mozilla/5.0' },
+      });
       if (!latestRes.ok) throw new Error('Could not fetch the most recent game archive.');
       const { games = [] } = await latestRes.json();
       if (games.length === 0) throw new Error('No games found in the most recent archive.');
