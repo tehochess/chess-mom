@@ -1,13 +1,16 @@
 import os
 import json
 import requests
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 
 # ── Secrets ──────────────────────────────────────────────────────────────────
 SB_URL      = os.environ.get("SUPABASE_URL", "")
 SB_KEY      = os.environ.get("SUPABASE_KEY", "")
-RESEND_KEY  = os.environ.get("RESEND_API_KEY", "")
-TO_EMAIL    = os.environ.get("TO_EMAIL", "")
+EMAIL_SENDER   = os.environ.get("EMAIL_SENDER", "")
+EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD", "")
 ANTHROPIC_KEY = os.environ.get("ANTHROPIC_API_KEY", "")
 
 SB_HEADERS = {
@@ -212,22 +215,19 @@ def build_html(entries, ai_report, week_label):
 </body>
 </html>"""
 
-# ── 5. Send via Resend ────────────────────────────────────────────────────────
+# ── 5. Send via Gmail SMTP ────────────────────────────────────────────────────
 def send_email(subject, html_body, recipients):
-    payload = {
-        "from": "Chess Coach <onboarding@resend.dev>",
-        "to": recipients,
-        "subject": subject,
-        "html": html_body,
-    }
-    r = requests.post(
-        "https://api.resend.com/emails",
-        headers={"Authorization": f"Bearer {RESEND_KEY}", "Content-Type": "application/json"},
-        json=payload,
-        timeout=15,
-    )
-    r.raise_for_status()
-    print(f"Email sent → {recipients}  |  id={r.json().get('id')}")
+    msg = MIMEMultipart("alternative")
+    msg["Subject"] = subject
+    msg["From"]    = f"Chess Coach <{EMAIL_SENDER}>"
+    msg["To"]      = ", ".join(recipients)
+    msg.attach(MIMEText(html_body, "html"))
+
+    with smtplib.SMTP_SSL("smtp.gmail.com", 465) as smtp:
+        smtp.login(EMAIL_SENDER, EMAIL_PASSWORD)
+        smtp.sendmail(EMAIL_SENDER, recipients, msg.as_string())
+
+    print(f"Email sent → {recipients}")
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 def main():
@@ -248,10 +248,7 @@ def main():
 
     html = build_html(entries, ai_report, week_label)
 
-    recipients = [e.strip() for e in TO_EMAIL.split(",") if e.strip()]
-    if not recipients:
-        recipients = ["he.samuel300@gmail.com", "lihwang@live.com"]
-
+    recipients = ["he.samuel300@gmail.com", "lihwang@live.com"]
     send_email(subject, html, recipients)
     print("Done.")
 
