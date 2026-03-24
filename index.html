@@ -1338,9 +1338,8 @@
   }
 
   // ── Scout Dad ──────────────────────────────────────────────────────────────
-  // NOTE: Direct browser calls to the Anthropic API expose your API key.
-  // For production, proxy this through a backend. Fine for personal/local use.
-  const ANTHROPIC_KEY = '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';
+  const GEMINI_KEY = 'AIzaSyA9LQm7Em9BUjgIL3Av457_YqlO81AIciI';
+  const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_KEY}`;
 
   const SCOUT_SYSTEM = `You are an expert chess coach analyzing games to help a beginner beat this specific opponent. Analyze these games and return a report with these sections:
 1) OPENINGS: What openings does this player favor as White and Black?
@@ -1422,48 +1421,40 @@ Keep it beginner friendly and actionable.`;
     try {
       setScoutStatus('Analyzing games with AI coach…');
 
-      let claudeRes;
+      const prompt = `${SCOUT_SYSTEM}\n\nHere are ${gameCount} games in PGN format. Please analyze them:\n\n${pgns}`;
+
+      let geminiRes;
       try {
-        claudeRes = await fetch('https://api.anthropic.com/v1/messages', {
+        geminiRes = await fetch(GEMINI_URL, {
           method: 'POST',
-          headers: {
-            'x-api-key': ANTHROPIC_KEY,
-            'anthropic-version': '2023-06-01',
-            'content-type': 'application/json',
-          },
+          headers: { 'content-type': 'application/json' },
           body: JSON.stringify({
-            model: 'claude-sonnet-4-20250514',
-            max_tokens: 2000,
-            system: SCOUT_SYSTEM,
-            messages: [{
-              role: 'user',
-              content: `Here are ${gameCount} games in PGN format. Please analyze them:\n\n${pgns}`,
-            }],
+            contents: [{ parts: [{ text: prompt }] }],
           }),
         });
       } catch (fetchErr) {
-        console.error('Fetch error (likely CORS or network):', fetchErr);
-        throw new Error(`Network error reaching Claude API — ${fetchErr.name}: ${fetchErr.message}. This is likely a CORS issue; the Anthropic API does not allow direct browser requests.`);
+        console.error('Fetch error:', fetchErr);
+        throw new Error(`Network error reaching Gemini API — ${fetchErr.name}: ${fetchErr.message}`);
       }
 
-      if (!claudeRes.ok) {
-        let errDetail = `status ${claudeRes.status}`;
+      if (!geminiRes.ok) {
+        let errDetail = `status ${geminiRes.status}`;
         try {
-          const errBody = await claudeRes.json();
-          console.error('Claude API error body:', errBody);
+          const errBody = await geminiRes.json();
+          console.error('Gemini API error body:', errBody);
           errDetail += ` — ${errBody?.error?.message || JSON.stringify(errBody)}`;
         } catch {
-          const errText = await claudeRes.text().catch(() => '');
-          console.error('Claude API error text:', errText);
+          const errText = await geminiRes.text().catch(() => '');
+          console.error('Gemini API error text:', errText);
           errDetail += errText ? ` — ${errText}` : '';
         }
-        throw new Error(`Claude API error: ${errDetail}`);
+        throw new Error(`Gemini API error: ${errDetail}`);
       }
 
-      const claudeData = await claudeRes.json();
-      console.log('Claude response:', claudeData);
-      const reportText = claudeData.content?.[0]?.text || '';
-      if (!reportText) throw new Error('Claude responded but returned no text content.');
+      const geminiData = await geminiRes.json();
+      console.log('Gemini response:', geminiData);
+      const reportText = geminiData.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (!reportText) throw new Error('Gemini responded but returned no text content.');
 
       setScoutStatus('');
       renderReport(reportText, gameCount);
