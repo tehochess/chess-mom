@@ -5,7 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Samuel's Chess Academy</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>♟</text></svg>">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/lichess-pgn-viewer/dist/lichess-pgn-viewer.css">
+  <script src="https://unpkg.com/lichess-pgn-viewer/dist/lichess-pgn-viewer.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -306,9 +307,9 @@
     }
 
     /* Board */
-    .scout-board-inner { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+    .scout-board-inner { display: flex; flex-direction: column; gap: 12px; }
     .scout-game-tag {
-      width: 100%; display: flex; justify-content: space-between;
+      display: flex; justify-content: space-between;
       align-items: center; flex-wrap: wrap; gap: 6px;
       font-size: .8rem; color: var(--muted); font-weight: 500;
     }
@@ -316,38 +317,43 @@
       background: #fee2e2; color: #991b1b;
       border-radius: 999px; padding: 3px 12px; font-size: .75rem; font-weight: 700;
     }
-    #scoutBoard {
-      display: grid; grid-template-columns: repeat(8, 1fr);
-      width: min(320px, 100%);
-      border: 2px solid var(--green-dark); border-radius: 3px;
-      overflow: hidden; box-shadow: 0 4px 20px rgba(26,46,26,.3);
-    }
-    #scoutBoard > div { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; }
-    .sq-l { background: #f0d9b5; }
-    .sq-d { background: #b58863; }
-    .sq-l.sq-from, .sq-l.sq-to { background: #cdd26a; }
-    .sq-d.sq-from, .sq-d.sq-to { background: #aaa23a; }
-    .pw, .pb { font-size: clamp(16px, 5.5vw, 32px); line-height: 1; user-select: none; display: block; }
-    .pw { color: #fff; text-shadow: 0 0 2px #555, 0 0 3px #333; }
-    .pb { color: #1a1a1a; }
+    #lpv-container { width: 100%; }
 
-    .scout-controls {
-      display: flex; align-items: center; gap: 10px; width: min(320px, 100%);
+    /* ── SCOUT PASSWORD OVERLAY ─────────────────────── */
+    #scoutOverlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(26,46,26,.97); z-index: 9999;
+      align-items: center; justify-content: center;
     }
-    .scout-nav-btn {
-      width: 40px; height: 40px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      background: var(--green-mid); color: var(--cream);
-      border: none; border-radius: var(--radius-sm);
-      font-size: 1rem; cursor: pointer; transition: background .15s, transform .1s;
+    #scoutOverlay.visible { display: flex; }
+    .scout-lock-box {
+      background: var(--cream); border-radius: var(--radius);
+      padding: 44px 36px; max-width: 360px; width: 90%;
+      text-align: center; box-shadow: 0 24px 64px rgba(0,0,0,.55);
     }
-    .scout-nav-btn:hover:not(:disabled) { background: var(--green-light); }
-    .scout-nav-btn:active:not(:disabled) { transform: scale(.93); }
-    .scout-nav-btn:disabled { opacity: .3; cursor: not-allowed; }
-    .scout-move-display { flex: 1; text-align: center; }
-    .scout-move-info { font-size: .72rem; color: var(--muted); display: block; }
-    .scout-move-san  { font-size: 1rem; font-weight: 700; color: var(--green-dark); font-family: monospace; display: block; min-height: 1.3em; }
-    .scout-kbd-hint  { font-size: .72rem; color: var(--muted); text-align: center; }
+    .scout-lock-icon { font-size: 3.2rem; margin-bottom: 16px; line-height: 1; }
+    .scout-lock-title { font-size: 1.25rem; font-weight: 700; color: var(--green-dark); margin-bottom: 6px; }
+    .scout-lock-sub { font-size: .86rem; color: var(--muted); margin-bottom: 24px; line-height: 1.5; }
+    .scout-lock-input {
+      width: 100%; padding: 12px 14px; margin-bottom: 12px;
+      border: 1.5px solid var(--cream3); border-radius: var(--radius-sm);
+      font-size: 1.1rem; font-family: inherit; background: var(--white);
+      color: var(--text); outline: none; text-align: center; letter-spacing: 4px;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .scout-lock-input:focus {
+      border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,158,78,.18);
+    }
+    .scout-lock-btn {
+      width: 100%; padding: 13px; background: var(--green-mid); color: var(--cream);
+      border: none; border-radius: var(--radius-sm); font-size: 1rem;
+      font-weight: 700; cursor: pointer; transition: background .2s;
+    }
+    .scout-lock-btn:hover { background: var(--green-light); }
+    .scout-lock-error {
+      margin-top: 11px; font-size: .85rem; color: #991b1b;
+      font-weight: 600; min-height: 1.3em;
+    }
 
     /* Narrative */
     .scout-prose { font-size: .9rem; color: var(--text); line-height: 1.75; margin-bottom: 10px; }
@@ -1120,16 +1126,7 @@
             <span>♟ BlackActive (Dad) · Black · Mar 18 2026</span>
             <span class="scout-result-badge">Lost · Resigned</span>
           </div>
-          <div id="scoutBoard"></div>
-          <div class="scout-controls">
-            <button class="scout-nav-btn" id="scoutPrev" title="Previous move (←)">◀</button>
-            <div class="scout-move-display">
-              <span class="scout-move-info" id="scoutMoveInfo">Starting position</span>
-              <span class="scout-move-san"  id="scoutMoveSan">&nbsp;</span>
-            </div>
-            <button class="scout-nav-btn" id="scoutNext" title="Next move (→)">▶</button>
-          </div>
-          <p class="scout-kbd-hint">← → arrow keys also work</p>
+          <div id="lpv-container"></div>
         </div>
       </div>
 
@@ -1202,6 +1199,18 @@
   </section>
 
 </main>
+
+<!-- Scout Dad password overlay -->
+<div id="scoutOverlay">
+  <div class="scout-lock-box">
+    <div class="scout-lock-icon">♟</div>
+    <h2 class="scout-lock-title">Coach Access Required</h2>
+    <p class="scout-lock-sub">Enter the password to view the Scout Dad analysis.</p>
+    <input class="scout-lock-input" type="password" id="scoutPwInput" placeholder="••••••" autocomplete="off">
+    <button class="scout-lock-btn" id="scoutPwBtn">Submit</button>
+    <p class="scout-lock-error" id="scoutPwError"></p>
+  </div>
+</div>
 
 <script>
   // ── Match date (localStorage) ───────────────────────────────────────────────
@@ -1307,12 +1316,44 @@
     tabBtns.forEach(b => b.classList.toggle('active', b.dataset.tab === id));
     tabPanels.forEach(p => p.classList.toggle('active', p.id === 'panel-' + id));
     localStorage.setItem('activeTab', id);
+    if (id === 'scout') setTimeout(initScoutLpv, 80);
   }
 
-  tabBtns.forEach(btn => btn.addEventListener('click', () => switchTab(btn.dataset.tab)));
+  tabBtns.forEach(btn => btn.addEventListener('click', () => {
+    if (btn.dataset.tab === 'scout' && !sessionStorage.getItem('scoutUnlocked')) {
+      document.getElementById('scoutOverlay').classList.add('visible');
+      setTimeout(() => document.getElementById('scoutPwInput').focus(), 60);
+      return;
+    }
+    switchTab(btn.dataset.tab);
+  }));
 
   const savedTab = localStorage.getItem('activeTab');
-  if (savedTab) switchTab(savedTab);
+  if (savedTab && !(savedTab === 'scout' && !sessionStorage.getItem('scoutUnlocked'))) {
+    switchTab(savedTab);
+  }
+
+  // ── Scout Dad password ──────────────────────────────────────────────────────
+  (function() {
+    function checkPw() {
+      const pw = document.getElementById('scoutPwInput').value;
+      if (pw === 'mom') {
+        sessionStorage.setItem('scoutUnlocked', 'true');
+        document.getElementById('scoutOverlay').classList.remove('visible');
+        document.getElementById('scoutPwInput').value = '';
+        document.getElementById('scoutPwError').textContent = '';
+        switchTab('scout');
+      } else {
+        document.getElementById('scoutPwError').textContent = 'Incorrect password. Try again.';
+        document.getElementById('scoutPwInput').value = '';
+        document.getElementById('scoutPwInput').focus();
+      }
+    }
+    document.getElementById('scoutPwBtn').addEventListener('click', checkPw);
+    document.getElementById('scoutPwInput').addEventListener('keydown', e => {
+      if (e.key === 'Enter') checkPw();
+    });
+  })();
 
   // ── Q&A Tracker (Supabase) ────────────────────────────────────────────────────
   (function() {
@@ -1474,85 +1515,26 @@
     fetchQuestions();
   })();
 
-  // ── Scout Dad ──────────────────────────────────────────────────────────────
-  (function() {
-    const PIECES = {
-      K:'♔', Q:'♕', R:'♖', B:'♗', N:'♘', P:'♙',
-      k:'♚', q:'♛', r:'♜', b:'♝', n:'♞', p:'♟',
-    };
-
-    const game = new Chess();
-    game.load_pgn(`[Event "Live Chess"][Site "Chess.com"][Date "2026.03.18"][White "elijahaleje49"][Black "BlackActive"][Result "1-0"]
+  // ── Scout Dad (Lichess PGN Viewer) ───────────────────────────────────────────
+  let _lpvDone = false;
+  function initScoutLpv() {
+    if (_lpvDone) return;
+    _lpvDone = true;
+    LichessPgnViewer(document.getElementById('lpv-container'), {
+      pgn: `[Event "Live Chess"]
+[Site "Chess.com"]
+[Date "2026.03.18"]
+[White "elijahaleje49"]
+[Black "BlackActive"]
+[Result "1-0"]
 1. e4 b6 2. d4 Bb7 3. f3 e6 4. c4 d6 5. Nc3 Nd7 6. Be3 a6 7. d5 e5 8. f4 Qf6
 9. f5 O-O-O 10. g4 Qe7 11. g5 f6 12. h4 Nc5 13. Bg2 Kb8 14. b4 Nd7 15. a4 Qe8
 16. Nge2 Be7 17. Ng3 g6 18. Bf3 Rc8 19. h5 fxg5 20. hxg6 h6 21. Bh5 Ndf6
 22. g7 Nxh5 23. gxh8=Q Nxg3 24. Qg4 Nxh1 25. O-O-O Bf6 26. Qh7 Bd8 27. Rxh1 Nf6
 28. Qg6 Nxg4 29. Qxe8 Nxe3 30. Rxh6 Nxc4 31. f6 g4 32. f7 Bg5+ 33. Kc2 Rxe8
-34. fxe8=Q+ 1-0`);
-
-    const moves = game.history({ verbose: true });
-    let idx = 0;
-
-    function buildBoard(fen, lm) {
-      const rows = fen.split(' ')[0].split('/');
-      let html = '';
-      for (let r = 0; r < 8; r++) {
-        let c = 0;
-        for (const ch of rows[r]) {
-          if (ch >= '1' && ch <= '8') {
-            for (let i = 0, n = +ch; i < n; i++) { html += cell(r, c++, null, lm); }
-          } else { html += cell(r, c++, ch, lm); }
-        }
-      }
-      return html;
-    }
-
-    function cell(r, c, piece, lm) {
-      const sqName = 'abcdefgh'[c] + (8 - r);
-      let cls = (r + c) % 2 === 0 ? 'sq-l' : 'sq-d';
-      if (lm && sqName === lm.from) cls += ' sq-from';
-      if (lm && sqName === lm.to)   cls += ' sq-to';
-      const inner = piece
-        ? `<span class="${piece === piece.toUpperCase() ? 'pw' : 'pb'}">${PIECES[piece]}</span>`
-        : '';
-      return `<div class="${cls}">${inner}</div>`;
-    }
-
-    function render() {
-      const g = new Chess();
-      for (let i = 0; i < idx; i++) g.move(moves[i].san);
-      const lm = idx > 0 ? moves[idx - 1] : null;
-
-      document.getElementById('scoutBoard').innerHTML = buildBoard(g.fen(), lm);
-      document.getElementById('scoutPrev').disabled = idx === 0;
-      document.getElementById('scoutNext').disabled = idx === moves.length;
-
-      if (idx === 0) {
-        document.getElementById('scoutMoveInfo').textContent = 'Starting position';
-        document.getElementById('scoutMoveSan').innerHTML = '&nbsp;';
-      } else {
-        document.getElementById('scoutMoveInfo').textContent =
-          `Move ${Math.ceil(idx / 2)} · ${idx % 2 === 1 ? 'White' : 'Black (Dad)'}`;
-        document.getElementById('scoutMoveSan').textContent = moves[idx - 1].san;
-      }
-    }
-
-    document.getElementById('scoutNext').addEventListener('click', () => {
-      if (idx < moves.length) { idx++; render(); }
+34. fxe8=Q+ 1-0`,
     });
-    document.getElementById('scoutPrev').addEventListener('click', () => {
-      if (idx > 0) { idx--; render(); }
-    });
-
-    // Arrow key navigation when scout tab is active
-    document.addEventListener('keydown', e => {
-      if (!document.getElementById('panel-scout').classList.contains('active')) return;
-      if (e.key === 'ArrowRight' && idx < moves.length) { idx++; render(); }
-      if (e.key === 'ArrowLeft'  && idx > 0)            { idx--; render(); }
-    });
-
-    render(); // Draw immediately — no lazy init needed
-  })();
+  }
 
   // ── Init ───────────────────────────────────────────────────────────────────
   const matchDate = getMatchDate();
