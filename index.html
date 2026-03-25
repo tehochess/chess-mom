@@ -688,6 +688,31 @@
     }
     .prog-save-status.err { color: #991b1b; }
 
+    /* Task rating cards */
+    .prog-task-card {
+      background: var(--cream); border: 1.5px solid var(--cream3);
+      border-radius: var(--radius-sm); padding: 14px 16px; margin-bottom: 10px;
+    }
+    .prog-task-card:last-child { margin-bottom: 0; }
+    .prog-task-name {
+      font-size: .9rem; font-weight: 700; color: var(--green-dark);
+      margin-bottom: 10px; line-height: 1.4;
+    }
+    .prog-task-hint {
+      display: flex; justify-content: space-between;
+      font-size: .72rem; color: var(--muted); margin-top: -4px; margin-bottom: 8px;
+    }
+    .prog-task-notes {
+      width: 100%; min-height: 58px; border: 1.5px solid var(--cream3);
+      border-radius: var(--radius-sm); padding: 8px 10px;
+      font-size: .85rem; font-family: inherit; color: var(--text);
+      background: var(--white); resize: vertical; outline: none;
+      transition: border-color .18s; line-height: 1.55; box-sizing: border-box;
+    }
+    .prog-task-notes:focus { border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,158,78,.14); background: var(--white); }
+    .prog-task-notes-label { font-size: .76rem; color: var(--muted); font-weight: 600; margin-bottom: 4px; }
+    .prog-task-loading { font-size: .85rem; color: var(--muted); font-style: italic; padding: 8px 0; }
+
     /* Empty state */
     .prog-empty-state {
       text-align: center; padding: 60px 20px; color: var(--muted);
@@ -1278,36 +1303,27 @@
               <div class="prog-entry-date-sub" id="progEntryDateSub"></div>
             </div>
 
-            <!-- Session Ratings -->
+            <!-- Task Ratings (dynamic) -->
             <div class="prog-section">
-              <div class="prog-section-title">Session Ratings</div>
-              <div class="prog-slider-row">
-                <span class="prog-slider-label">Confidence</span>
-                <div class="prog-slider-wrap">
-                  <input type="range" class="prog-slider" id="sConfidence" min="0" max="100" value="50">
-                </div>
-                <span class="prog-slider-val" id="vConfidence">50</span>
+              <div class="prog-section-title" id="progTaskSectionTitle">Task Ratings</div>
+              <div id="progTaskRatings">
+                <div class="prog-task-loading">Select a day to load tasks…</div>
               </div>
+            </div>
+
+            <!-- Overall Session -->
+            <div class="prog-section">
+              <div class="prog-section-title">Overall Session</div>
               <div class="prog-slider-row">
-                <span class="prog-slider-label">Understanding</span>
+                <span class="prog-slider-label">Session Rating</span>
                 <div class="prog-slider-wrap">
-                  <input type="range" class="prog-slider" id="sUnderstanding" min="0" max="100" value="50">
+                  <input type="range" class="prog-slider" id="sOverall" min="0" max="100" value="50">
                 </div>
-                <span class="prog-slider-val" id="vUnderstanding">50</span>
+                <span class="prog-slider-val" id="vOverall">50</span>
               </div>
-              <div class="prog-slider-row">
-                <span class="prog-slider-label">Focus</span>
-                <div class="prog-slider-wrap">
-                  <input type="range" class="prog-slider" id="sFocus" min="0" max="100" value="50">
-                </div>
-                <span class="prog-slider-val" id="vFocus">50</span>
-              </div>
-              <div class="prog-slider-row">
-                <span class="prog-slider-label">Momentum</span>
-                <div class="prog-slider-wrap">
-                  <input type="range" class="prog-slider" id="sMomentum" min="0" max="100" value="50">
-                </div>
-                <span class="prog-slider-val" id="vMomentum">50</span>
+              <div class="prog-field">
+                <label for="fStudyTime">Study time (minutes)</label>
+                <input class="prog-input" id="fStudyTime" type="number" min="0" max="600" placeholder="e.g. 45">
               </div>
             </div>
 
@@ -2071,6 +2087,12 @@
   })();
 
   // ── Progress Tracker ────────────────────────────────────────────────────────
+  /*
+   * SUPABASE MIGRATION — run once in the Supabase SQL editor:
+   *
+   * ALTER TABLE progress ADD COLUMN IF NOT EXISTS task_ratings jsonb;
+   * ALTER TABLE progress ADD COLUMN IF NOT EXISTS study_time_minutes integer;
+   */
   (function() {
     const SB_URL  = 'https://kclmbxgqiomaffczqgwx.supabase.co';
     const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
@@ -2099,6 +2121,86 @@
     const todayIso = isoDate(new Date());
     let entries = {}; // keyed by day_number
     let currentDay = null;
+    let daAssignmentsCache = {}; // day_number → string[]
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    async function fetchDayTasks(dayNum) {
+      if (daAssignmentsCache[dayNum] !== undefined) return daAssignmentsCache[dayNum];
+      try {
+        const r = await fetch(
+          `${SB_URL}/rest/v1/daily_assignments?select=assignment&day_number=eq.${dayNum}`,
+          { headers: HEADERS }
+        );
+        if (!r.ok) { daAssignmentsCache[dayNum] = []; return []; }
+        const rows = await r.json();
+        const text = rows[0]?.assignment || '';
+        const tasks = text.split('\n').map(l => l.trim().replace(/^\d+\.\s*/, '')).filter(Boolean);
+        daAssignmentsCache[dayNum] = tasks;
+        return tasks;
+      } catch { daAssignmentsCache[dayNum] = []; return []; }
+    }
+
+    function renderTaskRatings(tasks, savedRatings) {
+      const container = document.getElementById('progTaskRatings');
+      const titleEl   = document.getElementById('progTaskSectionTitle');
+      container.innerHTML = '';
+      const FALLBACK   = ['Confidence','Understanding','Focus','Momentum'];
+      const isFallback = tasks.length === 0;
+      const items      = isFallback ? FALLBACK : tasks;
+      if (titleEl) titleEl.textContent = isFallback ? 'Session Ratings' : 'Task Ratings';
+      items.forEach((name, i) => {
+        const saved = Array.isArray(savedRatings) ? savedRatings[i] : null;
+        const score = saved?.score ?? 50;
+        const notes = saved?.notes ?? '';
+        const id    = 'prt_' + i;
+        const card  = document.createElement('div');
+        card.className = 'prog-task-card';
+        card.dataset.taskName = name;
+        card.innerHTML = `
+          <div class="prog-task-name">${esc(name)}</div>
+          <div class="prog-slider-row" style="margin-bottom:2px;">
+            <div class="prog-slider-wrap" style="flex:1;">
+              <input type="range" class="prog-slider" id="${id}s" min="0" max="100" value="${score}">
+            </div>
+            <span class="prog-slider-val" id="${id}v">${score}</span>
+          </div>
+          <div class="prog-task-hint"><span>Struggled</span><span>Nailed it</span></div>
+          ${!isFallback ? `
+          <div class="prog-task-notes-label">Personal notes</div>
+          <textarea class="prog-task-notes" id="${id}n" placeholder="How did this task feel?">${esc(notes)}</textarea>` : ''}`;
+        container.appendChild(card);
+        const slider = document.getElementById(id + 's');
+        const valEl  = document.getElementById(id + 'v');
+        slider.addEventListener('input', () => updateSlider(slider, valEl));
+        updateSlider(slider, valEl);
+      });
+    }
+
+    function collectTaskRatings() {
+      const cards = document.querySelectorAll('#progTaskRatings .prog-task-card');
+      return Array.from(cards).map(card => ({
+        name:  card.dataset.taskName || '',
+        score: +(card.querySelector('.prog-slider')?.value ?? 50),
+        notes: (card.querySelector('.prog-task-notes')?.value ?? '').trim(),
+      }));
+    }
+
+    function getOverallFields() {
+      const ratings    = collectTaskRatings();
+      const FALLBACK   = ['Confidence','Understanding','Focus','Momentum'];
+      const isFallback = ratings.length > 0 && FALLBACK.includes(ratings[0]?.name);
+      if (isFallback) {
+        return {
+          confidence:    ratings[0]?.score ?? 50,
+          understanding: ratings[1]?.score ?? 50,
+          focus:         ratings[2]?.score ?? 50,
+          momentum:      ratings[3]?.score ?? 50,
+        };
+      }
+      const overall = +document.getElementById('sOverall').value;
+      return { confidence: overall, understanding: overall, focus: overall, momentum: overall };
+    }
 
     // ── Supabase helpers ──────────────────────────────────────────────────────
     async function fetchAll() {
@@ -2114,12 +2216,16 @@
     }
 
     async function upsertEntry(data) {
-      const r = await fetch(`${SB_URL}/rest/v1/progress`, {
+      const r = await fetch(`${SB_URL}/rest/v1/progress?on_conflict=day_number`, {
         method: 'POST',
         headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
         body: JSON.stringify(data),
       });
-      if (!r.ok) throw new Error('Save failed: ' + r.status);
+      if (!r.ok) {
+        let msg = 'Save failed: ' + r.status;
+        try { const b = await r.json(); msg += ' — ' + (b.message || b.error || JSON.stringify(b)); } catch {}
+        throw new Error(msg);
+      }
       const rows = await r.json();
       if (rows && rows[0]) entries[rows[0].day_number] = rows[0];
     }
@@ -2184,15 +2290,16 @@
       input.style.background = track;
     }
 
-    ['Confidence','Understanding','Focus','Momentum'].forEach(name => {
-      const slider = document.getElementById('s' + name);
-      const val    = document.getElementById('v' + name);
-      slider.addEventListener('input', () => updateSlider(slider, val));
-      updateSlider(slider, val);
-    });
+    // Overall session slider init
+    const sOverall = document.getElementById('sOverall');
+    const vOverall = document.getElementById('vOverall');
+    if (sOverall) {
+      sOverall.addEventListener('input', () => updateSlider(sOverall, vOverall));
+      updateSlider(sOverall, vOverall);
+    }
 
     // ── Open day ──────────────────────────────────────────────────────────────
-    function openDay(n) {
+    async function openDay(n) {
       currentDay = n;
       const d    = dayDate(n);
       const iso  = isoDate(d);
@@ -2204,14 +2311,29 @@
       document.getElementById('progEntryDateSub').textContent = fmtDate(d);
       document.getElementById('progTodayTag').style.display   = iso === todayIso ? 'inline-block' : 'none';
 
-      // Sliders
-      [['Confidence','confidence'],['Understanding','understanding'],['Focus','focus'],['Momentum','momentum']]
-        .forEach(([name, col]) => {
-          const sl = document.getElementById('s' + name);
-          const vl = document.getElementById('v' + name);
-          sl.value = e[col] !== undefined ? e[col] : 50;
-          updateSlider(sl, vl);
-        });
+      // Overall session slider
+      const so = document.getElementById('sOverall');
+      const vo = document.getElementById('vOverall');
+      if (so) { so.value = e.confidence ?? 50; updateSlider(so, vo); }
+      const ftEl = document.getElementById('fStudyTime');
+      if (ftEl) ftEl.value = e.study_time_minutes ?? '';
+
+      // Fetch tasks → render task ratings (or fallback 4 sliders)
+      document.getElementById('progTaskRatings').innerHTML = '<div class="prog-task-loading">Loading tasks…</div>';
+      const tasks = await fetchDayTasks(n);
+      const isFallback = tasks.length === 0;
+      let savedRatings;
+      if (isFallback) {
+        savedRatings = [
+          { name: 'Confidence',    score: e.confidence    ?? 50, notes: '' },
+          { name: 'Understanding', score: e.understanding ?? 50, notes: '' },
+          { name: 'Focus',         score: e.focus         ?? 50, notes: '' },
+          { name: 'Momentum',      score: e.momentum      ?? 50, notes: '' },
+        ];
+      } else {
+        savedRatings = Array.isArray(e.task_ratings) ? e.task_ratings : null;
+      }
+      renderTaskRatings(tasks, savedRatings);
 
       // Text fields
       document.getElementById('fWorkedOn').value  = e.worked_on  || '';
@@ -2259,13 +2381,16 @@
       status.className = 'prog-save-status';
       status.textContent = 'Saving…';
 
+      const overall = getOverallFields();
       const data = {
-        day_number:    currentDay,
-        entry_date:    isoDate(dayDate(currentDay)),
-        confidence:    +document.getElementById('sConfidence').value,
-        understanding: +document.getElementById('sUnderstanding').value,
-        focus:         +document.getElementById('sFocus').value,
-        momentum:      +document.getElementById('sMomentum').value,
+        day_number:          currentDay,
+        entry_date:          isoDate(dayDate(currentDay)),
+        confidence:          overall.confidence,
+        understanding:       overall.understanding,
+        focus:               overall.focus,
+        momentum:            overall.momentum,
+        task_ratings:        collectTaskRatings(),
+        study_time_minutes:  +document.getElementById('fStudyTime').value || null,
         worked_on:     document.getElementById('fWorkedOn').value.trim(),
         clicked:       document.getElementById('fClicked').value.trim(),
         confused:      document.getElementById('fConfused').value.trim(),
