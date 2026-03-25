@@ -900,6 +900,14 @@
     .da-note-save:hover { background: var(--green-mid); }
     .da-note-save:disabled { opacity: .5; cursor: not-allowed; }
 
+    .da-coach-badge {
+      font-size: .68rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; background: #16a34a; color: #fff;
+      border-radius: 999px; padding: 3px 10px;
+    }
+    /* Hidden in read-only mode; shown only in coach mode */
+    .da-coach-only { display: none; }
+
     /* ── KEY PRINCIPLES ───────────────────────────────── */
     .principle-card {
       background: var(--white);
@@ -995,6 +1003,7 @@
       <span><strong id="daDoneCount">0</strong> of 60 days complete</span>
       <div class="da-bar-wrap"><div class="da-bar-fill" id="daBarFill" style="width:0%"></div></div>
       <span class="da-sticky-count">Mar 25 – May 23, 2026</span>
+      <span class="da-coach-badge da-coach-only" id="daCoachBadge">Coach View</span>
     </div>
     <div class="da-list" id="daList">
       <!-- Rows injected by JS -->
@@ -1603,12 +1612,15 @@
       'Content-Type': 'application/json',
     };
 
+    // Coach mode: ?coach=samuel
+    const isCoachDA = new URLSearchParams(window.location.search).get('coach') === 'samuel';
+
     const START = new Date('2026-03-25T00:00:00');
     const TOTAL = 60;
-    const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    function dayDate(n) { // n = 1-based
+    function dayDate(n) {
       const d = new Date(START);
       d.setDate(d.getDate() + (n - 1));
       return d;
@@ -1617,38 +1629,47 @@
       return DAY_NAMES[d.getDay()] + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
     }
     function todayNum() {
-      const now = new Date();
-      const diff = Math.floor((now - START) / 86400000) + 1;
-      return diff;
+      return Math.floor((new Date() - START) / 86400000) + 1;
     }
 
-    // localStorage for completed checkboxes
     function loadDone() {
       try { return JSON.parse(localStorage.getItem('daDone')) || []; }
       catch { return []; }
     }
     function saveDone(arr) { localStorage.setItem('daDone', JSON.stringify(arr)); }
 
-    // DB rows keyed by day_number
     let dbRows = {};
 
     function updateHeader() {
       const done = loadDone();
       document.getElementById('daDoneCount').textContent = done.length;
       document.getElementById('daBarFill').style.width = (done.length / TOTAL * 100) + '%';
+      // Show Coach View badge
+      const badge = document.getElementById('daCoachBadge');
+      if (badge) badge.style.display = isCoachDA ? 'inline' : 'none';
+    }
+
+    function renderAssignment(text) {
+      // Render numbered lines as a clean list
+      if (!text) return '';
+      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
+      if (lines.length <= 1) return esc(text);
+      return '<ol style="margin:0;padding-left:18px;list-style:decimal;">' +
+        lines.map(l => `<li style="margin-bottom:3px;">${esc(l.replace(/^\d+\.\s*/,''))}</li>`).join('') +
+        '</ol>';
     }
 
     function renderRows() {
       const list = document.getElementById('daList');
       if (!list) return;
-      const done = loadDone();
+      const done  = loadDone();
       const today = todayNum();
 
       list.innerHTML = '';
       for (let n = 1; n <= TOTAL; n++) {
-        const d      = dayDate(n);
-        const row    = dbRows[n] || {};
-        const isDone = done.includes(n);
+        const d       = dayDate(n);
+        const row     = dbRows[n] || {};
+        const isDone  = done.includes(n);
         const isToday = n === today;
         const isPast  = n < today && !isDone;
 
@@ -1662,20 +1683,25 @@
         const assignment = row.assignment || '';
         const notes      = row.coach_notes || '';
 
+        // Notes toggle: always show if there are notes; show editable controls only in coach mode
+        const hasNotes = !!notes;
+        const showToggle = hasNotes || isCoachDA;
+
         div.innerHTML = `
           <div class="da-main">
             <input type="checkbox" class="da-check" data-day="${n}" ${isDone ? 'checked' : ''}>
             <span class="da-badge">Day ${n}</span>
             ${isToday ? '<span class="da-today-pill">Today</span>' : ''}
             <span class="da-date">${fmtDate(d)}</span>
-            <span class="da-assignment ${assignment ? '' : 'da-empty'}">${assignment || 'No assignment yet'}</span>
-            <button class="da-toggle" data-day="${n}">${notes ? '📝 Notes' : '+ Coach Note'}</button>
+            <span class="da-assignment ${assignment ? '' : 'da-empty'}">${assignment ? renderAssignment(assignment) : 'No assignment yet'}</span>
+            ${showToggle ? `<button class="da-toggle" data-day="${n}">${hasNotes ? '📝 Notes' : '+ Coach Note'}</button>` : ''}
           </div>
           <div class="da-notes-area" id="da-notes-${n}">
             <div class="da-notes-inner">
-              ${notes ? `<div class="da-saved-note" id="da-saved-${n}">${esc(notes)}</div>` : `<div class="da-saved-note" id="da-saved-${n}" style="display:none"></div>`}
+              <div class="da-saved-note" id="da-saved-${n}" ${notes ? '' : 'style="display:none"'}>${esc(notes)}</div>
+              ${isCoachDA ? `
               <textarea class="da-note-input" id="da-input-${n}" placeholder="Add coaching notes for this day…">${esc(notes)}</textarea>
-              <button class="da-note-save" data-day="${n}">Save Note</button>
+              <button class="da-note-save" data-day="${n}">Save Note</button>` : ''}
             </div>
           </div>`;
         list.appendChild(div);
@@ -1691,10 +1717,8 @@
         const rows = await r.json();
         dbRows = {};
         rows.forEach(row => { dbRows[row.day_number] = row; });
-        // Sync completed from DB too
-        const dbDone = rows.filter(r => r.completed).map(r => r.day_number);
-        const localDone = loadDone();
-        const merged = [...new Set([...localDone, ...dbDone])];
+        const dbDone   = rows.filter(r => r.completed).map(r => r.day_number);
+        const merged   = [...new Set([...loadDone(), ...dbDone])];
         saveDone(merged);
       } catch(e) { console.error('DA fetch:', e); }
       renderRows();
@@ -1714,10 +1738,7 @@
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const saved = document.getElementById('da-saved-' + dayNum);
-        if (saved) {
-          saved.textContent = text;
-          saved.style.display = text ? '' : 'none';
-        }
+        if (saved) { saved.textContent = text; saved.style.display = text ? '' : 'none'; }
         const toggle = document.querySelector(`.da-toggle[data-day="${dayNum}"]`);
         if (toggle) toggle.textContent = text ? '📝 Notes' : '+ Coach Note';
         dbRows[dayNum] = { ...(dbRows[dayNum] || {}), coach_notes: text };
@@ -1734,10 +1755,8 @@
       else { done = done.filter(d => d !== dayNum); }
       saveDone(done);
       updateHeader();
-      // Update row class immediately
       const row = document.querySelector(`.da-row[data-day="${dayNum}"]`);
-      if (row) { row.classList.toggle('da-done', checked); }
-      // Persist to Supabase
+      if (row) row.classList.toggle('da-done', checked);
       try {
         await fetch(SB_URL + '/rest/v1/daily_assignments', {
           method: 'POST',
@@ -1747,49 +1766,59 @@
       } catch(e) { console.error('DA complete sync:', e); }
     }
 
-    // Event delegation on the list
     function bindEvents() {
       const list = document.getElementById('daList');
       if (!list) return;
-
       list.addEventListener('change', e => {
-        if (!e.target.classList.contains('da-check')) return;
-        toggleComplete(+e.target.dataset.day, e.target.checked);
+        if (e.target.classList.contains('da-check'))
+          toggleComplete(+e.target.dataset.day, e.target.checked);
       });
-
       list.addEventListener('click', e => {
-        // Toggle notes panel
         const tog = e.target.closest('.da-toggle');
         if (tog) {
-          const n   = tog.dataset.day;
-          const area = document.getElementById('da-notes-' + n);
+          const area = document.getElementById('da-notes-' + tog.dataset.day);
           if (area) {
             area.classList.toggle('open');
-            if (area.classList.contains('open')) {
-              const input = document.getElementById('da-input-' + n);
-              if (input) setTimeout(() => input.focus(), 60);
+            if (area.classList.contains('open') && isCoachDA) {
+              const inp = document.getElementById('da-input-' + tog.dataset.day);
+              if (inp) setTimeout(() => inp.focus(), 60);
             }
           }
           return;
         }
-        // Save note button
         const saveBtn = e.target.closest('.da-note-save');
-        if (saveBtn) {
-          saveNote(+saveBtn.dataset.day);
-          return;
-        }
+        if (saveBtn) { saveNote(+saveBtn.dataset.day); return; }
       });
     }
 
-    // Lazy init
+    async function seedDay1() {
+      // Seed Day 1 assignment if not already in DB
+      if (dbRows[1] && dbRows[1].assignment) return;
+      const assignment = [
+        '1. Learn Piece Checkmates I & Checkmate Patterns I',
+        '2. Work through all sections under Fundamental Tactics',
+        '3. Solve 20 Lichess Puzzles',
+        '4. Read the Key Principles tab and ask any questions',
+      ].join('\n');
+      try {
+        await fetch(SB_URL + '/rest/v1/daily_assignments', {
+          method: 'POST',
+          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ day_number: 1, assignment, updated_at: new Date().toISOString() }),
+        });
+        dbRows[1] = { ...(dbRows[1] || {}), assignment };
+        renderRows();
+      } catch(e) { console.error('DA seed day1:', e); }
+    }
+
     let daLoaded = false;
     function initDA() {
       if (daLoaded) return;
       daLoaded = true;
-      renderRows();   // show immediately from localStorage
+      renderRows();
       updateHeader();
       bindEvents();
-      fetchRows();    // then hydrate from Supabase
+      fetchRows().then(seedDay1);
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
