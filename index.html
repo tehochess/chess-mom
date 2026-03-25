@@ -996,9 +996,9 @@
 <!-- TABS -->
 <nav class="tabs-bar" role="tablist">
   <button class="tab-btn active" role="tab" data-tab="home">Home</button>
-  <button class="tab-btn"        role="tab" data-tab="lessons">Daily Assignments</button>
+  <button class="tab-btn"        role="tab" data-tab="lessons">Weekly Assignments</button>
   <button class="tab-btn"        role="tab" data-tab="puzzles">Key Principles</button>
-  <button class="tab-btn" role="tab" data-tab="progress">Daily Progress Tracker</button>
+  <button class="tab-btn" role="tab" data-tab="progress">Weekly Progress Tracker</button>
   <button class="tab-btn" role="tab" data-tab="lessonplan">Lesson Plan</button>
   <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach Samuel</button>
   <button class="tab-btn"        role="tab" data-tab="scout">Understanding Dad's Gameplay</button>
@@ -1029,9 +1029,9 @@
   <!-- Daily Assignments -->
   <section class="tab-panel" id="panel-lessons" role="tabpanel">
     <div class="da-sticky-header">
-      <span><strong id="daDoneCount">0</strong> of 60 days complete</span>
+      <span><strong id="daDoneCount">0</strong> of 8 weeks complete</span>
       <div class="da-bar-wrap"><div class="da-bar-fill" id="daBarFill" style="width:0%"></div></div>
-      <span class="da-sticky-count">Mar 25 – May 23, 2026</span>
+      <span class="da-sticky-count">Mar 25 – May 19, 2026</span>
       <span class="da-coach-badge da-coach-only" id="daCoachBadge">Coach View</span>
     </div>
     <div class="da-list" id="daList">
@@ -1268,7 +1268,7 @@
       <div class="prog-stats">
         <div class="prog-stat-card">
           <div class="prog-stat-val" id="progStreak">—</div>
-          <div class="prog-stat-label">Current Streak</div>
+          <div class="prog-stat-label">Week Streak</div>
         </div>
         <div class="prog-stat-card">
           <div class="prog-stat-val" id="progAvgConf">—</div>
@@ -1276,7 +1276,7 @@
         </div>
         <div class="prog-stat-card">
           <div class="prog-stat-val" id="progLogged">0</div>
-          <div class="prog-stat-label">Days Logged</div>
+          <div class="prog-stat-label">Weeks Logged</div>
         </div>
       </div>
 
@@ -1284,7 +1284,7 @@
         <!-- Day list -->
         <div>
           <div class="prog-day-list" id="progDayList">
-            <div class="prog-day-list-header">60-Day Journal</div>
+            <div class="prog-day-list-header">8-Week Journal</div>
             <!-- populated by JS -->
           </div>
         </div>
@@ -1546,21 +1546,22 @@
     document.getElementById('cdSecs').textContent  = pad(secs);
   }
 
-  // ── Daily Assignments (Supabase) ────────────────────────────────────────────
   /*
    * SUPABASE TABLE SETUP — run once in the SQL editor:
    *
-   * CREATE TABLE daily_assignments (
-   *   day_number  int PRIMARY KEY,
-   *   assignment  text,
-   *   coach_notes text,
-   *   completed   boolean DEFAULT false,
-   *   updated_at  timestamptz DEFAULT now()
+   * CREATE TABLE weekly_assignments (
+   *   week_number  int PRIMARY KEY,
+   *   week_start   date,
+   *   week_end     date,
+   *   assignment   text,
+   *   coach_notes  text,
+   *   completed    boolean DEFAULT false,
+   *   updated_at   timestamptz DEFAULT now()
    * );
-   * ALTER TABLE daily_assignments ENABLE ROW LEVEL SECURITY;
-   * CREATE POLICY "Anyone can read"   ON daily_assignments FOR SELECT USING (true);
-   * CREATE POLICY "Anyone can insert" ON daily_assignments FOR INSERT WITH CHECK (true);
-   * CREATE POLICY "Anyone can update" ON daily_assignments FOR UPDATE USING (true);
+   * ALTER TABLE weekly_assignments ENABLE ROW LEVEL SECURITY;
+   * CREATE POLICY "Anyone can read"   ON weekly_assignments FOR SELECT USING (true);
+   * CREATE POLICY "Anyone can insert" ON weekly_assignments FOR INSERT WITH CHECK (true);
+   * CREATE POLICY "Anyone can update" ON weekly_assignments FOR UPDATE USING (true);
    */
   (function() {
     const SB_URL = 'https://kclmbxgqiomaffczqgwx.supabase.co';
@@ -1569,24 +1570,41 @@
 
     const isCoachDA = new URLSearchParams(window.location.search).get('coach') === 'samuel';
 
-    const START = new Date('2026-03-25T00:00:00');
-    const TOTAL = 60;
-    const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const TOTAL = 8;
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    function dayDate(n) { const d = new Date(START); d.setDate(d.getDate() + n - 1); return d; }
-    function fmtDate(d) { return DAY_NAMES[d.getDay()] + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate(); }
-    function todayNum()  { return Math.floor((new Date() - START) / 86400000) + 1; }
-    function esc(s)      { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    const WEEKS = [
+      { start: '2026-03-25', end: '2026-03-31' },
+      { start: '2026-04-01', end: '2026-04-07' },
+      { start: '2026-04-08', end: '2026-04-14' },
+      { start: '2026-04-15', end: '2026-04-21' },
+      { start: '2026-04-22', end: '2026-04-28' },
+      { start: '2026-04-29', end: '2026-05-05' },
+      { start: '2026-05-06', end: '2026-05-12' },
+      { start: '2026-05-13', end: '2026-05-19' },
+    ];
 
-    // ── Day-level completion (Supabase + localStorage) ──────────────────────
-    function loadDone() { try { return JSON.parse(localStorage.getItem('daDone')) || []; } catch { return []; } }
-    function saveDone(a) { localStorage.setItem('daDone', JSON.stringify(a)); }
+    function fmtShort(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
+    }
+    function fmtWeekRange(n) {
+      const w = WEEKS[n - 1];
+      return fmtShort(w.start) + ' – ' + fmtShort(w.end);
+    }
+    function todayWeek() {
+      const today = new Date().toISOString().slice(0, 10);
+      for (let i = 0; i < WEEKS.length; i++) {
+        if (today >= WEEKS[i].start && today <= WEEKS[i].end) return i + 1;
+      }
+      return today < WEEKS[0].start ? 1 : 8;
+    }
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    // ── Per-task completion (localStorage only) ──────────────────────────────
-    // stored as: daTask_N = [0, 2, 3, ...] (0-based indices of completed tasks)
-    function loadTaskDone(n) { try { return JSON.parse(localStorage.getItem('daTask_' + n)) || []; } catch { return []; } }
-    function saveTaskDone(n, arr) { localStorage.setItem('daTask_' + n, JSON.stringify(arr)); }
+    function loadDone()         { try { return JSON.parse(localStorage.getItem('waDone')) || []; } catch { return []; } }
+    function saveDone(a)        { localStorage.setItem('waDone', JSON.stringify(a)); }
+    function loadTaskDone(n)    { try { return JSON.parse(localStorage.getItem('waTask_' + n)) || []; } catch { return []; } }
+    function saveTaskDone(n, a) { localStorage.setItem('waTask_' + n, JSON.stringify(a)); }
 
     let dbRows = {};
 
@@ -1598,7 +1616,6 @@
       if (badge) badge.style.display = isCoachDA ? 'inline' : 'none';
     }
 
-    // Parse assignment text into array of task strings
     function parseTasks(text) {
       if (!text) return [];
       return text.split('\n').map(l => l.trim().replace(/^\d+\.\s*/, '')).filter(Boolean);
@@ -1607,28 +1624,25 @@
     function renderRows() {
       const list = document.getElementById('daList');
       if (!list) return;
-      const dayDone = loadDone();
-      const today   = todayNum();
-
+      const weekDone = loadDone();
+      const thisWeek = todayWeek();
       list.innerHTML = '';
       for (let n = 1; n <= TOTAL; n++) {
-        const d        = dayDate(n);
         const row      = dbRows[n] || {};
-        const isDone   = dayDone.includes(n);
-        const isToday  = n === today;
-        const isPast   = n < today && !isDone;
+        const isDone   = weekDone.includes(n);
+        const isThis   = n === thisWeek;
+        const isPast   = n < thisWeek && !isDone;
         const tasks    = parseTasks(row.assignment || '');
         const taskDone = loadTaskDone(n);
         const notes    = row.coach_notes || '';
 
         const div = document.createElement('div');
         div.className = 'da-row' +
-          (isToday ? ' da-today' : '') +
+          (isThis ? ' da-today' : '') +
           (isDone  ? ' da-done'  : '') +
           (isPast  ? ' da-past'  : '');
         div.dataset.day = n;
 
-        // ── Left: header + tasks ──
         const tasksHTML = tasks.length
           ? tasks.map((t, i) => `
             <div class="da-task-item${taskDone.includes(i) ? ' done' : ''}" data-day="${n}" data-idx="${i}">
@@ -1637,7 +1651,6 @@
             </div>`).join('')
           : `<span class="da-empty-label">No assignment yet</span>`;
 
-        // ── Right: coach notes ──
         const notesRight = isCoachDA
           ? `<textarea class="da-note-input" id="da-input-${n}" placeholder="Add coaching notes…">${esc(notes)}</textarea>
              <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
@@ -1651,9 +1664,9 @@
         div.innerHTML = `
           <div class="da-left">
             <div class="da-left-header">
-              <span class="da-badge">Day ${n}</span>
-              ${isToday ? '<span class="da-today-pill">Today</span>' : ''}
-              <span class="da-date">${fmtDate(d)}</span>
+              <span class="da-badge">Week ${n}</span>
+              ${isThis ? '<span class="da-today-pill">This Week</span>' : ''}
+              <span class="da-date">${fmtWeekRange(n)}</span>
             </div>
             <div class="da-tasks">${tasksHTML}</div>
           </div>
@@ -1665,112 +1678,118 @@
       }
     }
 
-    async function syncDayComplete(dayNum, checked) {
-      try {
-        await fetch(SB_URL + '/rest/v1/daily_assignments', {
-          method: 'POST',
-          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify({ day_number: dayNum, completed: checked, updated_at: new Date().toISOString() }),
-        });
-      } catch(e) { console.error('DA complete sync:', e); }
+    async function sbGet(weekNum) {
+      const r = await fetch(`${SB_URL}/rest/v1/weekly_assignments?week_number=eq.${weekNum}&select=week_number`, { headers: HEADERS });
+      return r.ok ? await r.json() : [];
     }
 
-    function handleTaskCheck(dayNum, taskIdx, checked) {
-      const taskDone = loadTaskDone(dayNum);
+    async function syncWeekComplete(weekNum, checked) {
+      try {
+        const existing = await sbGet(weekNum);
+        if (existing.length > 0) {
+          await fetch(`${SB_URL}/rest/v1/weekly_assignments?week_number=eq.${weekNum}`, {
+            method: 'PATCH', headers: HEADERS,
+            body: JSON.stringify({ completed: checked, updated_at: new Date().toISOString() }),
+          });
+        } else {
+          await fetch(`${SB_URL}/rest/v1/weekly_assignments`, {
+            method: 'POST', headers: HEADERS,
+            body: JSON.stringify({ week_number: weekNum, completed: checked, updated_at: new Date().toISOString() }),
+          });
+        }
+      } catch(e) { console.error('WA complete sync:', e); }
+    }
+
+    function handleTaskCheck(weekNum, taskIdx, checked) {
+      const taskDone = loadTaskDone(weekNum);
       const newDone  = checked
         ? [...new Set([...taskDone, taskIdx])]
         : taskDone.filter(i => i !== taskIdx);
-      saveTaskDone(dayNum, newDone);
-
-      // Update task item class
-      const item = document.querySelector(`.da-task-item[data-day="${dayNum}"][data-idx="${taskIdx}"]`);
+      saveTaskDone(weekNum, newDone);
+      const item = document.querySelector(`.da-task-item[data-day="${weekNum}"][data-idx="${taskIdx}"]`);
       if (item) item.classList.toggle('done', checked);
-
-      // Check if all tasks complete → auto-mark day done
-      const tasks = parseTasks((dbRows[dayNum] || {}).assignment || '');
+      const tasks = parseTasks((dbRows[weekNum] || {}).assignment || '');
       if (tasks.length > 0 && newDone.length >= tasks.length) {
-        markDayDone(dayNum, true);
+        markWeekDone(weekNum, true);
       } else if (!checked) {
-        markDayDone(dayNum, false);
+        markWeekDone(weekNum, false);
       }
     }
 
-    function markDayDone(dayNum, checked) {
+    function markWeekDone(weekNum, checked) {
       let done = loadDone();
-      const wasDone = done.includes(dayNum);
-      if (checked && !wasDone) done.push(dayNum);
-      else if (!checked) done = done.filter(d => d !== dayNum);
-      else return; // no change
+      const wasDone = done.includes(weekNum);
+      if (checked && !wasDone) done.push(weekNum);
+      else if (!checked) done = done.filter(d => d !== weekNum);
+      else return;
       saveDone(done);
       updateHeader();
-      const row = document.querySelector(`.da-row[data-day="${dayNum}"]`);
+      const row = document.querySelector(`.da-row[data-day="${weekNum}"]`);
       if (row) row.classList.toggle('da-done', checked);
-      syncDayComplete(dayNum, checked);
+      syncWeekComplete(weekNum, checked);
     }
 
-    function setMsg(dayNum, text, cls) {
-      const el = document.getElementById('da-msg-' + dayNum);
+    function setMsg(weekNum, text, cls) {
+      const el = document.getElementById('da-msg-' + weekNum);
       if (!el) return;
       el.textContent = text;
       el.className = 'da-save-msg ' + (cls || '');
       if (cls === 'ok') setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, 3000);
     }
 
-    async function saveNote(dayNum) {
-      const input = document.getElementById('da-input-' + dayNum);
-      const btn   = document.querySelector(`.da-note-save[data-day="${dayNum}"]`);
-      const text  = input ? input.value : '';  // keep raw value, don't trim (preserve spacing)
+    async function saveNote(weekNum) {
+      const input = document.getElementById('da-input-' + weekNum);
+      const btn   = document.querySelector(`.da-note-save[data-day="${weekNum}"]`);
+      const text  = input ? input.value : '';
       if (!btn) return;
-      btn.disabled = true;
-      btn.textContent = 'Saving…';
-      setMsg(dayNum, '', '');
+      btn.disabled = true; btn.textContent = 'Saving…';
+      setMsg(weekNum, '', '');
       try {
-        // Use ?on_conflict=day_number for a true upsert (INSERT … ON CONFLICT DO UPDATE)
-        const r = await fetch(
-          SB_URL + '/rest/v1/daily_assignments?on_conflict=day_number',
-          {
+        const existing = await sbGet(weekNum);
+        let r;
+        if (existing.length > 0) {
+          r = await fetch(`${SB_URL}/rest/v1/weekly_assignments?week_number=eq.${weekNum}`, {
+            method: 'PATCH',
+            headers: { ...HEADERS, 'Prefer': 'return=representation' },
+            body: JSON.stringify({ coach_notes: text.trim(), updated_at: new Date().toISOString() }),
+          });
+        } else {
+          r = await fetch(`${SB_URL}/rest/v1/weekly_assignments`, {
             method: 'POST',
-            headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-            body: JSON.stringify({
-              day_number:  dayNum,
-              coach_notes: text.trim(),
-              updated_at:  new Date().toISOString(),
-            }),
-          }
-        );
+            headers: { ...HEADERS, 'Prefer': 'return=representation' },
+            body: JSON.stringify({ week_number: weekNum, coach_notes: text.trim(), updated_at: new Date().toISOString() }),
+          });
+        }
         if (!r.ok) {
           let errMsg = 'HTTP ' + r.status;
           try { const body = await r.json(); errMsg += ': ' + (body.message || body.error || JSON.stringify(body)); } catch {}
           throw new Error(errMsg);
         }
-        dbRows[dayNum] = { ...(dbRows[dayNum] || {}), coach_notes: text.trim() };
-        // textarea stays filled — don't clear it
-        setMsg(dayNum, '✓ Saved!', 'ok');
+        dbRows[weekNum] = { ...(dbRows[weekNum] || {}), coach_notes: text.trim() };
+        setMsg(weekNum, '✓ Saved!', 'ok');
       } catch(e) {
-        console.error('saveNote day', dayNum, e);
-        setMsg(dayNum, e.message, 'err');
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Save';
-      }
+        console.error('saveNote week', weekNum, e);
+        setMsg(weekNum, e.message, 'err');
+      } finally { btn.disabled = false; btn.textContent = 'Save'; }
     }
 
     async function fetchRows() {
       try {
-        const r = await fetch(SB_URL + '/rest/v1/daily_assignments?select=*', { headers: HEADERS });
+        const r = await fetch(SB_URL + '/rest/v1/weekly_assignments?select=*', { headers: HEADERS });
         if (!r.ok) throw new Error('HTTP ' + r.status);
         const rows = await r.json();
         dbRows = {};
-        rows.forEach(row => { dbRows[row.day_number] = row; });
-        const dbDone = rows.filter(r => r.completed).map(r => r.day_number);
+        rows.forEach(row => { dbRows[row.week_number] = row; });
+        const dbDone = rows.filter(r => r.completed).map(r => r.week_number);
         saveDone([...new Set([...loadDone(), ...dbDone])]);
-      } catch(e) { console.error('DA fetch:', e); }
+      } catch(e) { console.error('WA fetch:', e); }
       renderRows();
       updateHeader();
     }
 
-    async function seedDay1() {
+    async function seedWeek1() {
       if (dbRows[1] && dbRows[1].assignment) return;
+      const w = WEEKS[0];
       const assignment = [
         '1. Learn Piece Checkmates I & Checkmate Patterns I',
         '2. Work through all sections under Fundamental Tactics',
@@ -1778,14 +1797,21 @@
         '4. Read the Key Principles tab and ask any questions',
       ].join('\n');
       try {
-        await fetch(SB_URL + '/rest/v1/daily_assignments', {
-          method: 'POST',
-          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify({ day_number: 1, assignment, updated_at: new Date().toISOString() }),
-        });
+        const existing = await sbGet(1);
+        if (existing.length > 0) {
+          await fetch(`${SB_URL}/rest/v1/weekly_assignments?week_number=eq.1`, {
+            method: 'PATCH', headers: HEADERS,
+            body: JSON.stringify({ assignment, updated_at: new Date().toISOString() }),
+          });
+        } else {
+          await fetch(`${SB_URL}/rest/v1/weekly_assignments`, {
+            method: 'POST', headers: HEADERS,
+            body: JSON.stringify({ week_number: 1, week_start: w.start, week_end: w.end, assignment, updated_at: new Date().toISOString() }),
+          });
+        }
         dbRows[1] = { ...(dbRows[1] || {}), assignment };
         renderRows();
-      } catch(e) { console.error('DA seed day1:', e); }
+      } catch(e) { console.error('WA seed week1:', e); }
     }
 
     function bindEvents() {
@@ -1808,7 +1834,7 @@
       renderRows();
       updateHeader();
       bindEvents();
-      fetchRows().then(seedDay1);
+      fetchRows().then(seedWeek1);
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -1817,7 +1843,7 @@
     if (document.getElementById('panel-lessons').classList.contains('active')) initDA();
   })();
 
-  function initLessons() {} // stub — replaced by Daily Assignments
+  function initLessons() {} // stub
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
   const tabBtns   = document.querySelectorAll('.tab-btn');
@@ -2025,12 +2051,12 @@
     fetchQuestions();
   })();
 
-  // ── Progress Tracker ────────────────────────────────────────────────────────
+  // ── Weekly Progress Tracker ──────────────────────────────────────────────────
   /*
    * SUPABASE MIGRATION — run once in the Supabase SQL editor:
    *
    * ALTER TABLE progress ADD COLUMN IF NOT EXISTS task_ratings jsonb;
-   * ALTER TABLE progress ADD COLUMN IF NOT EXISTS study_time_minutes integer;
+   * (week reflections stored using day_number 1-8 for weeks 1-8)
    */
   (function() {
     const SB_URL  = 'https://kclmbxgqiomaffczqgwx.supabase.co';
@@ -2038,46 +2064,58 @@
     const HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
     const isCoach = new URLSearchParams(window.location.search).get('coach') === 'true';
 
-    // Start date = today minus (today's day number - 1), pinned on first load
-    const START_KEY = 'progStartDate';
-    let startDate = localStorage.getItem(START_KEY);
-    if (!startDate) {
-      startDate = new Date().toISOString().slice(0, 10);
-      localStorage.setItem(START_KEY, startDate);
-    }
-    const start = new Date(startDate + 'T00:00:00');
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    const WEEKS = [
+      { start: '2026-03-25', end: '2026-03-31' },
+      { start: '2026-04-01', end: '2026-04-07' },
+      { start: '2026-04-08', end: '2026-04-14' },
+      { start: '2026-04-15', end: '2026-04-21' },
+      { start: '2026-04-22', end: '2026-04-28' },
+      { start: '2026-04-29', end: '2026-05-05' },
+      { start: '2026-05-06', end: '2026-05-12' },
+      { start: '2026-05-13', end: '2026-05-19' },
+    ];
 
-    function dayDate(n) {
-      const d = new Date(start);
-      d.setDate(d.getDate() + n - 1);
-      return d;
+    function fmtShort(dateStr) {
+      const d = new Date(dateStr + 'T00:00:00');
+      return MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
     }
-    function fmtDate(d) {
-      return d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    function fmtWeekRange(n) {
+      const w = WEEKS[n - 1];
+      return fmtShort(w.start) + ' – ' + fmtShort(w.end);
     }
-    function isoDate(d) { return d.toISOString().slice(0, 10); }
-
-    const todayIso = isoDate(new Date());
-    let entries = {}; // keyed by day_number
-    let currentDay = null;
-    let daAssignmentsCache = {}; // day_number → string[]
-
+    function fmtWeekFull(n) {
+      const w = WEEKS[n - 1];
+      const s = new Date(w.start + 'T00:00:00');
+      return s.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+    }
+    function todayWeek() {
+      const today = new Date().toISOString().slice(0, 10);
+      for (let i = 0; i < WEEKS.length; i++) {
+        if (today >= WEEKS[i].start && today <= WEEKS[i].end) return i + 1;
+      }
+      return today < WEEKS[0].start ? 1 : 8;
+    }
     function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    async function fetchDayTasks(dayNum) {
-      if (daAssignmentsCache[dayNum] !== undefined) return daAssignmentsCache[dayNum];
+    let entries = {};     // keyed by week number (stored in day_number column)
+    let currentWeek = null;
+    let waCache = {};     // week tasks cache
+
+    async function fetchWeekTasks(weekNum) {
+      if (waCache[weekNum] !== undefined) return waCache[weekNum];
       try {
         const r = await fetch(
-          `${SB_URL}/rest/v1/daily_assignments?select=assignment&day_number=eq.${dayNum}`,
+          `${SB_URL}/rest/v1/weekly_assignments?select=assignment&week_number=eq.${weekNum}`,
           { headers: HEADERS }
         );
-        if (!r.ok) { daAssignmentsCache[dayNum] = []; return []; }
+        if (!r.ok) { waCache[weekNum] = []; return []; }
         const rows = await r.json();
-        const text = rows[0]?.assignment || '';
+        const text  = rows[0]?.assignment || '';
         const tasks = text.split('\n').map(l => l.trim().replace(/^\d+\.\s*/, '')).filter(Boolean);
-        daAssignmentsCache[dayNum] = tasks;
+        waCache[weekNum] = tasks;
         return tasks;
-      } catch { daAssignmentsCache[dayNum] = []; return []; }
+      } catch { waCache[weekNum] = []; return []; }
     }
 
     function renderTaskRatings(tasks, savedRatings) {
@@ -2087,7 +2125,7 @@
       if (titleEl) titleEl.textContent = 'Task Ratings';
 
       if (tasks.length === 0) {
-        container.innerHTML = '<p style="color:var(--muted);font-size:.88rem;margin:0;padding:4px 0;">No assignments yet for this day.</p>';
+        container.innerHTML = '<p style="color:var(--muted);font-size:.88rem;margin:0;padding:4px 0;">No assignments yet for this week.</p>';
         return;
       }
 
@@ -2134,21 +2172,20 @@
       return { confidence: avg, understanding: avg, focus: avg, momentum: avg };
     }
 
-    // ── Supabase helpers ──────────────────────────────────────────────────────
     async function fetchAll() {
       try {
         const r = await fetch(`${SB_URL}/rest/v1/progress?select=*`, { headers: HEADERS });
         if (!r.ok) return;
         const rows = await r.json();
         entries = {};
-        rows.forEach(row => { entries[row.day_number] = row; });
-        renderDayList();
+        // day_number 1-8 maps to week 1-8
+        rows.forEach(row => { if (row.day_number >= 1 && row.day_number <= 8) entries[row.day_number] = row; });
+        renderWeekList();
         renderStats();
       } catch (e) { console.error('Progress fetch error', e); }
     }
 
     async function upsertEntry(data) {
-      // Check if record exists for this day
       const check = await fetch(
         `${SB_URL}/rest/v1/progress?day_number=eq.${data.day_number}&select=day_number`,
         { headers: HEADERS }
@@ -2158,17 +2195,12 @@
 
       let r;
       if (existing.length > 0) {
-        // UPDATE
-        r = await fetch(
-          `${SB_URL}/rest/v1/progress?day_number=eq.${data.day_number}`,
-          {
-            method: 'PATCH',
-            headers: { ...HEADERS, 'Prefer': 'return=representation' },
-            body: JSON.stringify(data),
-          }
-        );
+        r = await fetch(`${SB_URL}/rest/v1/progress?day_number=eq.${data.day_number}`, {
+          method: 'PATCH',
+          headers: { ...HEADERS, 'Prefer': 'return=representation' },
+          body: JSON.stringify(data),
+        });
       } else {
-        // INSERT
         r = await fetch(`${SB_URL}/rest/v1/progress`, {
           method: 'POST',
           headers: { ...HEADERS, 'Prefer': 'return=representation' },
@@ -2185,35 +2217,31 @@
       if (rows && rows[0]) entries[rows[0].day_number] = rows[0];
     }
 
-    // ── Day list ──────────────────────────────────────────────────────────────
-    function renderDayList() {
+    function renderWeekList() {
       const list = document.getElementById('progDayList');
       const header = list.querySelector('.prog-day-list-header');
       list.innerHTML = '';
       list.appendChild(header);
-      for (let n = 1; n <= 60; n++) {
-        const d    = dayDate(n);
-        const iso  = isoDate(d);
-        const has  = !!entries[n];
-        const isToday = iso === todayIso;
-        const div  = document.createElement('div');
-        div.className = 'prog-day-item' + (isToday ? ' today' : '') + (currentDay === n ? ' active' : '');
+      const thisWeek = todayWeek();
+      for (let n = 1; n <= 8; n++) {
+        const has     = !!entries[n];
+        const isThis  = n === thisWeek;
+        const div     = document.createElement('div');
+        div.className = 'prog-day-item' + (isThis ? ' today' : '') + (currentWeek === n ? ' active' : '');
         div.dataset.day = n;
         div.innerHTML = `
-          <span class="prog-day-num">Day ${n}</span>
-          <span class="prog-day-date">${d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+          <span class="prog-day-num">Wk ${n}</span>
+          <span class="prog-day-date">${fmtWeekRange(n)}</span>
           <span class="prog-dot ${has ? 'prog-dot-filled' : 'prog-dot-empty'}"></span>`;
-        div.addEventListener('click', () => openDay(n));
+        div.addEventListener('click', () => openWeek(n));
         list.appendChild(div);
       }
     }
 
-    // ── Stats ─────────────────────────────────────────────────────────────────
     function renderStats() {
       const keys = Object.keys(entries).map(Number).sort((a, b) => a - b);
       document.getElementById('progLogged').textContent = keys.length;
 
-      // Avg confidence
       if (keys.length) {
         const avg = Math.round(keys.reduce((s, k) => s + (entries[k].confidence || 0), 0) / keys.length);
         document.getElementById('progAvgConf').textContent = avg;
@@ -2221,7 +2249,6 @@
         document.getElementById('progAvgConf').textContent = '—';
       }
 
-      // Streak: consecutive days ending at the most recent logged day
       let streak = 0;
       if (keys.length) {
         streak = 1;
@@ -2233,52 +2260,42 @@
       document.getElementById('progStreak').textContent = streak || '—';
     }
 
-    // ── Slider colour ─────────────────────────────────────────────────────────
     function updateSlider(input, valEl) {
       const v = +input.value;
       valEl.textContent = v;
-      // red → amber → green gradient
       const pct = v / 100;
       const r = pct < .5 ? 220 : Math.round(220 - (pct - .5) * 2 * 180);
       const g = pct < .5 ? Math.round(pct * 2 * 180) : 180;
-      const track = `linear-gradient(to right, rgb(${r},${g},40) 0%, rgb(${r},${g},40) ${v}%, #ddd ${v}%, #ddd 100%)`;
-      input.style.background = track;
+      input.style.background = `linear-gradient(to right, rgb(${r},${g},40) 0%, rgb(${r},${g},40) ${v}%, #ddd ${v}%, #ddd 100%)`;
     }
 
-
-    // ── Open day ──────────────────────────────────────────────────────────────
-    async function openDay(n) {
-      currentDay = n;
-      const d    = dayDate(n);
-      const iso  = isoDate(d);
-      const e    = entries[n] || {};
+    async function openWeek(n) {
+      currentWeek = n;
+      const e = entries[n] || {};
 
       document.getElementById('progEmptyState').style.display = 'none';
       document.getElementById('progEntryForm').style.display  = 'block';
-      document.getElementById('progEntryDay').textContent     = 'Day ' + n;
-      document.getElementById('progEntryDateSub').textContent = fmtDate(d);
-      document.getElementById('progTodayTag').style.display   = iso === todayIso ? 'inline-block' : 'none';
+      document.getElementById('progEntryDay').textContent     = 'Week ' + n;
+      document.getElementById('progEntryDateSub').textContent = fmtWeekRange(n);
 
-      // Fetch tasks → render per-task rating cards
+      const thisWeek = todayWeek();
+      document.getElementById('progTodayTag').style.display = n === thisWeek ? 'inline-block' : 'none';
+
       document.getElementById('progTaskRatings').innerHTML = '<div class="prog-task-loading">Loading tasks…</div>';
-      const tasks = await fetchDayTasks(n);
+      const tasks = await fetchWeekTasks(n);
       renderTaskRatings(tasks, Array.isArray(e.task_ratings) ? e.task_ratings : null);
 
       document.getElementById('progSaveStatus').textContent = '';
 
-      // Highlight active in list
       document.querySelectorAll('.prog-day-item').forEach(el => {
         el.classList.toggle('active', +el.dataset.day === n);
       });
-
-      // Scroll day into view in the list
       const activeItem = document.querySelector('.prog-day-item.active');
       if (activeItem) activeItem.scrollIntoView({ block: 'nearest' });
     }
 
-    // ── Save ──────────────────────────────────────────────────────────────────
     document.getElementById('progSaveBtn').addEventListener('click', async () => {
-      if (!currentDay) return;
+      if (!currentWeek) return;
       const btn    = document.getElementById('progSaveBtn');
       const status = document.getElementById('progSaveStatus');
       btn.disabled = true;
@@ -2287,8 +2304,8 @@
 
       const overall = getOverallFields();
       const data = {
-        day_number:    currentDay,
-        entry_date:    isoDate(dayDate(currentDay)),
+        day_number:    currentWeek,
+        entry_date:    WEEKS[currentWeek - 1].start,
         confidence:    overall.confidence,
         understanding: overall.understanding,
         focus:         overall.focus,
@@ -2298,7 +2315,7 @@
 
       try {
         await upsertEntry(data);
-        renderDayList();
+        renderWeekList();
         renderStats();
         status.textContent = 'Saved.';
         setTimeout(() => { status.textContent = ''; }, 2500);
@@ -2310,13 +2327,12 @@
       }
     });
 
-    // Load on tab open (lazy)
     let loaded = false;
     function maybeLoad() {
       if (loaded) return;
       loaded = true;
-      renderDayList(); // show empty dots immediately
-      fetchAll();      // then fill from Supabase
+      renderWeekList();
+      fetchAll();
     }
 
     document.querySelectorAll('.tab-btn').forEach(btn => {
