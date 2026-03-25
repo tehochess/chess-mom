@@ -884,12 +884,17 @@
     .da-notes-empty { font-size: .82rem; color: #ccc; font-style: italic; }
     .da-note-input {
       width: 100%; border: 1px solid var(--cream3);
-      border-radius: var(--radius-sm); padding: 7px 9px;
-      font-size: .85rem; font-family: inherit; resize: vertical;
-      min-height: 60px; outline: none; background: #fff;
-      transition: border-color .15s; flex: 1;
+      border-radius: var(--radius-sm); padding: 10px 11px;
+      font-size: .88rem; font-family: inherit; resize: vertical;
+      min-height: 150px; outline: none; background: #fff;
+      transition: border-color .15s; flex: 1; line-height: 1.6;
     }
-    .da-note-input:focus { border-color: var(--green-accent); }
+    .da-note-input:focus { border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,158,78,.1); }
+    .da-save-msg {
+      font-size: .78rem; font-weight: 600; padding: 2px 0; min-height: 1.2em;
+    }
+    .da-save-msg.ok  { color: #16a34a; }
+    .da-save-msg.err { color: #dc2626; }
     .da-note-save {
       align-self: flex-end; margin-top: 2px;
       background: var(--green-dark); color: var(--cream);
@@ -1678,7 +1683,10 @@
         // ── Right: coach notes ──
         const notesRight = isCoachDA
           ? `<textarea class="da-note-input" id="da-input-${n}" placeholder="Add coaching notes…">${esc(notes)}</textarea>
-             <button class="da-note-save" data-day="${n}">Save</button>`
+             <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:4px;">
+               <span class="da-save-msg" id="da-msg-${n}"></span>
+               <button class="da-note-save" data-day="${n}">Save</button>
+             </div>`
           : (notes
               ? `<p class="da-notes-text">${esc(notes)}</p>`
               : `<span class="da-notes-empty">No notes yet</span>`);
@@ -1743,27 +1751,51 @@
       syncDayComplete(dayNum, checked);
     }
 
+    function setMsg(dayNum, text, cls) {
+      const el = document.getElementById('da-msg-' + dayNum);
+      if (!el) return;
+      el.textContent = text;
+      el.className = 'da-save-msg ' + (cls || '');
+      if (cls === 'ok') setTimeout(() => { if (el.textContent === text) el.textContent = ''; }, 3000);
+    }
+
     async function saveNote(dayNum) {
       const input = document.getElementById('da-input-' + dayNum);
       const btn   = document.querySelector(`.da-note-save[data-day="${dayNum}"]`);
-      const text  = input ? input.value.trim() : '';
-      if (btn) btn.disabled = true;
+      const text  = input ? input.value : '';  // keep raw value, don't trim (preserve spacing)
+      if (!btn) return;
+      btn.disabled = true;
+      btn.textContent = 'Saving…';
+      setMsg(dayNum, '', '');
       try {
-        const r = await fetch(SB_URL + '/rest/v1/daily_assignments', {
-          method: 'POST',
-          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-          body: JSON.stringify({ day_number: dayNum, coach_notes: text, updated_at: new Date().toISOString() }),
-        });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        dbRows[dayNum] = { ...(dbRows[dayNum] || {}), coach_notes: text };
-        // Update display in place without full re-render
-        const right = document.querySelector(`.da-row[data-day="${dayNum}"] .da-right`);
-        if (right && isCoachDA) {
-          const ta = right.querySelector('.da-note-input');
-          if (ta) ta.value = text;
+        // Use ?on_conflict=day_number for a true upsert (INSERT … ON CONFLICT DO UPDATE)
+        const r = await fetch(
+          SB_URL + '/rest/v1/daily_assignments?on_conflict=day_number',
+          {
+            method: 'POST',
+            headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+            body: JSON.stringify({
+              day_number:  dayNum,
+              coach_notes: text.trim(),
+              updated_at:  new Date().toISOString(),
+            }),
+          }
+        );
+        if (!r.ok) {
+          let errMsg = 'HTTP ' + r.status;
+          try { const body = await r.json(); errMsg += ': ' + (body.message || body.error || JSON.stringify(body)); } catch {}
+          throw new Error(errMsg);
         }
-      } catch(e) { alert('Failed to save: ' + e.message); }
-      finally { if (btn) btn.disabled = false; }
+        dbRows[dayNum] = { ...(dbRows[dayNum] || {}), coach_notes: text.trim() };
+        // textarea stays filled — don't clear it
+        setMsg(dayNum, '✓ Saved!', 'ok');
+      } catch(e) {
+        console.error('saveNote day', dayNum, e);
+        setMsg(dayNum, e.message, 'err');
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Save';
+      }
     }
 
     async function fetchRows() {
