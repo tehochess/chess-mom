@@ -145,7 +145,6 @@
       font-size: .95rem;
     }
 
-    /* ── ASK COACH Q&A TRACKER ───────────────────────── */
     textarea {
       width: 100%;
       border: 1.5px solid var(--cream3);
@@ -164,131 +163,6 @@
       border-color: var(--green-accent);
       box-shadow: 0 0 0 3px rgba(78,158,78,.15);
       background: var(--white);
-    }
-
-    .qa-wrap { max-width: 720px; margin: 0 auto; padding: 0 0 60px; }
-
-    .qa-ask-section {
-      background: var(--white);
-      border: 1px solid var(--cream3);
-      border-radius: var(--radius);
-      padding: 24px;
-      box-shadow: var(--shadow);
-      margin-bottom: 24px;
-    }
-    .qa-ask-section h2 {
-      font-size: 1.2rem; font-weight: 700; color: var(--green-dark);
-      margin-bottom: 6px; display: flex; align-items: center; gap: 8px;
-    }
-    .qa-subtitle { color: var(--muted); font-size: .88rem; margin-bottom: 18px; }
-
-    .qa-textarea { min-height: 110px; margin-bottom: 12px; }
-
-    .qa-row { display: flex; gap: 10px; align-items: center; }
-
-    .qa-category-select {
-      flex: 1; border: 1.5px solid var(--cream3); border-radius: var(--radius-sm);
-      padding: 10px 12px; font-size: .9rem; font-family: inherit;
-      color: var(--text); background: var(--cream); outline: none; cursor: pointer;
-      transition: border-color .2s;
-    }
-    .qa-category-select:focus { border-color: var(--green-accent); }
-
-    .qa-submit-btn {
-      flex: 0 0 auto; padding: 10px 22px; background: var(--green-mid);
-      color: var(--cream); border: none; border-radius: var(--radius-sm);
-      font-size: .95rem; font-weight: 700; cursor: pointer;
-      transition: background .2s, transform .1s; white-space: nowrap;
-    }
-    .qa-submit-btn:hover { background: var(--green-light); }
-    .qa-submit-btn:active { transform: scale(.98); }
-
-    .qa-success-msg {
-      margin-top: 12px; padding: 10px 14px; background: var(--success-bg);
-      color: var(--success-txt); border-radius: var(--radius-sm);
-      font-size: .88rem; font-weight: 500; display: none;
-    }
-    .qa-success-msg.show { display: block; }
-
-    .qa-filter-row { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
-
-    .qa-pill {
-      padding: 6px 16px; border-radius: 999px; font-size: .8rem; font-weight: 600;
-      border: 2px solid transparent; cursor: pointer; transition: all .18s;
-      background: var(--cream2); color: var(--muted);
-    }
-    .qa-pill:hover { background: var(--cream3); color: var(--text); }
-    .qa-pill.active { background: var(--green-mid); color: var(--cream); border-color: var(--green-mid); }
-
-    .qa-empty {
-      text-align: center; padding: 60px 20px; color: var(--muted);
-      font-size: .98rem; line-height: 1.7;
-    }
-
-    .qa-card {
-      background: var(--white); border: 1px solid var(--cream3);
-      border-radius: var(--radius); padding: 20px 22px; margin-bottom: 16px;
-      box-shadow: var(--shadow); transition: opacity .2s;
-    }
-    .qa-card-top {
-      display: flex; align-items: flex-start;
-      justify-content: space-between; gap: 10px; margin-bottom: 10px;
-    }
-    .qa-badge {
-      display: inline-block; padding: 3px 12px; border-radius: 999px;
-      font-size: .75rem; font-weight: 700; letter-spacing: .3px; white-space: nowrap;
-    }
-    .qa-badge-General   { background: #e5e7eb; color: #374151; }
-    .qa-badge-Opening   { background: #dbeafe; color: #1e3a8a; }
-    .qa-badge-Tactics   { background: #fee2e2; color: #991b1b; }
-    .qa-badge-Principles{ background: #ede9fe; color: #4c1d95; }
-    .qa-badge-Rules     { background: #fef3c7; color: #92400e; }
-    .qa-badge-Endgame   { background: #ccfbf1; color: #134e4a; }
-    .qa-badge-Other     { background: #dcfce7; color: #166534; }
-
-    .qa-ts { font-size: .75rem; color: var(--muted); white-space: nowrap; margin-top: 2px; }
-
-    .qa-question {
-      font-size: 1.05rem; font-weight: 600; color: var(--text);
-      line-height: 1.55; margin-bottom: 14px; white-space: pre-wrap;
-    }
-    .qa-answer-wrap { border-top: 1px solid var(--cream2); padding-top: 14px; }
-    .qa-awaiting { font-style: italic; color: #4e9e4e; font-size: .88rem; opacity: .8; }
-
-    .qa-answer-box {
-      background: var(--cream); border: 1px solid var(--cream3);
-      border-radius: var(--radius-sm); padding: 14px 16px;
-    }
-    .qa-answer-label {
-      font-size: .75rem; font-weight: 700; color: var(--green-mid);
-      text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px;
-      display: flex; align-items: center; gap: 5px;
-    }
-    .qa-answer-text { font-size: .93rem; color: var(--text); line-height: 1.65; white-space: pre-wrap; }
-
-    .qa-add-answer-btn {
-      margin-top: 12px; padding: 7px 16px; background: transparent;
-      border: 1.5px solid var(--green-mid); border-radius: var(--radius-sm);
-      color: var(--green-mid); font-size: .82rem; font-weight: 600;
-      cursor: pointer; transition: background .18s, color .18s; display: none;
-    }
-    .qa-add-answer-btn:hover { background: var(--green-mid); color: var(--cream); }
-    .coach-mode .qa-add-answer-btn { display: inline-block; }
-
-    .qa-answer-form { margin-top: 12px; display: none; }
-    .qa-answer-form.open { display: block; }
-    .qa-answer-form textarea { min-height: 90px; margin-bottom: 8px; }
-
-    .qa-save-btn {
-      padding: 7px 18px; background: var(--green-mid); color: var(--cream);
-      border: none; border-radius: var(--radius-sm); font-size: .88rem;
-      font-weight: 700; cursor: pointer; transition: background .18s;
-    }
-    .qa-save-btn:hover { background: var(--green-light); }
-
-    @media (max-width: 480px) {
-      .qa-row { flex-direction: column; }
-      .qa-category-select, .qa-submit-btn { width: 100%; }
     }
 
     /* ── LESSON PLAN — FULL WIDTH DOC ────────────────── */
@@ -1062,7 +936,6 @@
 
     /* ── RESPONSIVE ──────────────────────────────────── */
     @media (max-width: 400px) {
-      .qa-ask-section { padding: 20px 16px; }
       .hero { padding: 24px 16px 20px; }
     }
   </style>
@@ -1090,7 +963,6 @@
   <button class="tab-btn"        role="tab" data-tab="puzzles">Key Principles</button>
   <button class="tab-btn" role="tab" data-tab="progress">Weekly Progress Tracker</button>
   <button class="tab-btn" role="tab" data-tab="lessonplan">Lesson Plan</button>
-  <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach Samuel</button>
   <button class="tab-btn"        role="tab" data-tab="scout">Understanding Dad's Gameplay</button>
   <button class="tab-btn"        role="tab" data-tab="weaknesses">Samuel's Weaknesses — TEST</button>
 </nav>
@@ -1411,44 +1283,6 @@
         </div>
       </div>
 
-    </div>
-  </section>
-
-  <!-- Ask Coach -->
-  <section class="tab-panel" id="panel-coach" role="tabpanel">
-    <div class="qa-wrap">
-      <!-- Ask section -->
-      <div class="qa-ask-section">
-        <h2>♟ Ask Coach Samuel</h2>
-        <p class="qa-subtitle">Submit your chess questions — Coach Samuel will answer them here.</p>
-        <textarea class="qa-textarea" id="qaInput" placeholder="Type your chess question here..."></textarea>
-        <div class="qa-row">
-          <select class="qa-category-select" id="qaCat">
-            <option value="General">General</option>
-            <option value="Opening">Opening</option>
-            <option value="Tactics">Tactics</option>
-            <option value="Principles">Principles</option>
-            <option value="Rules">Rules</option>
-            <option value="Endgame">Endgame</option>
-            <option value="Other">Other</option>
-          </select>
-          <button class="qa-submit-btn" id="qaSubmit">Submit Question</button>
-        </div>
-        <div class="qa-success-msg" id="qaSuccess">Your question has been submitted!</div>
-      </div>
-      <!-- Filter pills -->
-      <div class="qa-filter-row" id="qaFilters">
-        <button class="qa-pill active" data-cat="All">All</button>
-        <button class="qa-pill" data-cat="General">General</button>
-        <button class="qa-pill" data-cat="Opening">Opening</button>
-        <button class="qa-pill" data-cat="Tactics">Tactics</button>
-        <button class="qa-pill" data-cat="Principles">Principles</button>
-        <button class="qa-pill" data-cat="Rules">Rules</button>
-        <button class="qa-pill" data-cat="Endgame">Endgame</button>
-        <button class="qa-pill" data-cat="Other">Other</button>
-      </div>
-      <!-- Q&A Feed -->
-      <div id="qaFeed"></div>
     </div>
   </section>
 
@@ -2052,166 +1886,6 @@
     });
   })();
 
-  // ── Q&A Tracker (Supabase) ────────────────────────────────────────────────────
-  (function() {
-    const SB_URL = 'https://kclmbxgqiomaffczqgwx.supabase.co';
-    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
-    const HEADERS = {
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
-      'Content-Type': 'application/json',
-    };
-
-    const isCoach = new URLSearchParams(window.location.search).get('coach') === 'true';
-    if (isCoach) document.getElementById('panel-coach').classList.add('coach-mode');
-
-    function esc(s) {
-      return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    }
-
-    function fmtDate(iso) {
-      return new Date(iso).toLocaleString(undefined, {
-        month: 'short', day: 'numeric', year: 'numeric',
-        hour: 'numeric', minute: '2-digit',
-      });
-    }
-
-    let currentFilter = 'All';
-    let allQuestions  = [];
-
-    function setFeedLoading() {
-      document.getElementById('qaFeed').innerHTML =
-        '<div class="qa-empty" style="opacity:.5">Loading questions…</div>';
-    }
-
-    async function fetchQuestions() {
-      setFeedLoading();
-      try {
-        const res = await fetch(
-          `${SB_URL}/rest/v1/questions?order=created_at.desc`,
-          { headers: HEADERS }
-        );
-        if (!res.ok) throw new Error('Failed to load questions');
-        allQuestions = await res.json();
-        renderFeed();
-      } catch (err) {
-        document.getElementById('qaFeed').innerHTML =
-          `<div class="qa-empty" style="color:#991b1b;">Could not load questions.<br><small>${esc(err.message)}</small></div>`;
-      }
-    }
-
-    function renderFeed() {
-      const feed = document.getElementById('qaFeed');
-      const qs   = currentFilter === 'All'
-        ? allQuestions
-        : allQuestions.filter(q => q.category === currentFilter);
-
-      if (qs.length === 0) {
-        feed.innerHTML = `<div class="qa-empty">
-          <div style="font-size:2rem;margin-bottom:12px;">♟</div>
-          <strong>No questions yet.</strong><br>Ask your first chess question above!
-        </div>`;
-        return;
-      }
-
-      feed.innerHTML = qs.map(q => {
-        const answerHtml = q.answer
-          ? `<div class="qa-answer-box">
-               <div class="qa-answer-label">♞ Coach Samuel</div>
-               <div class="qa-answer-text">${esc(q.answer)}</div>
-             </div>`
-          : `<p class="qa-awaiting">Awaiting Coach Samuel's answer…</p>`;
-
-        return `<div class="qa-card" data-id="${esc(q.id)}">
-          <div class="qa-card-top">
-            <span class="qa-badge qa-badge-${esc(q.category)}">${esc(q.category)}</span>
-            <span class="qa-ts">${fmtDate(q.created_at)}</span>
-          </div>
-          <div class="qa-question">${esc(q.question)}</div>
-          <div class="qa-answer-wrap">
-            ${answerHtml}
-            <button class="qa-add-answer-btn" data-id="${esc(q.id)}">
-              ${q.answer ? 'Edit Answer' : '+ Add Answer'}
-            </button>
-            <div class="qa-answer-form" data-form="${esc(q.id)}">
-              <textarea placeholder="Type Coach Samuel's answer here...">${q.answer ? esc(q.answer) : ''}</textarea>
-              <button class="qa-save-btn" data-id="${esc(q.id)}">Save Answer</button>
-            </div>
-          </div>
-        </div>`;
-      }).join('');
-
-      feed.querySelectorAll('.qa-add-answer-btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          const form = feed.querySelector(`.qa-answer-form[data-form="${btn.dataset.id}"]`);
-          form.classList.toggle('open');
-        });
-      });
-
-      feed.querySelectorAll('.qa-save-btn').forEach(btn => {
-        btn.addEventListener('click', async () => {
-          const id   = btn.dataset.id;
-          const form = feed.querySelector(`.qa-answer-form[data-form="${id}"]`);
-          const text = form.querySelector('textarea').value.trim();
-          btn.disabled = true;
-          try {
-            const res = await fetch(
-              `${SB_URL}/rest/v1/questions?id=eq.${encodeURIComponent(id)}`,
-              {
-                method: 'PATCH',
-                headers: HEADERS,
-                body: JSON.stringify({ answer: text }),
-              }
-            );
-            if (!res.ok) throw new Error('Save failed');
-            await fetchQuestions();
-          } catch (err) {
-            alert('Error saving answer: ' + err.message);
-            btn.disabled = false;
-          }
-        });
-      });
-    }
-
-    document.getElementById('qaSubmit').addEventListener('click', async () => {
-      const input = document.getElementById('qaInput');
-      const cat   = document.getElementById('qaCat').value;
-      const text  = input.value.trim();
-      if (!text) { input.focus(); return; }
-
-      const submitBtn = document.getElementById('qaSubmit');
-      submitBtn.disabled = true;
-      try {
-        const res = await fetch(`${SB_URL}/rest/v1/questions`, {
-          method: 'POST',
-          headers: { ...HEADERS, 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ question: text, category: cat }),
-        });
-        if (!res.ok) throw new Error('Submit failed');
-        input.value = '';
-        const msg = document.getElementById('qaSuccess');
-        msg.classList.add('show');
-        setTimeout(() => msg.classList.remove('show'), 3000);
-        await fetchQuestions();
-      } catch (err) {
-        alert('Error submitting question: ' + err.message);
-      } finally {
-        submitBtn.disabled = false;
-      }
-    });
-
-    document.getElementById('qaFilters').addEventListener('click', e => {
-      const pill = e.target.closest('.qa-pill');
-      if (!pill) return;
-      document.querySelectorAll('.qa-pill').forEach(p => p.classList.remove('active'));
-      pill.classList.add('active');
-      currentFilter = pill.dataset.cat;
-      renderFeed();
-    });
-
-    fetchQuestions();
-  })();
-
   // ── Weekly Progress Tracker ──────────────────────────────────────────────────
   /*
    * SUPABASE MIGRATION — run once in the Supabase SQL editor:
@@ -2223,8 +1897,6 @@
     const SB_URL  = 'https://kclmbxgqiomaffczqgwx.supabase.co';
     const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
     const HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
-    const isCoach = new URLSearchParams(window.location.search).get('coach') === 'true';
-
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
     const WEEKS = [
       { start: '2026-03-25', end: '2026-03-31' },
