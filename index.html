@@ -869,24 +869,26 @@
     /* RIGHT: coach notes */
     .da-right {
       background: #faf7f0;
-      padding: 14px 14px 14px 16px;
-      display: flex; flex-direction: column; gap: 8px;
-      min-height: 80px;
+      padding: 16px 16px 16px 18px;
+      display: flex; flex-direction: column; gap: 10px;
+      align-self: stretch;  /* stretch to full row height */
     }
     .da-notes-label {
       font-size: .65rem; font-weight: 800; letter-spacing: .1em;
       text-transform: uppercase; color: var(--green-dark); opacity: .7;
+      flex-shrink: 0;
     }
     .da-notes-text {
-      font-size: .86rem; font-style: italic; color: var(--green-dark);
-      line-height: 1.6; flex: 1;
+      font-size: 15px; font-weight: 500; font-style: normal;
+      color: #2d2d2d; line-height: 1.6; flex: 1;
+      white-space: pre-wrap; word-break: break-word;
     }
     .da-notes-empty { font-size: .82rem; color: #ccc; font-style: italic; }
     .da-note-input {
       width: 100%; border: 1px solid var(--cream3);
-      border-radius: var(--radius-sm); padding: 10px 11px;
-      font-size: .88rem; font-family: inherit; resize: vertical;
-      min-height: 150px; outline: none; background: #fff;
+      border-radius: var(--radius-sm); padding: 12px;
+      font-size: 15px; font-family: inherit; font-style: normal;
+      resize: vertical; min-height: 180px; outline: none; background: #fff;
       transition: border-color .15s; flex: 1; line-height: 1.6;
     }
     .da-note-input:focus { border-color: var(--green-accent); box-shadow: 0 0 0 3px rgba(78,158,78,.1); }
