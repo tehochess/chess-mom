@@ -2700,109 +2700,148 @@
 
     // ── Pre-analysis engine ───────────────────────────────────────────────────
     function preAnalyse(pgn, username, gameIndex) {
-      // Extract eval annotations: [%eval X.XX] or [%eval #N]
-      const evalMatches = [...pgn.matchAll(/\[%eval\s+([^\]]+)\]/g)];
-      const evals = evalMatches.map(m => {
-        const v = m[1].trim();
-        if (v.startsWith('#')) return v.startsWith('#-') ? -999 : 999; // mate
-        return parseFloat(v);
-      });
+      // Wrap everything so one bad game never crashes the whole run
+      try {
+        if (!pgn || typeof pgn !== 'string') throw new Error('empty PGN');
 
-      // Extract clock annotations: [%clk H:MM:SS]
-      const clockMatches = [...pgn.matchAll(/\[%clk\s+([^\]]+)\]/g)];
-      const clocks = clockMatches.map(m => {
-        const parts = m[1].trim().split(':').map(Number);
-        return parts.length === 3 ? parts[0]*3600 + parts[1]*60 + parts[2] : 0;
-      });
-
-      // Determine which color username played
-      const whiteMatch = pgn.match(/\[White "([^"]+)"\]/i);
-      const blackMatch = pgn.match(/\[Black "([^"]+)"\]/i);
-      const whiteName  = whiteMatch ? whiteMatch[1] : '';
-      const blackName  = blackMatch ? blackMatch[1] : '';
-      const playerColor = whiteName.toLowerCase() === username.toLowerCase() ? 'White'
-                        : blackName.toLowerCase()  === username.toLowerCase() ? 'Black'
-                        : 'Unknown';
-
-      // Opening name
-      const openingMatch = pgn.match(/\[Opening "([^"]+)"\]/i);
-      const opening = openingMatch ? openingMatch[1] : 'Unknown opening';
-
-      // Result
-      const resultMatch = pgn.match(/\[Result "([^"]+)"\]/);
-      const result = resultMatch ? resultMatch[1] : '?';
-
-      if (evals.length < 4) {
-        return { gameIndex, playerColor, opening, result, evalCount: 0, criticalMoments: [], phases: null, timePressureCorrelation: false, summary: `Game ${gameIndex+1}: eval data unavailable (${opening}, ${playerColor}, ${result})` };
-      }
-
-      // Normalise evals to player's perspective (+ve = good for player)
-      const playerEvals = evals.map(e => playerColor === 'White' ? e : -e);
-
-      // Critical moments: eval swing > 0.8 in one move (from player's perspective dropping)
-      const criticalMoments = [];
-      for (let i = 1; i < playerEvals.length; i++) {
-        const before = playerEvals[i - 1], after = playerEvals[i];
-        const delta = after - before;
-        if (delta < -0.8 && Math.abs(before) < 90 && Math.abs(after) < 90) {
-          const moveNum = Math.ceil(i / 2);
-          const whoMoved = i % 2 === 1 ? 'White' : 'Black';
-          const playerBlundered = whoMoved === playerColor;
-          const clock = clocks[i] !== undefined ? clocks[i] : null;
-          criticalMoments.push({ moveNum, whoMoved, playerBlundered, before: before.toFixed(2), after: after.toFixed(2), delta: delta.toFixed(2), clockSecs: clock });
+        // Extract eval annotations: [%eval X.XX] or [%eval #N]
+        const evalMatches = pgn ? [...pgn.matchAll(/\[%eval\s+([^\]]+)\]/g)] : [];
+        const rawEvals = [];
+        for (const m of evalMatches) {
+          const v = (m[1] || '').trim();
+          if (!v) continue;
+          if (v.startsWith('#')) { rawEvals.push(v.startsWith('#-') ? -999 : 999); }
+          else {
+            const f = parseFloat(v);
+            if (!isNaN(f)) rawEvals.push(f);
+          }
         }
-      }
 
-      // Phase analysis (player-perspective evals)
-      function phaseStats(evArr) {
-        if (!evArr.length) return null;
-        const avg = evArr.reduce((s, v) => s + v, 0) / evArr.length;
-        const trend = evArr.length > 1 ? evArr[evArr.length-1] - evArr[0] : 0;
-        return { avg: avg.toFixed(2), trend: trend > 0.3 ? 'improving' : trend < -0.3 ? 'declining' : 'stable', count: evArr.length };
-      }
-      const opening_ev  = playerEvals.slice(0, Math.min(30, playerEvals.length));
-      const mid_ev      = playerEvals.slice(30, Math.min(70, playerEvals.length));
-      const end_ev      = playerEvals.slice(70);
-      const phases = {
-        opening:    phaseStats(opening_ev),
-        middlegame: phaseStats(mid_ev),
-        endgame:    phaseStats(end_ev.length ? end_ev : null),
-      };
-
-      // Mistake clustering: which phase has most/biggest drops?
-      const phaseDrop = (evArr) => {
-        let total = 0;
-        for (let i = 1; i < evArr.length; i++) {
-          const d = evArr[i] - evArr[i-1];
-          if (d < -0.5) total += Math.abs(d);
+        // Extract clock annotations: [%clk H:MM:SS]
+        const clockMatches = pgn ? [...pgn.matchAll(/\[%clk\s+([^\]]+)\]/g)] : [];
+        const clocks = [];
+        for (const m of clockMatches) {
+          const parts = (m[1] || '').trim().split(':').map(Number);
+          clocks.push(parts.length === 3 ? parts[0]*3600 + parts[1]*60 + parts[2] : 0);
         }
-        return total;
-      };
-      const openingDrop = phaseDrop(opening_ev);
-      const midDrop     = phaseDrop(mid_ev);
-      const endDrop     = phaseDrop(end_ev);
-      const worstPhase  = openingDrop >= midDrop && openingDrop >= endDrop ? 'opening'
-                        : midDrop >= endDrop ? 'middlegame' : 'endgame';
 
-      // Time pressure correlation: did drops cluster when clock < 60s?
-      const lowClockDrops = criticalMoments.filter(m => m.playerBlundered && m.clockSecs !== null && m.clockSecs < 60).length;
-      const timePressureCorrelation = criticalMoments.length > 0 && lowClockDrops / criticalMoments.length >= 0.4;
+        // Metadata
+        const whiteMatch  = pgn.match(/\[White "([^"]+)"\]/i);
+        const blackMatch  = pgn.match(/\[Black "([^"]+)"\]/i);
+        const whiteName   = whiteMatch ? whiteMatch[1] : '';
+        const blackName   = blackMatch ? blackMatch[1] : '';
+        const playerColor = whiteName.toLowerCase() === username.toLowerCase() ? 'White'
+                          : blackName.toLowerCase()  === username.toLowerCase() ? 'Black'
+                          : 'Unknown';
+        const openingMatch = pgn.match(/\[Opening "([^"]+)"\]/i);
+        const opening      = openingMatch ? openingMatch[1] : 'Unknown opening';
+        const resultMatch  = pgn.match(/\[Result "([^"]+)"\]/);
+        const result       = resultMatch ? resultMatch[1] : '?';
 
-      // Format summary
-      const phaseStr = (label, p) => p ? `${label}: avg eval ${p.avg > 0 ? '+' : ''}${p.avg} (${p.trend})` : '';
-      const critStr = criticalMoments.slice(0, 5).map(m =>
-        `  move ${m.moveNum}: eval ${m.before > 0 ? '+' : ''}${m.before} → ${m.after > 0 ? '+' : ''}${m.after} (${m.delta}${m.clockSecs !== null ? `, ${m.clockSecs}s on clock` : ''})`
-      ).join('\n');
+        console.log(`[Analyzer] Game ${gameIndex+1}: found ${rawEvals.length} evals, ${clocks.length} clocks | ${playerColor} | ${opening} | ${result}`);
 
-      const summary = [
-        `Game ${gameIndex+1}: ${opening} | ${playerColor} | Result: ${result}`,
-        `Phase breakdown (player perspective): ${phaseStr('Opening', phases.opening)} | ${phaseStr('Middlegame', phases.middlegame)}${phases.endgame ? ' | ' + phaseStr('Endgame', phases.endgame) : ''}`,
-        `Biggest eval drops in: ${worstPhase}`,
-        timePressureCorrelation ? `⚠ TIME PRESSURE CORRELATION: ${lowClockDrops}/${criticalMoments.length} blunders occurred with <60s remaining` : '',
-        criticalMoments.length ? `Critical moments (player lost eval):\n${critStr}` : 'No major eval drops detected.',
-      ].filter(Boolean).join('\n');
+        // Not enough eval data — return graceful stub
+        if (rawEvals.length < 4) {
+          return {
+            gameIndex, playerColor, opening, result,
+            evalCount: rawEvals.length, criticalMoments: [],
+            phases: null, timePressureCorrelation: false,
+            openingDrop: 0, midDrop: 0, endDrop: 0,
+            summary: `Game ${gameIndex+1}: No engine data available (${opening}, ${playerColor}, ${result})`,
+          };
+        }
 
-      return { gameIndex, playerColor, opening, result, evalCount: evals.length, criticalMoments, phases, worstPhase, timePressureCorrelation, openingDrop, midDrop, endDrop, summary };
+        // Normalise to player's perspective (+ve = good for player)
+        const playerEvals = rawEvals.map(e => playerColor === 'White' ? e : -e);
+
+        // Critical moments: player's eval drops > 0.8 in one half-move
+        const criticalMoments = [];
+        for (let i = 1; i < playerEvals.length; i++) {
+          const before = playerEvals[i - 1], after = playerEvals[i];
+          if (before == null || after == null) continue;
+          const delta = after - before;
+          if (delta < -0.8 && Math.abs(before) < 90 && Math.abs(after) < 90) {
+            const moveNum       = Math.ceil(i / 2);
+            const whoMoved      = i % 2 === 1 ? 'White' : 'Black';
+            const playerBlundered = whoMoved === playerColor;
+            const clockSecs     = (clocks.length > i && clocks[i] != null) ? clocks[i] : null;
+            criticalMoments.push({
+              moveNum, whoMoved, playerBlundered,
+              before: before.toFixed(2), after: after.toFixed(2),
+              delta: delta.toFixed(2), clockSecs,
+            });
+          }
+        }
+
+        // Phase stats helper — safely handles empty or null arrays
+        function phaseStats(evArr) {
+          if (!evArr || evArr.length === 0) return null;
+          const valid = evArr.filter(v => v != null && !isNaN(v));
+          if (!valid.length) return null;
+          const avg   = valid.reduce((s, v) => s + v, 0) / valid.length;
+          const trend = valid.length > 1 ? valid[valid.length-1] - valid[0] : 0;
+          return {
+            avg:   avg.toFixed(2),
+            trend: trend > 0.3 ? 'improving' : trend < -0.3 ? 'declining' : 'stable',
+            count: valid.length,
+          };
+        }
+
+        const opening_ev = playerEvals.slice(0, Math.min(30, playerEvals.length));
+        const mid_ev     = playerEvals.slice(30, Math.min(70, playerEvals.length));
+        const end_ev     = playerEvals.slice(70);
+        const phases = {
+          opening:    phaseStats(opening_ev),
+          middlegame: phaseStats(mid_ev),
+          endgame:    phaseStats(end_ev),   // phaseStats handles empty array safely
+        };
+
+        // Mistake clustering
+        const phaseDrop = (evArr) => {
+          if (!evArr || evArr.length < 2) return 0;
+          let total = 0;
+          for (let i = 1; i < evArr.length; i++) {
+            const d = evArr[i] - evArr[i-1];
+            if (!isNaN(d) && d < -0.5) total += Math.abs(d);
+          }
+          return total;
+        };
+        const openingDrop = phaseDrop(opening_ev);
+        const midDrop     = phaseDrop(mid_ev);
+        const endDrop     = phaseDrop(end_ev);
+        const worstPhase  = openingDrop >= midDrop && openingDrop >= endDrop ? 'opening'
+                          : midDrop >= endDrop ? 'middlegame' : 'endgame';
+
+        // Time pressure correlation
+        const lowClockDrops = criticalMoments.filter(m => m.playerBlundered && m.clockSecs !== null && m.clockSecs < 60).length;
+        const timePressureCorrelation = criticalMoments.length > 0 && lowClockDrops / criticalMoments.length >= 0.4;
+
+        // Build summary text
+        const phaseStr = (label, p) => p ? `${label}: avg ${p.avg > 0 ? '+' : ''}${p.avg} (${p.trend})` : '';
+        const phaseLine = [phaseStr('Opening', phases.opening), phaseStr('Middlegame', phases.middlegame), phaseStr('Endgame', phases.endgame)].filter(Boolean).join(' | ');
+        const critStr   = criticalMoments.slice(0, 5).map(m =>
+          `  move ${m.moveNum}: ${m.before > 0 ? '+' : ''}${m.before} → ${m.after > 0 ? '+' : ''}${m.after} (${m.delta}${m.clockSecs !== null ? `, ${m.clockSecs}s left` : ''})`
+        ).join('\n');
+
+        const summary = [
+          `Game ${gameIndex+1}: ${opening} | ${playerColor} | ${result} | ${rawEvals.length} evals`,
+          phaseLine ? `Phases (player persp.): ${phaseLine}` : '',
+          `Most mistakes in: ${worstPhase}`,
+          timePressureCorrelation ? `⚠ TIME PRESSURE: ${lowClockDrops}/${criticalMoments.length} blunders with <60s remaining` : '',
+          criticalMoments.length ? `Critical moments:\n${critStr}` : 'No major eval drops detected.',
+        ].filter(Boolean).join('\n');
+
+        return { gameIndex, playerColor, opening, result, evalCount: rawEvals.length, criticalMoments, phases, worstPhase, timePressureCorrelation, openingDrop, midDrop, endDrop, summary };
+
+      } catch (err) {
+        console.error(`[Analyzer] preAnalyse failed for game ${gameIndex+1}:`, err);
+        return {
+          gameIndex, playerColor: 'Unknown', opening: 'Unknown', result: '?',
+          evalCount: 0, criticalMoments: [], phases: null,
+          timePressureCorrelation: false, openingDrop: 0, midDrop: 0, endDrop: 0,
+          summary: `Game ${gameIndex+1}: Pre-analysis error — ${err.message}`,
+        };
+      }
     }
 
     function buildPreAnalysisSummary(analyses, username) {
