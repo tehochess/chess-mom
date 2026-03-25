@@ -887,7 +887,7 @@
       transition: opacity .2s;
     }
     .da-task-item.done .da-task-label {
-      text-decoration: line-through; opacity: .45; color: var(--muted);
+      text-decoration: none; opacity: 1; color: var(--text);
     }
     .da-empty-label { font-size: .88rem; color: #bbb; font-style: italic; }
 
@@ -2148,11 +2148,34 @@
     }
 
     async function upsertEntry(data) {
-      const r = await fetch(`${SB_URL}/rest/v1/progress?on_conflict=day_number`, {
-        method: 'POST',
-        headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
-        body: JSON.stringify(data),
-      });
+      // Check if record exists for this day
+      const check = await fetch(
+        `${SB_URL}/rest/v1/progress?day_number=eq.${data.day_number}&select=day_number`,
+        { headers: HEADERS }
+      );
+      if (!check.ok) throw new Error('Check failed: ' + check.status);
+      const existing = await check.json();
+
+      let r;
+      if (existing.length > 0) {
+        // UPDATE
+        r = await fetch(
+          `${SB_URL}/rest/v1/progress?day_number=eq.${data.day_number}`,
+          {
+            method: 'PATCH',
+            headers: { ...HEADERS, 'Prefer': 'return=representation' },
+            body: JSON.stringify(data),
+          }
+        );
+      } else {
+        // INSERT
+        r = await fetch(`${SB_URL}/rest/v1/progress`, {
+          method: 'POST',
+          headers: { ...HEADERS, 'Prefer': 'return=representation' },
+          body: JSON.stringify(data),
+        });
+      }
+
       if (!r.ok) {
         let msg = 'Save failed: ' + r.status;
         try { const b = await r.json(); msg += ' — ' + (b.message || b.error || JSON.stringify(b)); } catch {}
