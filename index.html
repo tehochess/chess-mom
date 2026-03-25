@@ -783,146 +783,122 @@
       padding: 4px 8px;
     }
 
-    /* ── WEEKLY LESSONS ──────────────────────────────── */
-    .section-title {
-      font-size: 1rem;
-      font-weight: 700;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 14px;
+    /* ── DAILY ASSIGNMENTS ───────────────────────────── */
+    .da-sticky-header {
+      position: sticky; top: 0; z-index: 10;
+      background: var(--green-dark); color: var(--cream);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 11px 18px; border-radius: var(--radius-sm);
+      margin-bottom: 18px; font-size: .88rem; font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+    }
+    .da-sticky-count { opacity: .8; font-size: .8rem; }
+    .da-bar-wrap {
+      flex: 1; height: 5px; background: rgba(255,255,255,.2);
+      border-radius: 999px; margin: 0 14px; overflow: hidden;
+    }
+    .da-bar-fill {
+      height: 100%; background: var(--gold);
+      border-radius: 999px; transition: width .4s ease;
     }
 
-    .week-list { list-style: none; }
+    .da-list { display: flex; flex-direction: column; gap: 8px; }
 
-    .week-accordion {
-      background: var(--white);
+    .da-row {
+      background: #fff;
       border: 1.5px solid var(--cream3);
       border-radius: var(--radius);
-      margin-bottom: 10px;
       overflow: hidden;
-      box-shadow: var(--shadow);
-      transition: border-color .2s;
+      transition: border-color .2s, background .2s;
+    }
+    .da-row.da-today {
+      background: #f0fdf4; border-color: #86efac;
+      box-shadow: 0 0 0 2px rgba(22,163,74,.12);
+    }
+    .da-row.da-done {
+      background: #f7faf8; border-color: #d1e8d8;
+    }
+    .da-row.da-past {
+      background: #fffbf0; border-color: #fde68a;
     }
 
-    .week-accordion.done {
-      background: var(--success-bg);
-      border-color: #86efac;
+    .da-main {
+      display: flex; align-items: center; gap: 12px; padding: 13px 16px;
     }
 
-    .week-header {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px 18px;
-      cursor: pointer;
-      user-select: none;
+    .da-check {
+      width: 20px; height: 20px; flex-shrink: 0;
+      accent-color: var(--green-mid); cursor: pointer;
     }
 
-    .week-header:hover { background: rgba(26,46,26,.03); }
-    .week-accordion.done .week-header:hover { background: rgba(22,163,74,.05); }
+    .da-badge {
+      font-size: .72rem; font-weight: 700;
+      background: var(--green-dark); color: var(--cream);
+      border-radius: 999px; padding: 3px 10px;
+      white-space: nowrap; flex-shrink: 0;
+    }
+    .da-row.da-today .da-badge { background: #16a34a; }
+    .da-row.da-done  .da-badge { background: #6b7a62; }
 
-    .week-check-wrap { flex-shrink: 0; }
-
-    .week-check-wrap input[type="checkbox"] {
-      width: 20px;
-      height: 20px;
-      accent-color: var(--green-mid);
-      cursor: pointer;
+    .da-today-pill {
+      font-size: .65rem; font-weight: 800; letter-spacing: .08em;
+      background: #16a34a; color: #fff;
+      border-radius: 999px; padding: 2px 8px; flex-shrink: 0;
+      text-transform: uppercase;
     }
 
-    .week-badge {
-      font-size: .72rem;
-      font-weight: 700;
-      background: var(--green-mid);
-      color: var(--cream);
-      border-radius: 999px;
-      padding: 2px 10px;
-      white-space: nowrap;
+    .da-date {
+      font-size: .82rem; color: var(--muted); white-space: nowrap;
       flex-shrink: 0;
     }
 
-    .week-accordion.done .week-badge { background: #16a34a; }
-
-    .week-header-text { flex: 1; min-width: 0; }
-
-    .week-title {
-      font-weight: 700;
-      font-size: .95rem;
-      color: var(--text);
+    .da-assignment {
+      flex: 1; font-size: .92rem; color: var(--text); min-width: 0;
+    }
+    .da-assignment.da-empty { color: #bbb; font-style: italic; }
+    .da-row.da-done .da-assignment {
+      text-decoration: line-through; opacity: .55;
     }
 
-    .week-accordion.done .week-title { color: var(--success-txt); }
-
-    .week-summary {
-      font-size: .82rem;
-      color: var(--muted);
-      margin-top: 2px;
-      line-height: 1.4;
+    .da-toggle {
+      background: none; border: none; cursor: pointer;
+      font-size: .75rem; color: var(--muted); padding: 4px 8px;
+      border-radius: 6px; white-space: nowrap; flex-shrink: 0;
+      transition: background .15s, color .15s;
     }
+    .da-toggle:hover { background: var(--cream2); color: var(--green-dark); }
 
-    .week-accordion.done .week-summary { color: var(--success-txt); opacity: .8; }
-
-    .week-arrow {
-      font-size: .95rem;
-      color: var(--muted);
-      flex-shrink: 0;
-      transition: transform .25s ease;
-      line-height: 1;
-    }
-
-    .week-accordion.open .week-arrow { transform: rotate(180deg); }
-
-    .week-body {
-      max-height: 0;
-      overflow: hidden;
-      transition: max-height .35s ease;
-    }
-
-    .week-accordion.open .week-body { max-height: 1200px; }
-
-    .week-body-inner {
-      padding: 14px 18px 18px;
+    .da-notes-area {
+      max-height: 0; overflow: hidden;
+      transition: max-height .3s ease;
       border-top: 1px solid var(--cream3);
     }
+    .da-notes-area.open { max-height: 300px; }
 
-    .week-body p {
-      font-size: .9rem;
-      line-height: 1.75;
-      color: var(--text);
+    .da-notes-inner {
+      padding: 12px 16px 14px 48px; display: flex; flex-direction: column; gap: 8px;
     }
-
-    .milestone {
-      margin-top: 16px;
-      padding: 10px 14px;
-      background: rgba(78,158,78,.09);
-      border-left: 3px solid var(--green-accent);
-      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
-      font-size: .86rem;
-      color: var(--green-dark);
-      line-height: 1.6;
+    .da-saved-note {
+      font-size: .88rem; font-style: italic;
+      color: var(--green-dark); line-height: 1.6;
     }
-
-    .lessons-progress {
-      font-size: .85rem;
-      color: var(--muted);
-      margin-bottom: 18px;
+    .da-note-input {
+      width: 100%; border: 1px solid var(--cream3);
+      border-radius: var(--radius-sm); padding: 8px 10px;
+      font-size: .88rem; font-family: inherit; resize: vertical;
+      min-height: 60px; outline: none;
+      transition: border-color .15s;
     }
-
-    .progress-bar-wrap {
-      height: 6px;
-      background: var(--cream3);
-      border-radius: 999px;
-      margin-top: 6px;
-      overflow: hidden;
+    .da-note-input:focus { border-color: var(--green-accent); }
+    .da-note-save {
+      align-self: flex-end;
+      background: var(--green-dark); color: var(--cream);
+      border: none; border-radius: var(--radius-sm); padding: 7px 18px;
+      font-size: .82rem; font-weight: 600; cursor: pointer;
+      transition: background .15s;
     }
-
-    .progress-bar-fill {
-      height: 100%;
-      background: var(--green-accent);
-      border-radius: 999px;
-      transition: width .4s ease;
-    }
+    .da-note-save:hover { background: var(--green-mid); }
+    .da-note-save:disabled { opacity: .5; cursor: not-allowed; }
 
     /* ── KEY PRINCIPLES ───────────────────────────────── */
     .principle-card {
@@ -983,7 +959,7 @@
 <!-- TABS -->
 <nav class="tabs-bar" role="tablist">
   <button class="tab-btn active" role="tab" data-tab="home">Home</button>
-  <button class="tab-btn"        role="tab" data-tab="lessons">Weekly Curriculum</button>
+  <button class="tab-btn"        role="tab" data-tab="lessons">Daily Assignments</button>
   <button class="tab-btn"        role="tab" data-tab="puzzles">Key Principles</button>
   <button class="tab-btn" role="tab" data-tab="progress">Daily Progress Tracker</button>
   <button class="tab-btn" role="tab" data-tab="lessonplan">Lesson Plan</button>
@@ -1013,152 +989,16 @@
     <p class="motivational">Every day counts. Every puzzle matters. Every lesson brings you closer.</p>
   </section>
 
-  <!-- Weekly Lessons -->
+  <!-- Daily Assignments -->
   <section class="tab-panel" id="panel-lessons" role="tabpanel">
-    <p class="section-title">8-Week Curriculum <span style="font-size:.75em;font-weight:500;opacity:.7;">(Tentative)</span></p>
-    <div class="lessons-progress">
-      <span id="weeksDoneCount">0</span> of 8 weeks complete
-      <div class="progress-bar-wrap"><div class="progress-bar-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="da-sticky-header">
+      <span><strong id="daDoneCount">0</strong> of 60 days complete</span>
+      <div class="da-bar-wrap"><div class="da-bar-fill" id="daBarFill" style="width:0%"></div></div>
+      <span class="da-sticky-count">Mar 25 – May 23, 2026</span>
     </div>
-    <div class="week-list" id="weekList">
-
-      <!-- Week 1 -->
-      <div class="week-accordion" data-week="0">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w0"></div>
-          <span class="week-badge">Week 1</span>
-          <div class="week-header-text">
-            <div class="week-title">Know the Rules Cold</div>
-            <div class="week-summary">Before anything else, own the fundamentals completely.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>Before anything else, own the fundamentals completely. Every piece, every special rule, every possible way a game can end. This isn't exciting but it's non-negotiable. A shaky foundation creates bad habits that are hard to unlearn later.</p>
-          <div class="milestone"><strong>Milestone:</strong> You can play a full game and know with certainty that every move you make is legal.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 2 -->
-      <div class="week-accordion" data-week="1">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w1"></div>
-          <span class="week-badge">Week 2</span>
-          <div class="week-header-text">
-            <div class="week-title">Learn to Finish Games</div>
-            <div class="week-summary">Train your eyes to see threats before they land.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>Knowing the rules and knowing how to actually end a game are two different things. This week is about checkmate patterns and basic tactics — forks, pins, skewers. You're training your eyes to see threats before they land, both yours and your opponent's.</p>
-          <div class="milestone"><strong>Milestone:</strong> You stop losing games to things you simply didn't see.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 3 -->
-      <div class="week-accordion" data-week="2">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w2"></div>
-          <span class="week-badge">Week 3</span>
-          <div class="week-header-text">
-            <div class="week-title">Understand Opening Principles</div>
-            <div class="week-summary">Internalize why the opening matters — no memorization required.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>Don't memorize opening lines. Instead, internalize why the opening matters: you're racing to get your pieces active, control the center of the board, and get your king to safety. Every strong opening move follows from these three ideas. Understanding the principles means you can handle any position your opponent throws at you.</p>
-          <div class="milestone"><strong>Milestone:</strong> You reach a solid, developed position at the start of every game without getting into early trouble.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 4 -->
-      <div class="week-accordion" data-week="3">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w3"></div>
-          <span class="week-badge">Week 4</span>
-          <div class="week-header-text">
-            <div class="week-title">Develop a Middlegame Plan</div>
-            <div class="week-summary">Always have a reason before you move.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>This is where most beginners go blank. The opening is over and they just start reacting move by move. The fix is simple in concept: always have a plan, even a basic one. Identify your worst-placed piece and improve it. Look for weaknesses in the opponent's position. Don't just move — have a reason.</p>
-          <div class="milestone"><strong>Milestone:</strong> You can articulate what you're trying to do before you make your move.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 5 -->
-      <div class="week-accordion" data-week="4">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w4"></div>
-          <span class="week-badge">Week 5</span>
-          <div class="week-header-text">
-            <div class="week-title">Learn How Games End</div>
-            <div class="week-summary">A small lead handled correctly is a guaranteed win.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>Most beginners ignore endgames entirely and pay for it constantly. When you're ahead in material, you need to know how to convert that advantage into an actual win. A small lead handled correctly is a guaranteed win. The same lead handled carelessly is a draw or worse.</p>
-          <div class="milestone"><strong>Milestone:</strong> When you're winning, you can close the game out.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 6 -->
-      <div class="week-accordion" data-week="5">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w5"></div>
-          <span class="week-badge">Week 6</span>
-          <div class="week-header-text">
-            <div class="week-title">Sharpen Tactical Awareness</div>
-            <div class="week-summary">This week tends to produce the biggest visible jump in strength.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>Come back to tactics with fresh eyes and go deeper. The patterns from week 2 get reinforced, but now you're also spotting multi-move combinations, recognizing when to sacrifice material for a bigger gain, and seeing the whole board rather than just your own pieces. This week tends to produce the biggest visible jump in strength.</p>
-          <div class="milestone"><strong>Milestone:</strong> You're finding threats your opponent didn't intend to show you.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 7 -->
-      <div class="week-accordion" data-week="6">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w6"></div>
-          <span class="week-badge">Week 7</span>
-          <div class="week-header-text">
-            <div class="week-title">Play Real Games, Review Honestly</div>
-            <div class="week-summary">One honest post-game review is worth more than five games played and forgotten.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>Move from practicing concepts to playing real opponents under real conditions. The goal isn't to win every game — it's to apply everything you've learned under pressure and then review what broke down. One honest post-game review is worth more than five games played and forgotten.</p>
-          <div class="milestone"><strong>Milestone:</strong> You understand exactly why you lost every game you lost.</div>
-        </div></div>
-      </div>
-
-      <!-- Week 8 -->
-      <div class="week-accordion" data-week="7">
-        <div class="week-header">
-          <div class="week-check-wrap"><input type="checkbox" id="w7"></div>
-          <span class="week-badge">Week 8</span>
-          <div class="week-header-text">
-            <div class="week-title">Prepare Specifically for Him</div>
-            <div class="week-summary">Your job is to be better prepared than he expects.</div>
-          </div>
-          <span class="week-arrow">▾</span>
-        </div>
-        <div class="week-body"><div class="week-body-inner">
-          <p>This week is about the actual target. A 1200 player has real patterns — openings they repeat, middlegame tendencies, types of positions they're comfortable or uncomfortable in. Study those patterns. Your job isn't to become a perfect chess player in eight weeks. Your job is to be better prepared than he expects.</p>
-          <div class="milestone"><strong>Milestone:</strong> You walk into the match with a specific read on your opponent and a clear game plan.</div>
-        </div></div>
-      </div>
-
-    </div><!-- /week-list -->
+    <div class="da-list" id="daList">
+      <!-- Rows injected by JS -->
+    </div>
   </section>
 
   <!-- Key Principles -->
@@ -1738,57 +1578,227 @@
     document.getElementById('cdSecs').textContent  = pad(secs);
   }
 
-  // ── Weekly Lessons checklist ───────────────────────────────────────────────
-  function loadWeeks() {
-    try { return JSON.parse(localStorage.getItem('weeksDone')) || []; }
-    catch { return []; }
-  }
+  // ── Daily Assignments (Supabase) ────────────────────────────────────────────
+  /*
+   * SUPABASE TABLE SETUP — run once in the SQL editor:
+   *
+   * CREATE TABLE daily_assignments (
+   *   day_number  int PRIMARY KEY,
+   *   assignment  text,
+   *   coach_notes text,
+   *   completed   boolean DEFAULT false,
+   *   updated_at  timestamptz DEFAULT now()
+   * );
+   * ALTER TABLE daily_assignments ENABLE ROW LEVEL SECURITY;
+   * CREATE POLICY "Anyone can read"   ON daily_assignments FOR SELECT USING (true);
+   * CREATE POLICY "Anyone can insert" ON daily_assignments FOR INSERT WITH CHECK (true);
+   * CREATE POLICY "Anyone can update" ON daily_assignments FOR UPDATE USING (true);
+   */
+  (function() {
+    const SB_URL = 'https://kclmbxgqiomaffczqgwx.supabase.co';
+    const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
+    const HEADERS = {
+      'apikey': SB_KEY,
+      'Authorization': 'Bearer ' + SB_KEY,
+      'Content-Type': 'application/json',
+    };
 
-  function saveWeeks(done) {
-    localStorage.setItem('weeksDone', JSON.stringify(done));
-  }
+    const START = new Date('2026-03-25T00:00:00');
+    const TOTAL = 60;
+    const DAY_NAMES = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+    const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-  function updateProgress(done) {
-    const n = done.length;
-    document.getElementById('weeksDoneCount').textContent = n;
-    document.getElementById('progressFill').style.width = (n / 8 * 100) + '%';
-  }
+    function dayDate(n) { // n = 1-based
+      const d = new Date(START);
+      d.setDate(d.getDate() + (n - 1));
+      return d;
+    }
+    function fmtDate(d) {
+      return DAY_NAMES[d.getDay()] + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
+    }
+    function todayNum() {
+      const now = new Date();
+      const diff = Math.floor((now - START) / 86400000) + 1;
+      return diff;
+    }
 
-  function initLessons() {
-    const done = loadWeeks();
-    done.forEach(w => {
-      const acc = document.querySelector(`.week-accordion[data-week="${w}"]`);
-      if (acc) { acc.classList.add('done'); acc.querySelector('input').checked = true; }
-    });
-    updateProgress(done);
+    // localStorage for completed checkboxes
+    function loadDone() {
+      try { return JSON.parse(localStorage.getItem('daDone')) || []; }
+      catch { return []; }
+    }
+    function saveDone(arr) { localStorage.setItem('daDone', JSON.stringify(arr)); }
 
-    const list = document.getElementById('weekList');
+    // DB rows keyed by day_number
+    let dbRows = {};
 
-    // Accordion toggle — click anywhere on header except the checkbox
-    list.addEventListener('click', e => {
-      if (e.target.type === 'checkbox') return;
-      const header = e.target.closest('.week-header');
-      if (!header) return;
-      header.closest('.week-accordion').classList.toggle('open');
-    });
+    function updateHeader() {
+      const done = loadDone();
+      document.getElementById('daDoneCount').textContent = done.length;
+      document.getElementById('daBarFill').style.width = (done.length / TOTAL * 100) + '%';
+    }
 
-    // Checkbox — mark week complete
-    list.addEventListener('change', e => {
-      if (e.target.type !== 'checkbox') return;
-      const acc  = e.target.closest('.week-accordion');
-      const week = parseInt(acc.dataset.week, 10);
-      let done   = loadWeeks();
-      if (e.target.checked) {
-        acc.classList.add('done');
-        if (!done.includes(week)) done.push(week);
-      } else {
-        acc.classList.remove('done');
-        done = done.filter(w => w !== week);
+    function renderRows() {
+      const list = document.getElementById('daList');
+      if (!list) return;
+      const done = loadDone();
+      const today = todayNum();
+
+      list.innerHTML = '';
+      for (let n = 1; n <= TOTAL; n++) {
+        const d      = dayDate(n);
+        const row    = dbRows[n] || {};
+        const isDone = done.includes(n);
+        const isToday = n === today;
+        const isPast  = n < today && !isDone;
+
+        const div = document.createElement('div');
+        div.className = 'da-row' +
+          (isToday ? ' da-today' : '') +
+          (isDone  ? ' da-done'  : '') +
+          (isPast  ? ' da-past'  : '');
+        div.dataset.day = n;
+
+        const assignment = row.assignment || '';
+        const notes      = row.coach_notes || '';
+
+        div.innerHTML = `
+          <div class="da-main">
+            <input type="checkbox" class="da-check" data-day="${n}" ${isDone ? 'checked' : ''}>
+            <span class="da-badge">Day ${n}</span>
+            ${isToday ? '<span class="da-today-pill">Today</span>' : ''}
+            <span class="da-date">${fmtDate(d)}</span>
+            <span class="da-assignment ${assignment ? '' : 'da-empty'}">${assignment || 'No assignment yet'}</span>
+            <button class="da-toggle" data-day="${n}">${notes ? '📝 Notes' : '+ Coach Note'}</button>
+          </div>
+          <div class="da-notes-area" id="da-notes-${n}">
+            <div class="da-notes-inner">
+              ${notes ? `<div class="da-saved-note" id="da-saved-${n}">${esc(notes)}</div>` : `<div class="da-saved-note" id="da-saved-${n}" style="display:none"></div>`}
+              <textarea class="da-note-input" id="da-input-${n}" placeholder="Add coaching notes for this day…">${esc(notes)}</textarea>
+              <button class="da-note-save" data-day="${n}">Save Note</button>
+            </div>
+          </div>`;
+        list.appendChild(div);
       }
-      saveWeeks(done);
-      updateProgress(done);
+    }
+
+    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    async function fetchRows() {
+      try {
+        const r = await fetch(SB_URL + '/rest/v1/daily_assignments?select=*', { headers: HEADERS });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const rows = await r.json();
+        dbRows = {};
+        rows.forEach(row => { dbRows[row.day_number] = row; });
+        // Sync completed from DB too
+        const dbDone = rows.filter(r => r.completed).map(r => r.day_number);
+        const localDone = loadDone();
+        const merged = [...new Set([...localDone, ...dbDone])];
+        saveDone(merged);
+      } catch(e) { console.error('DA fetch:', e); }
+      renderRows();
+      updateHeader();
+    }
+
+    async function saveNote(dayNum) {
+      const input = document.getElementById('da-input-' + dayNum);
+      const btn   = document.querySelector(`.da-note-save[data-day="${dayNum}"]`);
+      const text  = input ? input.value.trim() : '';
+      if (btn) btn.disabled = true;
+      try {
+        const r = await fetch(SB_URL + '/rest/v1/daily_assignments', {
+          method: 'POST',
+          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates,return=representation' },
+          body: JSON.stringify({ day_number: dayNum, coach_notes: text, updated_at: new Date().toISOString() }),
+        });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const saved = document.getElementById('da-saved-' + dayNum);
+        if (saved) {
+          saved.textContent = text;
+          saved.style.display = text ? '' : 'none';
+        }
+        const toggle = document.querySelector(`.da-toggle[data-day="${dayNum}"]`);
+        if (toggle) toggle.textContent = text ? '📝 Notes' : '+ Coach Note';
+        dbRows[dayNum] = { ...(dbRows[dayNum] || {}), coach_notes: text };
+      } catch(e) {
+        alert('Failed to save: ' + e.message);
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function toggleComplete(dayNum, checked) {
+      let done = loadDone();
+      if (checked) { if (!done.includes(dayNum)) done.push(dayNum); }
+      else { done = done.filter(d => d !== dayNum); }
+      saveDone(done);
+      updateHeader();
+      // Update row class immediately
+      const row = document.querySelector(`.da-row[data-day="${dayNum}"]`);
+      if (row) { row.classList.toggle('da-done', checked); }
+      // Persist to Supabase
+      try {
+        await fetch(SB_URL + '/rest/v1/daily_assignments', {
+          method: 'POST',
+          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ day_number: dayNum, completed: checked, updated_at: new Date().toISOString() }),
+        });
+      } catch(e) { console.error('DA complete sync:', e); }
+    }
+
+    // Event delegation on the list
+    function bindEvents() {
+      const list = document.getElementById('daList');
+      if (!list) return;
+
+      list.addEventListener('change', e => {
+        if (!e.target.classList.contains('da-check')) return;
+        toggleComplete(+e.target.dataset.day, e.target.checked);
+      });
+
+      list.addEventListener('click', e => {
+        // Toggle notes panel
+        const tog = e.target.closest('.da-toggle');
+        if (tog) {
+          const n   = tog.dataset.day;
+          const area = document.getElementById('da-notes-' + n);
+          if (area) {
+            area.classList.toggle('open');
+            if (area.classList.contains('open')) {
+              const input = document.getElementById('da-input-' + n);
+              if (input) setTimeout(() => input.focus(), 60);
+            }
+          }
+          return;
+        }
+        // Save note button
+        const saveBtn = e.target.closest('.da-note-save');
+        if (saveBtn) {
+          saveNote(+saveBtn.dataset.day);
+          return;
+        }
+      });
+    }
+
+    // Lazy init
+    let daLoaded = false;
+    function initDA() {
+      if (daLoaded) return;
+      daLoaded = true;
+      renderRows();   // show immediately from localStorage
+      updateHeader();
+      bindEvents();
+      fetchRows();    // then hydrate from Supabase
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      if (btn.dataset.tab === 'lessons') btn.addEventListener('click', initDA);
     });
-  }
+    if (document.getElementById('panel-lessons').classList.contains('active')) initDA();
+  })();
+
+  function initLessons() {} // stub — replaced by Daily Assignments above
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
   const tabBtns   = document.querySelectorAll('.tab-btn');
