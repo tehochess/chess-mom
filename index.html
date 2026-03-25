@@ -2372,32 +2372,26 @@
 
     // ── Pre-analysis engine ───────────────────────────────────────────────────
     function preAnalyse(pgn, username, gameIndex) {
-      // Wrap everything so one bad game never crashes the whole run
       try {
         if (!pgn || typeof pgn !== 'string') throw new Error('empty PGN');
 
-        // Extract eval annotations: [%eval X.XX] or [%eval #N]
-        const evalMatches = pgn ? [...pgn.matchAll(/\[%eval\s+([^\]]+)\]/g)] : [];
+        // ── Extract evals ────────────────────────────────────────────────────
         const rawEvals = [];
-        for (const m of evalMatches) {
+        for (const m of pgn.matchAll(/\[%eval\s+([^\]]+)\]/g)) {
           const v = (m[1] || '').trim();
           if (!v) continue;
-          if (v.startsWith('#')) { rawEvals.push(v.startsWith('#-') ? -999 : 999); }
-          else {
-            const f = parseFloat(v);
-            if (!isNaN(f)) rawEvals.push(f);
-          }
+          if (v.startsWith('#')) rawEvals.push(v.startsWith('#-') ? -999 : 999);
+          else { const f = parseFloat(v); if (!isNaN(f)) rawEvals.push(f); }
         }
 
-        // Extract clock annotations: [%clk H:MM:SS]
-        const clockMatches = pgn ? [...pgn.matchAll(/\[%clk\s+([^\]]+)\]/g)] : [];
+        // ── Extract clocks ───────────────────────────────────────────────────
         const clocks = [];
-        for (const m of clockMatches) {
+        for (const m of pgn.matchAll(/\[%clk\s+([^\]]+)\]/g)) {
           const parts = (m[1] || '').trim().split(':').map(Number);
           clocks.push(parts.length === 3 ? parts[0]*3600 + parts[1]*60 + parts[2] : 0);
         }
 
-        // Metadata
+        // ── Metadata ─────────────────────────────────────────────────────────
         const whiteMatch  = pgn.match(/\[White "([^"]+)"\]/i);
         const blackMatch  = pgn.match(/\[Black "([^"]+)"\]/i);
         const whiteName   = whiteMatch ? whiteMatch[1] : '';
@@ -2409,193 +2403,407 @@
         const opening      = openingMatch ? openingMatch[1] : 'Unknown opening';
         const resultMatch  = pgn.match(/\[Result "([^"]+)"\]/);
         const result       = resultMatch ? resultMatch[1] : '?';
+        const eloMatch     = playerColor === 'White' ? pgn.match(/\[WhiteElo "([^"]+)"\]/i)
+                           : playerColor === 'Black' ? pgn.match(/\[BlackElo "([^"]+)"\]/i) : null;
+        const playerElo    = eloMatch ? eloMatch[1] : null;
 
-        console.log(`[Analyzer] Game ${gameIndex+1}: found ${rawEvals.length} evals, ${clocks.length} clocks | ${playerColor} | ${opening} | ${result}`);
+        console.log(`[Analyzer] Game ${gameIndex+1}: ${rawEvals.length} evals, ${clocks.length} clocks | ${playerColor} | ${opening} | ${result}`);
 
-        // Not enough eval data — return graceful stub
         if (rawEvals.length < 4) {
           return {
-            gameIndex, playerColor, opening, result,
-            evalCount: rawEvals.length, criticalMoments: [],
-            phases: null, timePressureCorrelation: false,
-            openingDrop: 0, midDrop: 0, endDrop: 0,
-            summary: `Game ${gameIndex+1}: No engine data available (${opening}, ${playerColor}, ${result})`,
+            gameIndex, playerColor, opening, result, playerElo,
+            evalCount: 0, noData: true, criticalMoments: [],
+            summary: `Game ${gameIndex+1}: No engine data (${opening}, ${playerColor}, ${result})`,
           };
         }
 
-        // Normalise to player's perspective (+ve = good for player)
+        // Normalise to player perspective (+ve = good for player)
         const playerEvals = rawEvals.map(e => playerColor === 'White' ? e : -e);
+        const n = playerEvals.length;
+        const safe = (v) => v != null && !isNaN(v) && Math.abs(v) < 900;
 
-        // Critical moments: player's eval drops > 0.8 in one half-move
+        // ── A) TIME ANALYSIS ─────────────────────────────────────────────────
+        // Player's clock indices: White = even (0,2,4…), Black = odd (1,3,5…)
+        const playerClockIdx = [];
+        for (let i = 0; i < clocks.length; i++) {
+          if (playerColor === 'White' && i % 2 === 0) playerClockIdx.push(i);
+          else if (playerColor === 'Black' && i % 2 === 1) playerClockIdx.push(i);
+        }
+
+        const timesPerMove = playerClockIdx.map((idx, k) => {
+          if (k === 0) return null;
+          const spent = clocks[playerClockIdx[k-1]] - clocks[idx];
+          return spent >= 0 ? spent : null;
+        });
+
+        const validTimes = timesPerMove.filter(t => t !== null);
+        const avgTimeOverall = validTimes.length ? Math.round(validTimes.reduce((a,b)=>a+b,0)/validTimes.length) : 0;
+
+        // Critical position = |eval| > 1.0 OR eval changed >0.5 in prior half-move
+        const isCritical = (hm) => {
+          const ev = playerEvals[hm];
+          if (!safe(ev)) return false;
+          if (Math.abs(ev) > 1.0) return true;
+          if (hm > 0 && safe(playerEvals[hm-1]) && Math.abs(ev - playerEvals[hm-1]) > 0.5) return true;
+          return false;
+        };
+
+        const critTimes = [], nonCritTimes = [], blunderTimes = [], goodMoveTimes = [];
+        let slowButBlundered = 0, fastAccurateStreaks = 0, instantInBadPos = 0;
+        let faStreak = 0;
+
+        for (let k = 0; k < playerClockIdx.length; k++) {
+          const idx = playerClockIdx[k];
+          const t   = timesPerMove[k];
+          if (t === null || idx === 0) { faStreak = 0; continue; }
+
+          const evBefore = playerEvals[idx-1], evAfter = playerEvals[idx];
+          const posBeforeIsCrit = isCritical(idx > 0 ? idx-1 : 0);
+
+          if (posBeforeIsCrit) critTimes.push(t);
+          else nonCritTimes.push(t);
+
+          if (safe(evBefore) && safe(evAfter)) {
+            const delta = evAfter - evBefore;
+            if (delta < -0.8) {
+              blunderTimes.push(t);
+              if (t >= 30) slowButBlundered++;
+            } else if (delta > -0.1) {
+              goodMoveTimes.push(t);
+            }
+            // Fast but accurate streak
+            if (t < 10 && Math.abs(delta) <= 0.3) { faStreak++; if (faStreak >= 3) fastAccurateStreaks++; }
+            else faStreak = 0;
+            // Instant in already-deteriorating position
+            if (t < 3 && idx >= 2 && safe(playerEvals[idx-2])) {
+              if ((playerEvals[idx-1] - playerEvals[idx-2]) < -0.4) instantInBadPos++;
+            }
+          } else faStreak = 0;
+        }
+
+        const mean = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : null;
+        const avgCritTime    = critTimes.length    ? Math.round(mean(critTimes))    : 0;
+        const avgNonCritTime = nonCritTimes.length ? Math.round(mean(nonCritTimes)) : 0;
+        const avgBlunderTime   = blunderTimes.length  ? Math.round(mean(blunderTimes))  : null;
+        const avgGoodMoveTime  = goodMoveTimes.length  ? Math.round(mean(goodMoveTimes)) : null;
+
+        // ── B) OPENING PREP DEPTH ─────────────────────────────────────────────
+        let bookDepth = Math.ceil(n / 2), deviationHalfMove = -1;
+        for (let i = 1; i < n; i++) {
+          if (safe(playerEvals[i]) && safe(playerEvals[i-1]) && Math.abs(playerEvals[i] - playerEvals[i-1]) > 0.3) {
+            deviationHalfMove = i; bookDepth = Math.ceil(i / 2); break;
+          }
+        }
+        const openingEndHM = Math.min(deviationHalfMove > 0 ? deviationHalfMove : 30, 30);
+        const evalAtOpeningEnd = safe(playerEvals[openingEndHM]) ? parseFloat(playerEvals[openingEndHM].toFixed(2)) : 0;
+
+        // ── C) EVAL VOLATILITY ────────────────────────────────────────────────
+        const validEvals = playerEvals.filter(safe);
+        const evalMean  = mean(validEvals) || 0;
+        const evalStdDev = parseFloat(Math.sqrt(validEvals.reduce((a,v)=>a+(v-evalMean)**2,0)/(validEvals.length||1)).toFixed(2));
+        let sharpestSwing = 0, sharpestHalfMove = -1;
+        for (let i = 1; i < n; i++) {
+          if (!safe(playerEvals[i-1]) || !safe(playerEvals[i])) continue;
+          const sw = Math.abs(playerEvals[i] - playerEvals[i-1]);
+          if (sw > sharpestSwing) { sharpestSwing = sw; sharpestHalfMove = i; }
+        }
+        sharpestSwing = parseFloat(sharpestSwing.toFixed(2));
+        const gameType = evalStdDev < 0.4 ? 'grinding' : evalStdDev > 1.5 ? 'tactical' : 'balanced';
+        const firstAvg = mean(playerEvals.slice(0, Math.floor(n/3)).filter(safe)) || 0;
+        const lastAvg  = mean(playerEvals.slice(Math.floor(2*n/3)).filter(safe))  || 0;
+        const trajectory = firstAvg > 0.3 && lastAvg < -0.3    ? 'collapse'
+                         : firstAvg < -0.5 && lastAvg > firstAvg + 0.5 ? 'recovery'
+                         : evalStdDev > 1.0                     ? 'fluctuating'
+                         : lastAvg < firstAvg - 0.3             ? 'gradual_decline'
+                         : 'stable';
+
+        // ── D) CRITICAL POSITION HANDLING ─────────────────────────────────────
+        let totalCritPos = 0, critHandledCorrectly = 0;
+        for (let i = 1; i < n; i++) {
+          if (isCritical(i-1)) {
+            totalCritPos++;
+            if (safe(playerEvals[i-1]) && safe(playerEvals[i]) && playerEvals[i] >= playerEvals[i-1] - 0.2)
+              critHandledCorrectly++;
+          }
+        }
+
+        // ── E) PHASE TRANSITION ───────────────────────────────────────────────
+        const midStartHM = openingEndHM;
+        const endStartHM = Math.min(70, n - 1);
+        const phaseAvg = (sl) => { const v = sl.filter(safe); return v.length ? parseFloat((v.reduce((a,b)=>a+b,0)/v.length).toFixed(2)) : null; };
+        const openAvg = phaseAvg(playerEvals.slice(0, midStartHM));
+        const midAvg  = phaseAvg(playerEvals.slice(midStartHM, endStartHM));
+        const endAvg  = phaseAvg(playerEvals.slice(endStartHM));
+
+        const phaseAvgs = [['opening',openAvg],['middlegame',midAvg],['endgame',endAvg]].filter(([,v])=>v!=null).sort((a,b)=>b[1]-a[1]);
+        const bestPhase  = phaseAvgs[0]?.[0]  || 'unknown';
+        const worstPhase = phaseAvgs[phaseAvgs.length-1]?.[0] || 'unknown';
+
+        // ── F) MICRO-PATTERNS ─────────────────────────────────────────────────
+        let consecDropSequences = 0, dropRun = 0;
+        for (let i = 1; i < n; i++) {
+          if (!safe(playerEvals[i-1]) || !safe(playerEvals[i])) { dropRun = 0; continue; }
+          if (playerEvals[i] < playerEvals[i-1] - 0.2) { dropRun++; if (dropRun >= 2) consecDropSequences++; }
+          else dropRun = 0;
+        }
+
+        let bigDrops = 0, recoveries = 0;
+        for (let i = 1; i < n; i++) {
+          const e1 = playerEvals[i-1], e2 = playerEvals[i];
+          if (!safe(e1) || !safe(e2) || e2 - e1 >= -1.0) continue;
+          bigDrops++;
+          for (let j = i+1; j < Math.min(i+10, n); j++) {
+            if (safe(playerEvals[j]) && playerEvals[j] > e2 + 0.5) { recoveries++; break; }
+          }
+        }
+        const recoveryRate = bigDrops > 0 ? Math.round(recoveries / bigDrops * 100) : null;
+
+        const blundersByPhase = { opening: 0, middlegame: 0, endgame: 0 };
+        for (let k = 0; k < playerClockIdx.length; k++) {
+          const idx = playerClockIdx[k];
+          if (idx === 0 || !safe(playerEvals[idx-1]) || !safe(playerEvals[idx])) continue;
+          if (playerEvals[idx] - playerEvals[idx-1] < -0.8) {
+            if (idx < midStartHM) blundersByPhase.opening++;
+            else if (idx < endStartHM) blundersByPhase.middlegame++;
+            else blundersByPhase.endgame++;
+          }
+        }
+        const mistakeCluster = Object.entries(blundersByPhase).sort((a,b)=>b[1]-a[1])[0][0];
+
+        // ── Critical moments list ─────────────────────────────────────────────
         const criticalMoments = [];
-        for (let i = 1; i < playerEvals.length; i++) {
-          const before = playerEvals[i - 1], after = playerEvals[i];
-          if (before == null || after == null) continue;
-          const delta = after - before;
-          if (delta < -0.8 && Math.abs(before) < 90 && Math.abs(after) < 90) {
-            const moveNum       = Math.ceil(i / 2);
-            const whoMoved      = i % 2 === 1 ? 'White' : 'Black';
-            const playerBlundered = whoMoved === playerColor;
-            const clockSecs     = (clocks.length > i && clocks[i] != null) ? clocks[i] : null;
-            criticalMoments.push({
-              moveNum, whoMoved, playerBlundered,
-              before: before.toFixed(2), after: after.toFixed(2),
-              delta: delta.toFixed(2), clockSecs,
-            });
-          }
+        for (let i = 1; i < n; i++) {
+          const e1 = playerEvals[i-1], e2 = playerEvals[i];
+          if (!safe(e1) || !safe(e2) || e2 - e1 >= -0.8) continue;
+          criticalMoments.push({
+            moveNum: Math.ceil(i/2),
+            whoMoved: i % 2 === 1 ? 'White' : 'Black',
+            playerBlundered: (i % 2 === 1 ? 'White' : 'Black') === playerColor,
+            before: e1.toFixed(2), after: e2.toFixed(2), delta: (e2-e1).toFixed(2),
+            clockSecs: clocks.length > i ? clocks[i] : null,
+          });
         }
 
-        // Phase stats helper — safely handles empty or null arrays
-        function phaseStats(evArr) {
-          if (!evArr || evArr.length === 0) return null;
-          const valid = evArr.filter(v => v != null && !isNaN(v));
-          if (!valid.length) return null;
-          const avg   = valid.reduce((s, v) => s + v, 0) / valid.length;
-          const trend = valid.length > 1 ? valid[valid.length-1] - valid[0] : 0;
-          return {
-            avg:   avg.toFixed(2),
-            trend: trend > 0.3 ? 'improving' : trend < -0.3 ? 'declining' : 'stable',
-            count: valid.length,
-          };
-        }
-
-        const opening_ev = playerEvals.slice(0, Math.min(30, playerEvals.length));
-        const mid_ev     = playerEvals.slice(30, Math.min(70, playerEvals.length));
-        const end_ev     = playerEvals.slice(70);
-        const phases = {
-          opening:    phaseStats(opening_ev),
-          middlegame: phaseStats(mid_ev),
-          endgame:    phaseStats(end_ev),   // phaseStats handles empty array safely
+        return {
+          gameIndex, playerColor, opening, result, playerElo, evalCount: n, noData: false,
+          avgTimeOverall, avgCritTime, avgNonCritTime, avgBlunderTime, avgGoodMoveTime,
+          slowButBlundered, fastAccurateStreaks, instantInBadPos,
+          bookDepth, evalAtOpeningEnd,
+          evalStdDev, sharpestSwing, sharpestHalfMove, gameType, trajectory,
+          totalCritPos, critHandledCorrectly,
+          openAvg, midAvg, endAvg, bestPhase, worstPhase,
+          consecDropSequences, recoveryRate, blundersByPhase, mistakeCluster,
+          criticalMoments,
         };
-
-        // Mistake clustering
-        const phaseDrop = (evArr) => {
-          if (!evArr || evArr.length < 2) return 0;
-          let total = 0;
-          for (let i = 1; i < evArr.length; i++) {
-            const d = evArr[i] - evArr[i-1];
-            if (!isNaN(d) && d < -0.5) total += Math.abs(d);
-          }
-          return total;
-        };
-        const openingDrop = phaseDrop(opening_ev);
-        const midDrop     = phaseDrop(mid_ev);
-        const endDrop     = phaseDrop(end_ev);
-        const worstPhase  = openingDrop >= midDrop && openingDrop >= endDrop ? 'opening'
-                          : midDrop >= endDrop ? 'middlegame' : 'endgame';
-
-        // Time pressure correlation
-        const lowClockDrops = criticalMoments.filter(m => m.playerBlundered && m.clockSecs !== null && m.clockSecs < 60).length;
-        const timePressureCorrelation = criticalMoments.length > 0 && lowClockDrops / criticalMoments.length >= 0.4;
-
-        // Build summary text
-        const phaseStr = (label, p) => p ? `${label}: avg ${p.avg > 0 ? '+' : ''}${p.avg} (${p.trend})` : '';
-        const phaseLine = [phaseStr('Opening', phases.opening), phaseStr('Middlegame', phases.middlegame), phaseStr('Endgame', phases.endgame)].filter(Boolean).join(' | ');
-        const critStr   = criticalMoments.slice(0, 5).map(m =>
-          `  move ${m.moveNum}: ${m.before > 0 ? '+' : ''}${m.before} → ${m.after > 0 ? '+' : ''}${m.after} (${m.delta}${m.clockSecs !== null ? `, ${m.clockSecs}s left` : ''})`
-        ).join('\n');
-
-        const summary = [
-          `Game ${gameIndex+1}: ${opening} | ${playerColor} | ${result} | ${rawEvals.length} evals`,
-          phaseLine ? `Phases (player persp.): ${phaseLine}` : '',
-          `Most mistakes in: ${worstPhase}`,
-          timePressureCorrelation ? `⚠ TIME PRESSURE: ${lowClockDrops}/${criticalMoments.length} blunders with <60s remaining` : '',
-          criticalMoments.length ? `Critical moments:\n${critStr}` : 'No major eval drops detected.',
-        ].filter(Boolean).join('\n');
-
-        return { gameIndex, playerColor, opening, result, evalCount: rawEvals.length, criticalMoments, phases, worstPhase, timePressureCorrelation, openingDrop, midDrop, endDrop, summary };
 
       } catch (err) {
         console.error(`[Analyzer] preAnalyse failed for game ${gameIndex+1}:`, err);
         return {
-          gameIndex, playerColor: 'Unknown', opening: 'Unknown', result: '?',
-          evalCount: 0, criticalMoments: [], phases: null,
-          timePressureCorrelation: false, openingDrop: 0, midDrop: 0, endDrop: 0,
+          gameIndex, playerColor: 'Unknown', opening: 'Unknown', result: '?', playerElo: null,
+          evalCount: 0, noData: true, criticalMoments: [],
           summary: `Game ${gameIndex+1}: Pre-analysis error — ${err.message}`,
         };
       }
     }
 
     function buildPreAnalysisSummary(analyses, username) {
-      const totalEvalShifts = analyses.reduce((s, a) => s + a.criticalMoments.length, 0);
-      const colors = analyses.map(a => a.playerColor);
-      const whiteCount = colors.filter(c => c === 'White').length;
-      const blackCount = colors.filter(c => c === 'Black').length;
-      const colorBreakdown = [whiteCount && `${whiteCount}x White`, blackCount && `${blackCount}x Black`].filter(Boolean).join(', ');
+      const valid = analyses.filter(a => !a.noData && a.evalCount > 0);
+      const totalEvalShifts = analyses.reduce((s,a) => s + (a.criticalMoments?.length || 0), 0);
+      const wc = analyses.filter(a => a.playerColor === 'White').length;
+      const bc = analyses.filter(a => a.playerColor === 'Black').length;
 
-      // White vs Black performance
-      const byColor = { White: [], Black: [] };
-      analyses.forEach(a => {
-        if (a.phases?.opening && byColor[a.playerColor]) byColor[a.playerColor].push(parseFloat(a.phases.opening.avg || 0));
+      const mean = (arr) => arr.length ? arr.reduce((a,b)=>a+b,0)/arr.length : 0;
+      const fmtN = (v, d=2) => v != null ? (parseFloat(v) >= 0 ? '+' : '') + parseFloat(v).toFixed(d) : 'N/A';
+
+      // Opening
+      const bookDepths = valid.map(a => a.bookDepth).filter(x => x > 0);
+      const avgBookDepth = bookDepths.length ? Math.round(mean(bookDepths)) : 'N/A';
+      const earliestDev  = valid.reduce((best, a) => (!best || a.bookDepth < best.bookDepth) ? a : best, null);
+
+      // Time
+      const overallAvgTime = valid.map(a=>a.avgTimeOverall).filter(x=>x>0);
+      const avgTime    = overallAvgTime.length ? Math.round(mean(overallAvgTime)) : 'N/A';
+      const critTs     = valid.map(a=>a.avgCritTime).filter(x=>x>0);
+      const nonCritTs  = valid.map(a=>a.avgNonCritTime).filter(x=>x>0);
+      const avgCrit    = critTs.length    ? Math.round(mean(critTs))    : 'N/A';
+      const avgNonCrit = nonCritTs.length ? Math.round(mean(nonCritTs)) : 'N/A';
+
+      const avgBT = mean(valid.filter(a=>a.avgBlunderTime!=null).map(a=>a.avgBlunderTime));
+      const avgGT = mean(valid.filter(a=>a.avgGoodMoveTime!=null).map(a=>a.avgGoodMoveTime));
+      const hasBoth = valid.some(a=>a.avgBlunderTime!=null) && valid.some(a=>a.avgGoodMoveTime!=null);
+      const timeAccCorr = !hasBoth ? 'insufficient data'
+        : avgBT < avgGT - 5  ? `negative — avg blunder time ${Math.round(avgBT)}s vs good move ${Math.round(avgGT)}s (faster moves worse)`
+        : avgBT > avgGT + 5  ? `positive — avg blunder time ${Math.round(avgBT)}s vs good move ${Math.round(avgGT)}s (slower moves worse — calculation breakdown)`
+        : `neutral — blunder ${Math.round(avgBT)}s vs good ${Math.round(avgGT)}s`;
+
+      const totalSlowBlundered = valid.reduce((s,a)=>s+(a.slowButBlundered||0),0);
+      const totalFastAccurate  = valid.reduce((s,a)=>s+(a.fastAccurateStreaks||0),0);
+      const totalInstantBad    = valid.reduce((s,a)=>s+(a.instantInBadPos||0),0);
+
+      // Volatility
+      const volScores   = valid.map(a=>`G${a.gameIndex+1}: ${a.evalStdDev}`).join(', ');
+      const sharpest    = valid.reduce((b,a)=>(!b||a.sharpestSwing>b.sharpestSwing)?a:b, null);
+      const gameClassif = valid.map(a=>`G${a.gameIndex+1}: ${a.gameType}`).join(', ');
+
+      // Critical handling
+      const totalCrit   = valid.reduce((s,a)=>s+(a.totalCritPos||0),0);
+      const totalCritOK = valid.reduce((s,a)=>s+(a.critHandledCorrectly||0),0);
+      const critPct     = totalCrit > 0 ? Math.round(totalCritOK/totalCrit*100) : 'N/A';
+      const avgCritN    = critTs.length ? mean(critTs) : null;
+      const avgNCritN   = nonCritTs.length ? mean(nonCritTs) : null;
+      let timeIncrease  = 'N/A';
+      if (avgCritN != null && avgNCritN != null) {
+        const diff = avgCritN - avgNCritN;
+        timeIncrease = diff > 5  ? `+${Math.round(diff)}s in critical (player recognizes danger)`
+                     : diff < -5 ? `${Math.round(diff)}s — moves FASTER in critical positions (danger sign)`
+                     : 'flat — no significant difference';
+      }
+
+      // Phase performance
+      const openAvgs = valid.map(a=>a.openAvg).filter(x=>x!=null);
+      const midAvgs  = valid.map(a=>a.midAvg).filter(x=>x!=null);
+      const endAvgs  = valid.map(a=>a.endAvg).filter(x=>x!=null);
+      const avgOpenP = openAvgs.length ? mean(openAvgs).toFixed(2) : null;
+      const avgMidP  = midAvgs.length  ? mean(midAvgs).toFixed(2)  : null;
+      const avgEndP  = endAvgs.length  ? mean(endAvgs).toFixed(2)  : null;
+
+      const phaseTally = {}, phasePenalty = {};
+      valid.forEach(a => {
+        phaseTally[a.bestPhase]   = (phaseTally[a.bestPhase]   || 0) + 1;
+        phasePenalty[a.worstPhase]= (phasePenalty[a.worstPhase]|| 0) + 1;
       });
-      const colorPerf = Object.entries(byColor).filter(([, v]) => v.length).map(([c, v]) => {
-        const avg = (v.reduce((s, x) => s + x, 0) / v.length).toFixed(2);
-        return `${c}: avg opening eval ${avg > 0 ? '+' : ''}${avg}`;
-      }).join(' | ');
+      const overallBest  = Object.entries(phaseTally).sort((a,b)=>b[1]-a[1])[0]?.[0]  || 'unknown';
+      const overallWorst = Object.entries(phasePenalty).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'unknown';
 
-      // Phase mistake clustering across all games
-      const phaseTotals = { opening: 0, middlegame: 0, endgame: 0 };
-      analyses.forEach(a => { if (a.openingDrop !== undefined) { phaseTotals.opening += a.openingDrop; phaseTotals.middlegame += a.midDrop; phaseTotals.endgame += a.endDrop; } });
-      const worstPhaseOverall = Object.entries(phaseTotals).sort((a, b) => b[1] - a[1])[0][0];
+      // Mistake patterns
+      const totalConsec  = valid.reduce((s,a)=>s+(a.consecDropSequences||0),0);
+      const recRates     = valid.filter(a=>a.recoveryRate!=null).map(a=>a.recoveryRate);
+      const avgRecovery  = recRates.length ? Math.round(mean(recRates))+'%' : 'N/A';
+      const clusterCount = {};
+      valid.forEach(a => { clusterCount[a.mistakeCluster] = (clusterCount[a.mistakeCluster]||0)+1; });
+      const overallCluster = Object.entries(clusterCount).sort((a,b)=>b[1]-a[1])[0]?.[0] || 'unknown';
 
-      const timePressureGames = analyses.filter(a => a.timePressureCorrelation).length;
+      // Color performance
+      const wG = valid.filter(a=>a.playerColor==='White');
+      const bG = valid.filter(a=>a.playerColor==='Black');
+      const wAvg = wG.length ? mean(wG.map(a=>a.openAvg||0)).toFixed(2) : null;
+      const bAvg = bG.length ? mean(bG.map(a=>a.openAvg||0)).toFixed(2) : null;
+      const colorPerfLine = [
+        wAvg != null ? `White avg opening eval: ${fmtN(wAvg,2)}` : '',
+        bAvg != null ? `Black avg opening eval: ${fmtN(bAvg,2)}` : '',
+      ].filter(Boolean).join(' | ');
 
-      const lines = [
-        `PRE-ANALYSIS SUMMARY:`,
-        `Player: ${username} | ${analyses.length} games analysed (${colorBreakdown})`,
-        `Total critical eval shifts detected: ${totalEvalShifts}`,
-        `Most mistakes by phase (across all games): ${worstPhaseOverall.toUpperCase()}`,
-        colorPerf ? `Color performance: ${colorPerf}` : '',
-        timePressureGames ? `Time pressure correlation: found in ${timePressureGames}/${analyses.length} games` : 'No consistent time pressure correlation.',
-        '',
-        ...analyses.map(a => a.summary),
-      ].filter(s => s !== undefined);
+      // Per-game details
+      const gameSummaries = analyses.map(a => {
+        if (a.noData) return a.summary || `Game ${a.gameIndex+1}: No engine data`;
+        const crit = (a.criticalMoments||[]).slice(0,4).map(m=>
+          `    move ${m.moveNum}: ${m.before>=0?'+':''}${m.before} → ${m.after>=0?'+':''}${m.after} (Δ${m.delta}${m.clockSecs!=null?`, ${m.clockSecs}s on clock`:''})`
+        ).join('\n');
+        return [
+          `Game ${a.gameIndex+1}: ${a.opening} | ${a.playerColor} | ${a.result} | ${a.evalCount} evals | ${a.gameType} | trajectory: ${a.trajectory}`,
+          `  Opening depth: ${a.bookDepth} moves | Eval leaving opening: ${fmtN(a.evalAtOpeningEnd,2)}`,
+          `  Phase avgs — opening: ${fmtN(a.openAvg,2)} | mid: ${fmtN(a.midAvg,2)} | end: ${fmtN(a.endAvg,2)}`,
+          `  Volatility σ=${a.evalStdDev} | Sharpest swing: ${a.sharpestSwing} at half-move ${a.sharpestHalfMove}`,
+          `  Time: avg ${a.avgTimeOverall}s | crit ${a.avgCritTime}s | non-crit ${a.avgNonCritTime}s | slow blunders: ${a.slowButBlundered} | instant in bad pos: ${a.instantInBadPos}`,
+          `  Consecutive drop runs: ${a.consecDropSequences} | Recovery rate: ${a.recoveryRate!=null?a.recoveryRate+'%':'N/A'}`,
+          crit ? `  Critical moments:\n${crit}` : '  No major eval drops.',
+        ].join('\n');
+      }).join('\n\n');
 
-      return { text: lines.join('\n'), totalEvalShifts };
+      const text = `=== PRE-ANALYSIS REPORT ===
+Games analyzed: ${analyses.length} (${wc}x White, ${bc}x Black)
+Total eval shifts tracked: ${totalEvalShifts}
+
+OPENING PREPARATION:
+- Avg book depth across games: ${avgBookDepth} moves
+- Earliest deviation: ${earliestDev ? `Game ${earliestDev.gameIndex+1}, move ${earliestDev.bookDepth}` : 'N/A'}
+- Opening eval avg: ${fmtN(avgOpenP,2)}
+
+TIME PATTERNS:
+- Avg time per move overall: ${avgTime}s
+- Avg time in critical positions: ${avgCrit}s
+- Avg time in non-critical positions: ${avgNonCrit}s
+- Time-accuracy correlation: ${timeAccCorr}
+- "Slow but blundered" occurrences: ${totalSlowBlundered}
+- "Fast but accurate" streaks: ${totalFastAccurate}
+- Instant moves in deteriorating positions: ${totalInstantBad}
+
+EVAL VOLATILITY:
+- Game volatility scores (σ): [${volScores}]
+- Sharpest moment: ${sharpest ? `Game ${sharpest.gameIndex+1} move ${Math.ceil((sharpest.sharpestHalfMove||0)/2)} (swing: ${sharpest.sharpestSwing})` : 'N/A'}
+- Game classifications: [${gameClassif}]
+
+CRITICAL POSITION HANDLING:
+- Total critical positions: ${totalCrit}
+- Correctly handled: ${totalCritOK} (${critPct}%)
+- Time change in critical vs normal: ${timeIncrease}
+
+PHASE PERFORMANCE:
+- Avg eval leaving opening: ${fmtN(avgOpenP,2)}
+- Avg eval entering endgame: ${fmtN(avgEndP,2)}
+- Best phase: ${overallBest}
+- Worst phase: ${overallWorst}
+
+MISTAKE PATTERNS:
+- Consecutive drop sequences: ${totalConsec} occurrences
+- Recovery rate after big drops: ${avgRecovery}
+- Mistake clustering: ${overallCluster} game
+- ${colorPerfLine || 'Color breakdown: insufficient data'}
+
+=== END PRE-ANALYSIS ===
+
+PER-GAME DETAILS:
+${gameSummaries}`;
+
+      return { text, totalEvalShifts };
     }
 
     // ── Claude call ───────────────────────────────────────────────────────────
     async function callClaude(username, pgns, preAnalysis, colorBreakdown) {
-      const system = `You are an elite chess coach with access to engine evaluation data for each game. You are NOT guessing — you have objective data showing exactly where and how fast each position deteriorated.
+      const system = `You are analyzing a chess player at a serious competitive level. You have been given a structured pre-analysis report computed from engine evaluations and clock data for every move across multiple games. This is not guesswork — it is objective data.
 
-Your job: use this engine data to identify the 2-3 real patterns in how this player loses. Not style observations — specific, recurring, provable tendencies backed by the eval data provided.
+Your job is to produce an analysis so precise and insightful that a FIDE Master would find it genuinely useful. Not a summary. Not encouragement. Real pattern recognition that reveals how this player actually thinks and where their decision-making breaks down.
+
+Use the pre-analysis data as your primary evidence. Reference specific metrics. Draw non-obvious conclusions.
 
 Structure your report:
 
 PLAYER PROFILE
-One paragraph. Based on the opening choices, the phases where they perform best, and their eval trajectory — describe their actual chess identity. Be specific, not generic. Avoid 'aggressive vs positional' — that's meaningless. What do they actually do?
+Describe this player's chess identity based on what the data actually shows — their volatility preference, their preparation depth, their time usage patterns, their color tendencies. Be specific. 'Aggressive' means nothing. 'Consistently enters sharp middlegames as Black but plays solid structures as White, with opening prep that runs out around move 12' means something.
 
-THE PATTERNS (2-3 only)
-Each pattern must:
-- Have a specific name (not generic)
-- Reference the exact games and phases where the eval data confirms it
-- Explain the chess reason behind the eval drop — what type of mistake caused it (tactical oversight, structural concession, time pressure, transitional error)
-- Be a pattern confirmed across multiple games, not a one-off
+THE PATTERNS (2-3 only, data-backed)
+For each pattern:
+- Name it precisely
+- Show the data that proves it (reference specific metrics from the pre-analysis)
+- Explain the chess implication — what does this pattern cost them at the master level?
+- Reference specific game moments where it manifested
 
 THE ROOT CAUSE
-One paragraph. What is the single decision-making habit that connects these patterns? Reference the eval data — is it consistent across colors? Specific phases? Time pressure moments?
+What single decision-making tendency connects these patterns? Look at the time data, the critical position behavior, the recovery rates. What does this player's clock behavior reveal about how they process positions? Be a psychologist, not just a chess coach.
 
 ONE THING TO WORK ON
-One specific, actionable fix. Reference the data. No generic advice.
+The single highest-leverage fix, derived from the data. Should be specific enough that the player knows exactly what to do in their next training session.
 
 STRICT RULES:
-- Never say 'aggressive' or 'positional' as standalone descriptors — they mean nothing
-- Never describe an opening as 'reasonable' without referencing the eval — if the eval shows the player was already worse, say so
-- Every claim must be traceable to a specific game, phase, or eval shift
-- If the data doesn't support a pattern confidently, omit it
-- Maximum 500 words
-- Write like a coach who has actually studied the data, not one who skimmed the moves`;
+- Every claim must reference a specific metric or game from the pre-analysis data
+- No generic chess advice
+- No vague style descriptors
+- If the data shows a balanced game with few shifts, say so explicitly — not every game has dramatic patterns
+- Distinguish between time pressure mistakes and pure calculation errors — the clock data tells you which is which
+- If White and Black performance differ significantly, address it
+- Notice what the opening depth data reveals about preparation vs over-the-board thinking
+- Maximum 550 words — density over length`;
 
+      const ratingMatch = pgns[0] && pgns[0].match(/\[(?:White|Black)Elo "([^"]+)"\]/i);
       const pgnText = pgns.map((p, i) => `--- GAME ${i+1} ---\n${p}`).join('\n\n');
       const userMsg = `Player: ${username}
-Analyzing ${pgns.length} games as ${colorBreakdown}
+${ratingMatch ? `Rating: ${ratingMatch[1]}` : ''}
+${colorBreakdown}
 
 ${preAnalysis}
 
-FULL GAME DATA WITH ENGINE EVALS:
-${pgnText}
-
-Find the real patterns.`;
+GAME DATA:
+${pgnText}`;
 
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
