@@ -1002,6 +1002,11 @@
     }
     .ga-report-title { font-size: .88rem; font-weight: 700; color: var(--gold); letter-spacing: .08em; text-transform: uppercase; }
     .ga-report-date  { font-size: .78rem; color: rgba(250,246,238,.7); }
+    .ga-datapoints-badge {
+      font-size: .7rem; font-weight: 700; background: rgba(255,255,255,.15);
+      color: rgba(250,246,238,.9); border-radius: 999px; padding: 3px 10px;
+      letter-spacing: .04em; white-space: nowrap;
+    }
     .ga-section-card {
       background: var(--white); border: 1px solid var(--cream3);
       border-top: none; border-left: 4px solid var(--green-dark);
@@ -1629,9 +1634,15 @@
       <div id="gaResults" style="display:none;">
         <div class="ga-report-header">
           <span class="ga-report-title">Pattern Analysis Report</span>
-          <span class="ga-report-date" id="gaReportDate"></span>
+          <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+            <span class="ga-datapoints-badge" id="gaDatapointsBadge" style="display:none;"></span>
+            <span class="ga-report-date" id="gaReportDate"></span>
+          </div>
         </div>
         <div id="gaReportBody"></div>
+        <div style="text-align:center;padding:8px 0 4px;font-size:.72rem;color:var(--muted);letter-spacing:.03em;">
+          Powered by Lichess engine + Claude AI
+        </div>
         <button class="ga-reset-btn" id="gaResetBtn">Run New Analysis</button>
       </div>
 
@@ -2645,110 +2656,236 @@
 
   // ── Game Pattern Analyzer ───────────────────────────────────────────────────
   (function() {
-    // ⚠️ Paste your Anthropic API key here (same key used in scripts/weekly_email.py):
     const ANTHROPIC_KEY = ['sk-ant-api03-jMN13EZA-qJ18cN','yQe9k7kf9sZS30A3XxIEtE3VFbIk3rl4j-Jse0gbbP','kgKid9YM8--Oih1l3x_wrefwQCsyw-aiMZ2gAA'].join('');
 
     const LOADING_MSGS = [
-      'Fetching your games from Lichess…',
-      'Reading the moves…',
-      'Identifying patterns…',
-      'Writing your report…',
+      'Fetching games from Lichess (with engine evals)…',
+      'Reading the moves and evaluations…',
+      'Running pre-analysis — finding critical moments…',
+      'Detecting patterns across games…',
+      'Writing your coaching report…',
     ];
     const CACHE_KEY = 'gaLastReport';
 
+    // ── Helpers ───────────────────────────────────────────────────────────────
     function extractGameId(url) {
       try {
         const segments = new URL(url.trim()).pathname.split('/').filter(Boolean);
         return segments[segments.length - 1].slice(0, 8);
       } catch { return null; }
     }
-
     function showError(msg) {
       const el = document.getElementById('gaErrorBox');
       if (el) el.innerHTML = msg ? `<div class="ga-error-box">${msg}</div>` : '';
     }
-
-    function setView(view) { // 'input' | 'loading' | 'results'
+    function setView(view) {
       document.getElementById('gaInputSection').style.display  = view === 'input'   ? 'block' : 'none';
       document.getElementById('gaLoading').style.display       = view === 'loading' ? 'block' : 'none';
       document.getElementById('gaResults').style.display       = view === 'results' ? 'block' : 'none';
     }
-
     function setLoadingMsg(msg) {
       const el = document.getElementById('gaLoadingMsg');
       if (el) el.textContent = msg;
     }
 
-    function renderReport(text) {
-      const body = document.getElementById('gaReportBody');
-      if (!body) return;
-      body.innerHTML = '';
-      const SECTIONS = ['PLAYER PROFILE','THE PATTERNS','THE ROOT CAUSE','ONE THING TO WORK ON'];
-      let used = false;
-      for (let i = 0; i < SECTIONS.length; i++) {
-        const heading = SECTIONS[i];
-        const next = SECTIONS.slice(i + 1).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
-        const pattern = new RegExp(heading + '[:\\s]*\\n?([\\s\\S]*?)' + (next ? '(?=' + next + '|$)' : '$'), 'i');
-        const m = text.match(pattern);
-        if (!m) continue;
-        const card = document.createElement('div');
-        card.className = 'ga-section-card';
-        card.innerHTML = `<div class="ga-section-title">${heading}</div><div class="ga-section-body">${m[1].trim()}</div>`;
-        body.appendChild(card);
-        used = true;
-      }
-      if (!used) {
-        // No recognisable headings — display raw
-        const card = document.createElement('div');
-        card.className = 'ga-section-card';
-        card.innerHTML = `<div class="ga-section-body">${text}</div>`;
-        body.appendChild(card);
-      }
-    }
-
-    function showResults(report, dateStr) {
-      document.getElementById('gaReportDate').textContent = dateStr || '';
-      renderReport(report);
-      setView('results');
-    }
-
+    // ── Fetch PGN with evals, clocks, opening ────────────────────────────────
     async function fetchPgn(gameId, idx) {
-      const r = await fetch(`https://lichess.org/game/export/${gameId}?pgnInJson=false`, {
-        headers: { 'Accept': 'application/x-chess-pgn' },
-      });
+      const r = await fetch(
+        `https://lichess.org/game/export/${gameId}?pgnInJson=false&evals=true&clocks=true&opening=true`,
+        { headers: { 'Accept': 'application/x-chess-pgn' } }
+      );
       if (!r.ok) throw new Error(`Couldn't fetch game ${idx + 1} — check the URL`);
       return r.text();
     }
 
-    async function callClaude(username, pgns) {
-      const system = `You are a world-class chess coach analyzing a player's games. Your job is to identify the 2-3 most important patterns holding this player back — not a list of mistakes, not move-by-move commentary.
+    // ── Pre-analysis engine ───────────────────────────────────────────────────
+    function preAnalyse(pgn, username, gameIndex) {
+      // Extract eval annotations: [%eval X.XX] or [%eval #N]
+      const evalMatches = [...pgn.matchAll(/\[%eval\s+([^\]]+)\]/g)];
+      const evals = evalMatches.map(m => {
+        const v = m[1].trim();
+        if (v.startsWith('#')) return v.startsWith('#-') ? -999 : 999; // mate
+        return parseFloat(v);
+      });
 
-Think like a coach who just watched 5 games of film. What do you actually see? What are the recurring themes? What is this player's chess personality, and where does that personality create problems?
+      // Extract clock annotations: [%clk H:MM:SS]
+      const clockMatches = [...pgn.matchAll(/\[%clk\s+([^\]]+)\]/g)];
+      const clocks = clockMatches.map(m => {
+        const parts = m[1].trim().split(':').map(Number);
+        return parts.length === 3 ? parts[0]*3600 + parts[1]*60 + parts[2] : 0;
+      });
 
-Structure your report exactly like this:
+      // Determine which color username played
+      const whiteMatch = pgn.match(/\[White "([^"]+)"\]/i);
+      const blackMatch = pgn.match(/\[Black "([^"]+)"\]/i);
+      const whiteName  = whiteMatch ? whiteMatch[1] : '';
+      const blackName  = blackMatch ? blackMatch[1] : '';
+      const playerColor = whiteName.toLowerCase() === username.toLowerCase() ? 'White'
+                        : blackName.toLowerCase()  === username.toLowerCase() ? 'Black'
+                        : 'Unknown';
+
+      // Opening name
+      const openingMatch = pgn.match(/\[Opening "([^"]+)"\]/i);
+      const opening = openingMatch ? openingMatch[1] : 'Unknown opening';
+
+      // Result
+      const resultMatch = pgn.match(/\[Result "([^"]+)"\]/);
+      const result = resultMatch ? resultMatch[1] : '?';
+
+      if (evals.length < 4) {
+        return { gameIndex, playerColor, opening, result, evalCount: 0, criticalMoments: [], phases: null, timePressureCorrelation: false, summary: `Game ${gameIndex+1}: eval data unavailable (${opening}, ${playerColor}, ${result})` };
+      }
+
+      // Normalise evals to player's perspective (+ve = good for player)
+      const playerEvals = evals.map(e => playerColor === 'White' ? e : -e);
+
+      // Critical moments: eval swing > 0.8 in one move (from player's perspective dropping)
+      const criticalMoments = [];
+      for (let i = 1; i < playerEvals.length; i++) {
+        const before = playerEvals[i - 1], after = playerEvals[i];
+        const delta = after - before;
+        if (delta < -0.8 && Math.abs(before) < 90 && Math.abs(after) < 90) {
+          const moveNum = Math.ceil(i / 2);
+          const whoMoved = i % 2 === 1 ? 'White' : 'Black';
+          const playerBlundered = whoMoved === playerColor;
+          const clock = clocks[i] !== undefined ? clocks[i] : null;
+          criticalMoments.push({ moveNum, whoMoved, playerBlundered, before: before.toFixed(2), after: after.toFixed(2), delta: delta.toFixed(2), clockSecs: clock });
+        }
+      }
+
+      // Phase analysis (player-perspective evals)
+      function phaseStats(evArr) {
+        if (!evArr.length) return null;
+        const avg = evArr.reduce((s, v) => s + v, 0) / evArr.length;
+        const trend = evArr.length > 1 ? evArr[evArr.length-1] - evArr[0] : 0;
+        return { avg: avg.toFixed(2), trend: trend > 0.3 ? 'improving' : trend < -0.3 ? 'declining' : 'stable', count: evArr.length };
+      }
+      const opening_ev  = playerEvals.slice(0, Math.min(30, playerEvals.length));
+      const mid_ev      = playerEvals.slice(30, Math.min(70, playerEvals.length));
+      const end_ev      = playerEvals.slice(70);
+      const phases = {
+        opening:    phaseStats(opening_ev),
+        middlegame: phaseStats(mid_ev),
+        endgame:    phaseStats(end_ev.length ? end_ev : null),
+      };
+
+      // Mistake clustering: which phase has most/biggest drops?
+      const phaseDrop = (evArr) => {
+        let total = 0;
+        for (let i = 1; i < evArr.length; i++) {
+          const d = evArr[i] - evArr[i-1];
+          if (d < -0.5) total += Math.abs(d);
+        }
+        return total;
+      };
+      const openingDrop = phaseDrop(opening_ev);
+      const midDrop     = phaseDrop(mid_ev);
+      const endDrop     = phaseDrop(end_ev);
+      const worstPhase  = openingDrop >= midDrop && openingDrop >= endDrop ? 'opening'
+                        : midDrop >= endDrop ? 'middlegame' : 'endgame';
+
+      // Time pressure correlation: did drops cluster when clock < 60s?
+      const lowClockDrops = criticalMoments.filter(m => m.playerBlundered && m.clockSecs !== null && m.clockSecs < 60).length;
+      const timePressureCorrelation = criticalMoments.length > 0 && lowClockDrops / criticalMoments.length >= 0.4;
+
+      // Format summary
+      const phaseStr = (label, p) => p ? `${label}: avg eval ${p.avg > 0 ? '+' : ''}${p.avg} (${p.trend})` : '';
+      const critStr = criticalMoments.slice(0, 5).map(m =>
+        `  move ${m.moveNum}: eval ${m.before > 0 ? '+' : ''}${m.before} → ${m.after > 0 ? '+' : ''}${m.after} (${m.delta}${m.clockSecs !== null ? `, ${m.clockSecs}s on clock` : ''})`
+      ).join('\n');
+
+      const summary = [
+        `Game ${gameIndex+1}: ${opening} | ${playerColor} | Result: ${result}`,
+        `Phase breakdown (player perspective): ${phaseStr('Opening', phases.opening)} | ${phaseStr('Middlegame', phases.middlegame)}${phases.endgame ? ' | ' + phaseStr('Endgame', phases.endgame) : ''}`,
+        `Biggest eval drops in: ${worstPhase}`,
+        timePressureCorrelation ? `⚠ TIME PRESSURE CORRELATION: ${lowClockDrops}/${criticalMoments.length} blunders occurred with <60s remaining` : '',
+        criticalMoments.length ? `Critical moments (player lost eval):\n${critStr}` : 'No major eval drops detected.',
+      ].filter(Boolean).join('\n');
+
+      return { gameIndex, playerColor, opening, result, evalCount: evals.length, criticalMoments, phases, worstPhase, timePressureCorrelation, openingDrop, midDrop, endDrop, summary };
+    }
+
+    function buildPreAnalysisSummary(analyses, username) {
+      const totalEvalShifts = analyses.reduce((s, a) => s + a.criticalMoments.length, 0);
+      const colors = analyses.map(a => a.playerColor);
+      const whiteCount = colors.filter(c => c === 'White').length;
+      const blackCount = colors.filter(c => c === 'Black').length;
+      const colorBreakdown = [whiteCount && `${whiteCount}x White`, blackCount && `${blackCount}x Black`].filter(Boolean).join(', ');
+
+      // White vs Black performance
+      const byColor = { White: [], Black: [] };
+      analyses.forEach(a => {
+        if (a.phases?.opening && byColor[a.playerColor]) byColor[a.playerColor].push(parseFloat(a.phases.opening.avg || 0));
+      });
+      const colorPerf = Object.entries(byColor).filter(([, v]) => v.length).map(([c, v]) => {
+        const avg = (v.reduce((s, x) => s + x, 0) / v.length).toFixed(2);
+        return `${c}: avg opening eval ${avg > 0 ? '+' : ''}${avg}`;
+      }).join(' | ');
+
+      // Phase mistake clustering across all games
+      const phaseTotals = { opening: 0, middlegame: 0, endgame: 0 };
+      analyses.forEach(a => { if (a.openingDrop !== undefined) { phaseTotals.opening += a.openingDrop; phaseTotals.middlegame += a.midDrop; phaseTotals.endgame += a.endDrop; } });
+      const worstPhaseOverall = Object.entries(phaseTotals).sort((a, b) => b[1] - a[1])[0][0];
+
+      const timePressureGames = analyses.filter(a => a.timePressureCorrelation).length;
+
+      const lines = [
+        `PRE-ANALYSIS SUMMARY:`,
+        `Player: ${username} | ${analyses.length} games analysed (${colorBreakdown})`,
+        `Total critical eval shifts detected: ${totalEvalShifts}`,
+        `Most mistakes by phase (across all games): ${worstPhaseOverall.toUpperCase()}`,
+        colorPerf ? `Color performance: ${colorPerf}` : '',
+        timePressureGames ? `Time pressure correlation: found in ${timePressureGames}/${analyses.length} games` : 'No consistent time pressure correlation.',
+        '',
+        ...analyses.map(a => a.summary),
+      ].filter(s => s !== undefined);
+
+      return { text: lines.join('\n'), totalEvalShifts };
+    }
+
+    // ── Claude call ───────────────────────────────────────────────────────────
+    async function callClaude(username, pgns, preAnalysis, colorBreakdown) {
+      const system = `You are an elite chess coach with access to engine evaluation data for each game. You are NOT guessing — you have objective data showing exactly where and how fast each position deteriorated.
+
+Your job: use this engine data to identify the 2-3 real patterns in how this player loses. Not style observations — specific, recurring, provable tendencies backed by the eval data provided.
+
+Structure your report:
 
 PLAYER PROFILE
-One short paragraph describing how this player plays — their style, their tendencies, their strengths. Make it feel like you actually watched them play.
+One paragraph. Based on the opening choices, the phases where they perform best, and their eval trajectory — describe their actual chess identity. Be specific, not generic. Avoid 'aggressive vs positional' — that's meaningless. What do they actually do?
 
 THE PATTERNS (2-3 only)
-For each pattern: give it a name, describe it in plain language, and reference 1-2 specific moments from the games as evidence. Not a list of moves — a sentence about what happened and why it matters.
+Each pattern must:
+- Have a specific name (not generic)
+- Reference the exact games and phases where the eval data confirms it
+- Explain the chess reason behind the eval drop — what type of mistake caused it (tactical oversight, structural concession, time pressure, transitional error)
+- Be a pattern confirmed across multiple games, not a one-off
 
 THE ROOT CAUSE
-What is the single underlying habit or mindset behind most of these patterns? This is the real coaching insight.
+One paragraph. What is the single decision-making habit that connects these patterns? Reference the eval data — is it consistent across colors? Specific phases? Time pressure moments?
 
 ONE THING TO WORK ON
-The single most high-leverage thing to fix. Specific, actionable, honest.
+One specific, actionable fix. Reference the data. No generic advice.
 
-Rules:
-- No move-by-move breakdown
-- No bullet point lists of moves
-- No generic chess advice like 'control the center' or 'develop your pieces'
-- If you are not confident in a pattern, leave it out
-- Write like a real coach talking to a real player, not a chess engine
-- This player is a serious chess player. Use real chess insight, not beginner advice
-- Maximum 450 words total`;
+STRICT RULES:
+- Never say 'aggressive' or 'positional' as standalone descriptors — they mean nothing
+- Never describe an opening as 'reasonable' without referencing the eval — if the eval shows the player was already worse, say so
+- Every claim must be traceable to a specific game, phase, or eval shift
+- If the data doesn't support a pattern confidently, omit it
+- Maximum 500 words
+- Write like a coach who has actually studied the data, not one who skimmed the moves`;
 
-      const pgnText = pgns.map((p, i) => `Game ${i + 1}:\n${p}`).join('\n\n---\n\n');
+      const pgnText = pgns.map((p, i) => `--- GAME ${i+1} ---\n${p}`).join('\n\n');
+      const userMsg = `Player: ${username}
+Analyzing ${pgns.length} games as ${colorBreakdown}
+
+${preAnalysis}
+
+FULL GAME DATA WITH ENGINE EVALS:
+${pgnText}
+
+Find the real patterns.`;
+
       const r = await fetch('https://api.anthropic.com/v1/messages', {
         method: 'POST',
         headers: {
@@ -2759,9 +2896,9 @@ Rules:
         },
         body: JSON.stringify({
           model: 'claude-sonnet-4-20250514',
-          max_tokens: 1024,
+          max_tokens: 1200,
           system,
-          messages: [{ role: 'user', content: `Analyze these games for ${username}. Identify the real patterns across all games. For each game note which color ${username} played.\n\n${pgnText}` }],
+          messages: [{ role: 'user', content: userMsg }],
         }),
       });
       if (!r.ok) {
@@ -2773,14 +2910,52 @@ Rules:
       return data.content[0].text;
     }
 
+    // ── Render ────────────────────────────────────────────────────────────────
+    function renderReport(text) {
+      const body = document.getElementById('gaReportBody');
+      if (!body) return;
+      body.innerHTML = '';
+      const SECTIONS = ['PLAYER PROFILE','THE PATTERNS','THE ROOT CAUSE','ONE THING TO WORK ON'];
+      let used = false;
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const heading = SECTIONS[i];
+        const next = SECTIONS.slice(i + 1).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+        const pat = new RegExp(heading + '[:\\s]*\\n?([\\s\\S]*?)' + (next ? '(?=' + next + '|$)' : '$'), 'i');
+        const m = text.match(pat);
+        if (!m) continue;
+        const card = document.createElement('div');
+        card.className = 'ga-section-card';
+        card.innerHTML = `<div class="ga-section-title">${heading}</div><div class="ga-section-body">${m[1].trim()}</div>`;
+        body.appendChild(card);
+        used = true;
+      }
+      if (!used) {
+        const card = document.createElement('div');
+        card.className = 'ga-section-card';
+        card.innerHTML = `<div class="ga-section-body">${text}</div>`;
+        body.appendChild(card);
+      }
+    }
+
+    function showResults(report, dateStr, totalEvalShifts) {
+      document.getElementById('gaReportDate').textContent = dateStr || '';
+      const badge = document.getElementById('gaDatapointsBadge');
+      if (badge && totalEvalShifts > 0) {
+        badge.textContent = `${totalEvalShifts} eval shifts analyzed`;
+        badge.style.display = 'inline-block';
+      }
+      renderReport(report);
+      setView('results');
+    }
+
+    // ── Main flow ─────────────────────────────────────────────────────────────
     async function runAnalysis() {
       showError('');
       const username = document.getElementById('gaUsername').value.trim();
       const rawUrls  = [1,2,3,4,5].map(n => document.getElementById('gaGame' + n).value.trim()).filter(Boolean);
 
-      if (!username)    { showError('Please enter your Lichess username.'); return; }
+      if (!username)       { showError('Please enter your Lichess username.'); return; }
       if (!rawUrls.length) { showError('Please enter at least one Lichess game URL.'); return; }
-      if (!ANTHROPIC_KEY)  { showError('Anthropic API key not set — add your key to the ANTHROPIC_KEY constant in the script.'); return; }
 
       setView('loading');
       setLoadingMsg(LOADING_MSGS[0]);
@@ -2788,9 +2963,10 @@ Rules:
       const msgTimer = setInterval(() => {
         msgIdx = (msgIdx + 1) % LOADING_MSGS.length;
         setLoadingMsg(LOADING_MSGS[msgIdx]);
-      }, 4000);
+      }, 4500);
 
       try {
+        // 1. Fetch PGNs
         const pgns = [], errs = [];
         for (let i = 0; i < rawUrls.length; i++) {
           const id = extractGameId(rawUrls[i]);
@@ -2800,13 +2976,23 @@ Rules:
         }
         if (!pgns.length) throw new Error('No games could be fetched.<br>' + errs.join('<br>'));
 
+        // 2. Pre-analysis
         setLoadingMsg(LOADING_MSGS[2]);
-        const report  = await callClaude(username, pgns);
+        const analyses = pgns.map((pgn, i) => preAnalyse(pgn, username, i));
+        const { text: preAnalysisSummary, totalEvalShifts } = buildPreAnalysisSummary(analyses, username);
+        const colors = analyses.map(a => a.playerColor);
+        const wc = colors.filter(c => c === 'White').length;
+        const bc = colors.filter(c => c === 'Black').length;
+        const colorBreakdown = [wc && `${wc}x White`, bc && `${bc}x Black`].filter(Boolean).join(', ');
+
+        // 3. Claude
+        setLoadingMsg(LOADING_MSGS[4]);
+        const report  = await callClaude(username, pgns, preAnalysisSummary, colorBreakdown);
         const dateStr = new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
-        localStorage.setItem(CACHE_KEY, JSON.stringify({ report, dateStr }));
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ report, dateStr, totalEvalShifts }));
 
         clearInterval(msgTimer);
-        showResults(report, dateStr);
+        showResults(report, dateStr, totalEvalShifts);
 
         if (errs.length) {
           const note = document.createElement('div');
@@ -2822,6 +3008,7 @@ Rules:
       }
     }
 
+    // ── Init ──────────────────────────────────────────────────────────────────
     let gaInited = false;
     function init() {
       if (gaInited) return;
@@ -2830,12 +3017,13 @@ Rules:
       document.getElementById('gaResetBtn')?.addEventListener('click', () => {
         localStorage.removeItem(CACHE_KEY);
         showError('');
+        const badge = document.getElementById('gaDatapointsBadge');
+        if (badge) badge.style.display = 'none';
         setView('input');
       });
-      // Restore last report if cached
       try {
         const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
-        if (cached?.report) showResults(cached.report, cached.dateStr || '');
+        if (cached?.report) showResults(cached.report, cached.dateStr || '', cached.totalEvalShifts || 0);
       } catch {}
     }
 
