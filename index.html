@@ -937,6 +937,91 @@
       .da-left { border-right: none; border-bottom: 1px solid var(--cream3); }
     }
 
+    /* ── GAME ANALYZER ──────────────────────────────────── */
+    .ga-wrap { max-width: 680px; margin: 0 auto; padding: 0 0 60px; }
+    .ga-header {
+      background: var(--green-dark); border-radius: var(--radius);
+      padding: 32px 28px 28px; text-align: center;
+      margin-bottom: 28px; box-shadow: var(--shadow);
+    }
+    .ga-header-icon { font-size: 2rem; margin-bottom: 10px; }
+    .ga-header-title { font-size: 1.4rem; font-weight: 800; color: var(--gold); margin: 0 0 8px; letter-spacing: -.3px; }
+    .ga-header-sub { font-size: .9rem; color: rgba(250,246,238,.8); margin: 0; line-height: 1.5; }
+    .ga-form-card {
+      background: var(--white); border: 1px solid var(--cream3);
+      border-radius: var(--radius); padding: 28px 28px 24px;
+      box-shadow: var(--shadow); margin-bottom: 20px;
+    }
+    .ga-label {
+      display: block; font-size: .78rem; font-weight: 700; color: var(--green-dark);
+      text-transform: uppercase; letter-spacing: .07em; margin-bottom: 6px;
+    }
+    .ga-input {
+      width: 100%; border: 1.5px solid var(--cream3);
+      border-radius: var(--radius-sm); padding: 10px 13px;
+      font-size: .92rem; font-family: inherit; color: var(--text);
+      background: var(--cream); outline: none;
+      transition: border-color .18s; box-sizing: border-box;
+    }
+    .ga-input:focus { border-color: var(--green-accent); background: var(--white); box-shadow: 0 0 0 3px rgba(78,158,78,.12); }
+    .ga-field { margin-bottom: 12px; }
+    .ga-username-wrap { margin-bottom: 22px; padding-bottom: 22px; border-bottom: 1px solid var(--cream2); }
+    .ga-games-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 22px; }
+    .ga-analyze-btn {
+      width: 100%; padding: 14px 20px;
+      background: var(--green-dark); color: var(--cream);
+      border: none; border-radius: var(--radius-sm);
+      font-size: 1rem; font-weight: 700; cursor: pointer;
+      transition: background .18s, transform .1s; letter-spacing: .02em;
+    }
+    .ga-analyze-btn:hover:not(:disabled) { background: var(--green-mid); }
+    .ga-analyze-btn:active:not(:disabled) { transform: scale(.99); }
+    .ga-analyze-btn:disabled { opacity: .55; cursor: not-allowed; }
+    .ga-timing-note { text-align: center; font-size: .78rem; color: var(--muted); margin: 10px 0 0; }
+    .ga-error-box {
+      background: #fef2f2; border: 1px solid #fecaca;
+      border-radius: var(--radius-sm); padding: 12px 16px;
+      color: #991b1b; font-size: .87rem; line-height: 1.55;
+      margin-bottom: 16px;
+    }
+    .ga-loading {
+      text-align: center; padding: 60px 20px;
+      background: var(--white); border: 1px solid var(--cream3);
+      border-radius: var(--radius); box-shadow: var(--shadow);
+    }
+    .ga-spinner {
+      font-size: 2.6rem; display: inline-block;
+      animation: ga-spin 1.1s linear infinite; margin-bottom: 20px;
+    }
+    @keyframes ga-spin { to { transform: rotate(360deg); } }
+    .ga-loading-msg { font-size: .93rem; color: var(--muted); font-style: italic; margin: 0; }
+    .ga-report-header {
+      background: var(--green-dark); border-radius: var(--radius) var(--radius) 0 0;
+      padding: 18px 24px; display: flex; align-items: center;
+      justify-content: space-between; flex-wrap: wrap; gap: 8px;
+    }
+    .ga-report-title { font-size: .88rem; font-weight: 700; color: var(--gold); letter-spacing: .08em; text-transform: uppercase; }
+    .ga-report-date  { font-size: .78rem; color: rgba(250,246,238,.7); }
+    .ga-section-card {
+      background: var(--white); border: 1px solid var(--cream3);
+      border-top: none; border-left: 4px solid var(--green-dark);
+      padding: 20px 24px;
+    }
+    .ga-section-card:last-of-type { border-radius: 0 0 var(--radius) var(--radius); margin-bottom: 20px; }
+    .ga-section-title {
+      font-size: .68rem; font-weight: 800; color: var(--green-dark);
+      text-transform: uppercase; letter-spacing: .12em; margin-bottom: 10px;
+    }
+    .ga-section-body { font-size: 1rem; line-height: 1.78; color: #1a1a1a; white-space: pre-wrap; word-break: break-word; }
+    .ga-reset-btn {
+      display: block; width: 100%; padding: 12px;
+      background: transparent; border: 1.5px solid var(--green-dark);
+      border-radius: var(--radius-sm); color: var(--green-dark);
+      font-size: .9rem; font-weight: 700; cursor: pointer;
+      transition: background .15s;
+    }
+    .ga-reset-btn:hover { background: var(--cream2); }
+
     /* ── KEY PRINCIPLES ───────────────────────────────── */
     .principle-card {
       background: var(--white);
@@ -1002,6 +1087,7 @@
   <button class="tab-btn" role="tab" data-tab="lessonplan">Lesson Plan</button>
   <button class="tab-btn"        role="tab" data-tab="coach">Ask Coach Samuel</button>
   <button class="tab-btn"        role="tab" data-tab="scout">Understanding Dad's Gameplay</button>
+  <button class="tab-btn"        role="tab" data-tab="weaknesses">Samuel's Weaknesses — TEST</button>
 </nav>
 
 <!-- CONTENT -->
@@ -1483,6 +1569,70 @@
       <div class="scout-summary">
         <span class="scout-summary-label">Dad in one sentence</span>
         <p class="scout-summary-text">A patient, indirect player who completely falls apart when you attack him early and directly — so that's exactly what you should do.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Samuel's Weaknesses TEST — Game Pattern Analyzer -->
+  <section class="tab-panel" id="panel-weaknesses" role="tabpanel">
+    <div class="ga-wrap">
+
+      <div class="ga-header">
+        <div class="ga-header-icon">♟</div>
+        <h2 class="ga-header-title">Game Pattern Analyzer</h2>
+        <p class="ga-header-sub">Paste up to 5 Lichess game URLs for a pattern analysis report</p>
+      </div>
+
+      <!-- Input -->
+      <div id="gaInputSection">
+        <div class="ga-form-card">
+          <div class="ga-username-wrap">
+            <label class="ga-label" for="gaUsername">Your Lichess Username</label>
+            <input class="ga-input" id="gaUsername" type="text" placeholder="e.g. Magnus_Carlsen" autocomplete="off">
+          </div>
+          <div class="ga-games-grid">
+            <div class="ga-field">
+              <label class="ga-label" for="gaGame1">Game 1</label>
+              <input class="ga-input" id="gaGame1" type="text" placeholder="https://lichess.org/xxxxxxxx">
+            </div>
+            <div class="ga-field">
+              <label class="ga-label" for="gaGame2">Game 2</label>
+              <input class="ga-input" id="gaGame2" type="text" placeholder="https://lichess.org/xxxxxxxx">
+            </div>
+            <div class="ga-field">
+              <label class="ga-label" for="gaGame3">Game 3</label>
+              <input class="ga-input" id="gaGame3" type="text" placeholder="https://lichess.org/xxxxxxxx">
+            </div>
+            <div class="ga-field">
+              <label class="ga-label" for="gaGame4">Game 4</label>
+              <input class="ga-input" id="gaGame4" type="text" placeholder="https://lichess.org/xxxxxxxx">
+            </div>
+            <div class="ga-field">
+              <label class="ga-label" for="gaGame5">Game 5</label>
+              <input class="ga-input" id="gaGame5" type="text" placeholder="https://lichess.org/xxxxxxxx">
+            </div>
+          </div>
+          <div id="gaErrorBox"></div>
+          <button class="ga-analyze-btn" id="gaAnalyzeBtn">Analyze My Games</button>
+          <p class="ga-timing-note">Analysis takes 20–30 seconds</p>
+        </div>
+      </div>
+
+      <!-- Loading -->
+      <div class="ga-loading" id="gaLoading" style="display:none;">
+        <div class="ga-spinner">♟</div>
+        <p class="ga-loading-msg" id="gaLoadingMsg">Fetching your games from Lichess…</p>
+      </div>
+
+      <!-- Results -->
+      <div id="gaResults" style="display:none;">
+        <div class="ga-report-header">
+          <span class="ga-report-title">Pattern Analysis Report</span>
+          <span class="ga-report-date" id="gaReportDate"></span>
+        </div>
+        <div id="gaReportBody"></div>
+        <button class="ga-reset-btn" id="gaResetBtn">Run New Analysis</button>
       </div>
 
     </div>
@@ -2491,6 +2641,208 @@
       if (btn.dataset.tab === 'lessonplan') btn.addEventListener('click', startLp);
     });
     if (document.getElementById('panel-lessonplan').classList.contains('active')) startLp();
+  })();
+
+  // ── Game Pattern Analyzer ───────────────────────────────────────────────────
+  (function() {
+    // ⚠️ Paste your Anthropic API key here (same key used in scripts/weekly_email.py):
+    const ANTHROPIC_KEY = '';
+
+    const LOADING_MSGS = [
+      'Fetching your games from Lichess…',
+      'Reading the moves…',
+      'Identifying patterns…',
+      'Writing your report…',
+    ];
+    const CACHE_KEY = 'gaLastReport';
+
+    function extractGameId(url) {
+      try {
+        const segments = new URL(url.trim()).pathname.split('/').filter(Boolean);
+        return segments[segments.length - 1].slice(0, 8);
+      } catch { return null; }
+    }
+
+    function showError(msg) {
+      const el = document.getElementById('gaErrorBox');
+      if (el) el.innerHTML = msg ? `<div class="ga-error-box">${msg}</div>` : '';
+    }
+
+    function setView(view) { // 'input' | 'loading' | 'results'
+      document.getElementById('gaInputSection').style.display  = view === 'input'   ? 'block' : 'none';
+      document.getElementById('gaLoading').style.display       = view === 'loading' ? 'block' : 'none';
+      document.getElementById('gaResults').style.display       = view === 'results' ? 'block' : 'none';
+    }
+
+    function setLoadingMsg(msg) {
+      const el = document.getElementById('gaLoadingMsg');
+      if (el) el.textContent = msg;
+    }
+
+    function renderReport(text) {
+      const body = document.getElementById('gaReportBody');
+      if (!body) return;
+      body.innerHTML = '';
+      const SECTIONS = ['PLAYER PROFILE','THE PATTERNS','THE ROOT CAUSE','ONE THING TO WORK ON'];
+      let used = false;
+      for (let i = 0; i < SECTIONS.length; i++) {
+        const heading = SECTIONS[i];
+        const next = SECTIONS.slice(i + 1).map(s => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|');
+        const pattern = new RegExp(heading + '[:\\s]*\\n?([\\s\\S]*?)' + (next ? '(?=' + next + '|$)' : '$'), 'i');
+        const m = text.match(pattern);
+        if (!m) continue;
+        const card = document.createElement('div');
+        card.className = 'ga-section-card';
+        card.innerHTML = `<div class="ga-section-title">${heading}</div><div class="ga-section-body">${m[1].trim()}</div>`;
+        body.appendChild(card);
+        used = true;
+      }
+      if (!used) {
+        // No recognisable headings — display raw
+        const card = document.createElement('div');
+        card.className = 'ga-section-card';
+        card.innerHTML = `<div class="ga-section-body">${text}</div>`;
+        body.appendChild(card);
+      }
+    }
+
+    function showResults(report, dateStr) {
+      document.getElementById('gaReportDate').textContent = dateStr || '';
+      renderReport(report);
+      setView('results');
+    }
+
+    async function fetchPgn(gameId, idx) {
+      const r = await fetch(`https://lichess.org/game/export/${gameId}?pgnInJson=false`, {
+        headers: { 'Accept': 'application/x-chess-pgn' },
+      });
+      if (!r.ok) throw new Error(`Couldn't fetch game ${idx + 1} — check the URL`);
+      return r.text();
+    }
+
+    async function callClaude(username, pgns) {
+      const system = `You are a world-class chess coach analyzing a player's games. Your job is to identify the 2-3 most important patterns holding this player back — not a list of mistakes, not move-by-move commentary.
+
+Think like a coach who just watched 5 games of film. What do you actually see? What are the recurring themes? What is this player's chess personality, and where does that personality create problems?
+
+Structure your report exactly like this:
+
+PLAYER PROFILE
+One short paragraph describing how this player plays — their style, their tendencies, their strengths. Make it feel like you actually watched them play.
+
+THE PATTERNS (2-3 only)
+For each pattern: give it a name, describe it in plain language, and reference 1-2 specific moments from the games as evidence. Not a list of moves — a sentence about what happened and why it matters.
+
+THE ROOT CAUSE
+What is the single underlying habit or mindset behind most of these patterns? This is the real coaching insight.
+
+ONE THING TO WORK ON
+The single most high-leverage thing to fix. Specific, actionable, honest.
+
+Rules:
+- No move-by-move breakdown
+- No bullet point lists of moves
+- No generic chess advice like 'control the center' or 'develop your pieces'
+- If you are not confident in a pattern, leave it out
+- Write like a real coach talking to a real player, not a chess engine
+- This player is a serious chess player. Use real chess insight, not beginner advice
+- Maximum 450 words total`;
+
+      const pgnText = pgns.map((p, i) => `Game ${i + 1}:\n${p}`).join('\n\n---\n\n');
+      const r = await fetch('https://api.anthropic.com/v1/messages', {
+        method: 'POST',
+        headers: {
+          'x-api-key': ANTHROPIC_KEY,
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-20250514',
+          max_tokens: 1024,
+          system,
+          messages: [{ role: 'user', content: `Analyze these games for ${username}. Identify the real patterns across all games. For each game note which color ${username} played.\n\n${pgnText}` }],
+        }),
+      });
+      if (!r.ok) {
+        let msg = 'Claude API error: ' + r.status;
+        try { const b = await r.json(); msg += ' — ' + (b.error?.message || JSON.stringify(b.error || b)); } catch {}
+        throw new Error(msg);
+      }
+      const data = await r.json();
+      return data.content[0].text;
+    }
+
+    async function runAnalysis() {
+      showError('');
+      const username = document.getElementById('gaUsername').value.trim();
+      const rawUrls  = [1,2,3,4,5].map(n => document.getElementById('gaGame' + n).value.trim()).filter(Boolean);
+
+      if (!username)    { showError('Please enter your Lichess username.'); return; }
+      if (!rawUrls.length) { showError('Please enter at least one Lichess game URL.'); return; }
+      if (!ANTHROPIC_KEY)  { showError('Anthropic API key not set — add your key to the ANTHROPIC_KEY constant in the script.'); return; }
+
+      setView('loading');
+      setLoadingMsg(LOADING_MSGS[0]);
+      let msgIdx = 0;
+      const msgTimer = setInterval(() => {
+        msgIdx = (msgIdx + 1) % LOADING_MSGS.length;
+        setLoadingMsg(LOADING_MSGS[msgIdx]);
+      }, 4000);
+
+      try {
+        const pgns = [], errs = [];
+        for (let i = 0; i < rawUrls.length; i++) {
+          const id = extractGameId(rawUrls[i]);
+          if (!id) { errs.push(`Game ${i+1}: invalid URL`); continue; }
+          try { pgns.push(await fetchPgn(id, i)); }
+          catch (e) { errs.push(e.message); }
+        }
+        if (!pgns.length) throw new Error('No games could be fetched.<br>' + errs.join('<br>'));
+
+        setLoadingMsg(LOADING_MSGS[2]);
+        const report  = await callClaude(username, pgns);
+        const dateStr = new Date().toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' });
+        localStorage.setItem(CACHE_KEY, JSON.stringify({ report, dateStr }));
+
+        clearInterval(msgTimer);
+        showResults(report, dateStr);
+
+        if (errs.length) {
+          const note = document.createElement('div');
+          note.className = 'ga-error-box';
+          note.style.marginBottom = '12px';
+          note.innerHTML = 'Note: ' + errs.join(' · ');
+          document.getElementById('gaReportBody').prepend(note);
+        }
+      } catch (e) {
+        clearInterval(msgTimer);
+        setView('input');
+        showError(e.message);
+      }
+    }
+
+    let gaInited = false;
+    function init() {
+      if (gaInited) return;
+      gaInited = true;
+      document.getElementById('gaAnalyzeBtn')?.addEventListener('click', runAnalysis);
+      document.getElementById('gaResetBtn')?.addEventListener('click', () => {
+        localStorage.removeItem(CACHE_KEY);
+        showError('');
+        setView('input');
+      });
+      // Restore last report if cached
+      try {
+        const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || 'null');
+        if (cached?.report) showResults(cached.report, cached.dateStr || '');
+      } catch {}
+    }
+
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      if (btn.dataset.tab === 'weaknesses') btn.addEventListener('click', init);
+    });
+    if (document.getElementById('panel-weaknesses')?.classList.contains('active')) init();
   })();
 
   // ── Init ───────────────────────────────────────────────────────────────────
