@@ -784,129 +784,126 @@
     }
 
     /* ── DAILY ASSIGNMENTS ───────────────────────────── */
+    /* ── DAILY ASSIGNMENTS ───────────────────────────── */
     .da-sticky-header {
       position: sticky; top: 0; z-index: 10;
       background: var(--green-dark); color: var(--cream);
       display: flex; align-items: center; justify-content: space-between;
       padding: 11px 18px; border-radius: var(--radius-sm);
-      margin-bottom: 18px; font-size: .88rem; font-weight: 600;
-      box-shadow: 0 2px 8px rgba(0,0,0,.18);
+      margin-bottom: 16px; font-size: .88rem; font-weight: 600;
+      box-shadow: 0 2px 8px rgba(0,0,0,.18); gap: 10px; flex-wrap: wrap;
     }
-    .da-sticky-count { opacity: .8; font-size: .8rem; }
+    .da-sticky-count { opacity: .8; font-size: .8rem; white-space: nowrap; }
     .da-bar-wrap {
       flex: 1; height: 5px; background: rgba(255,255,255,.2);
-      border-radius: 999px; margin: 0 14px; overflow: hidden;
+      border-radius: 999px; margin: 0 10px; overflow: hidden; min-width: 60px;
     }
-    .da-bar-fill {
-      height: 100%; background: var(--gold);
-      border-radius: 999px; transition: width .4s ease;
+    .da-bar-fill { height: 100%; background: var(--gold); border-radius: 999px; transition: width .4s ease; }
+    .da-coach-badge {
+      font-size: .68rem; font-weight: 800; letter-spacing: .08em;
+      text-transform: uppercase; background: #16a34a; color: #fff;
+      border-radius: 999px; padding: 3px 10px; white-space: nowrap;
     }
+    .da-coach-only { display: none; }
 
-    .da-list { display: flex; flex-direction: column; gap: 8px; }
+    .da-list { display: flex; flex-direction: column; gap: 10px; }
 
+    /* Two-column card */
     .da-row {
       background: #fff;
       border: 1.5px solid var(--cream3);
       border-radius: var(--radius);
       overflow: hidden;
+      display: grid;
+      grid-template-columns: 1fr 30%;
       transition: border-color .2s, background .2s;
+      box-shadow: 0 1px 4px rgba(0,0,0,.05);
     }
-    .da-row.da-today {
-      background: #f0fdf4; border-color: #86efac;
-      box-shadow: 0 0 0 2px rgba(22,163,74,.12);
-    }
-    .da-row.da-done {
-      background: #f7faf8; border-color: #d1e8d8;
-    }
-    .da-row.da-past {
-      background: #fffbf0; border-color: #fde68a;
-    }
+    .da-row.da-today  { background: #f0fdf4; border-color: #86efac; box-shadow: 0 0 0 2px rgba(22,163,74,.12); }
+    .da-row.da-done   { background: #f7faf8; border-color: #d1e8d8; opacity: .8; }
+    .da-row.da-past   { background: #fffbf0; border-color: #fde68a; }
 
-    .da-main {
-      display: flex; align-items: center; gap: 12px; padding: 13px 16px;
+    /* LEFT: tasks */
+    .da-left {
+      padding: 16px 18px 18px;
+      border-right: 1px solid var(--cream3);
+      display: flex; flex-direction: column; gap: 12px;
     }
-
-    .da-check {
-      width: 20px; height: 20px; flex-shrink: 0;
-      accent-color: var(--green-mid); cursor: pointer;
-    }
+    .da-left-header { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
     .da-badge {
-      font-size: .72rem; font-weight: 700;
+      font-size: .7rem; font-weight: 700;
       background: var(--green-dark); color: var(--cream);
-      border-radius: 999px; padding: 3px 10px;
+      border-radius: 999px; padding: 3px 11px;
       white-space: nowrap; flex-shrink: 0;
     }
     .da-row.da-today .da-badge { background: #16a34a; }
     .da-row.da-done  .da-badge { background: #6b7a62; }
 
     .da-today-pill {
-      font-size: .65rem; font-weight: 800; letter-spacing: .08em;
+      font-size: .62rem; font-weight: 800; letter-spacing: .08em;
       background: #16a34a; color: #fff;
       border-radius: 999px; padding: 2px 8px; flex-shrink: 0;
       text-transform: uppercase;
     }
+    .da-date { font-size: .8rem; color: var(--muted); }
 
-    .da-date {
-      font-size: .82rem; color: var(--muted); white-space: nowrap;
-      flex-shrink: 0;
+    /* Task list */
+    .da-tasks { display: flex; flex-direction: column; gap: 8px; }
+    .da-task-item {
+      display: flex; align-items: flex-start; gap: 9px;
     }
+    .da-task-check {
+      width: 17px; height: 17px; margin-top: 2px; flex-shrink: 0;
+      accent-color: var(--green-mid); cursor: pointer;
+    }
+    .da-task-label {
+      font-size: .9rem; color: var(--text); line-height: 1.5; cursor: pointer;
+      transition: opacity .2s;
+    }
+    .da-task-item.done .da-task-label {
+      text-decoration: line-through; opacity: .45; color: var(--muted);
+    }
+    .da-empty-label { font-size: .88rem; color: #bbb; font-style: italic; }
 
-    .da-assignment {
-      flex: 1; font-size: .92rem; color: var(--text); min-width: 0;
+    /* RIGHT: coach notes */
+    .da-right {
+      background: #faf7f0;
+      padding: 14px 14px 14px 16px;
+      display: flex; flex-direction: column; gap: 8px;
+      min-height: 80px;
     }
-    .da-assignment.da-empty { color: #bbb; font-style: italic; }
-    .da-row.da-done .da-assignment {
-      text-decoration: line-through; opacity: .55;
+    .da-notes-label {
+      font-size: .65rem; font-weight: 800; letter-spacing: .1em;
+      text-transform: uppercase; color: var(--green-dark); opacity: .7;
     }
-
-    .da-toggle {
-      background: none; border: none; cursor: pointer;
-      font-size: .75rem; color: var(--muted); padding: 4px 8px;
-      border-radius: 6px; white-space: nowrap; flex-shrink: 0;
-      transition: background .15s, color .15s;
+    .da-notes-text {
+      font-size: .86rem; font-style: italic; color: var(--green-dark);
+      line-height: 1.6; flex: 1;
     }
-    .da-toggle:hover { background: var(--cream2); color: var(--green-dark); }
-
-    .da-notes-area {
-      max-height: 0; overflow: hidden;
-      transition: max-height .3s ease;
-      border-top: 1px solid var(--cream3);
-    }
-    .da-notes-area.open { max-height: 300px; }
-
-    .da-notes-inner {
-      padding: 12px 16px 14px 48px; display: flex; flex-direction: column; gap: 8px;
-    }
-    .da-saved-note {
-      font-size: .88rem; font-style: italic;
-      color: var(--green-dark); line-height: 1.6;
-    }
+    .da-notes-empty { font-size: .82rem; color: #ccc; font-style: italic; }
     .da-note-input {
       width: 100%; border: 1px solid var(--cream3);
-      border-radius: var(--radius-sm); padding: 8px 10px;
-      font-size: .88rem; font-family: inherit; resize: vertical;
-      min-height: 60px; outline: none;
-      transition: border-color .15s;
+      border-radius: var(--radius-sm); padding: 7px 9px;
+      font-size: .85rem; font-family: inherit; resize: vertical;
+      min-height: 60px; outline: none; background: #fff;
+      transition: border-color .15s; flex: 1;
     }
     .da-note-input:focus { border-color: var(--green-accent); }
     .da-note-save {
-      align-self: flex-end;
+      align-self: flex-end; margin-top: 2px;
       background: var(--green-dark); color: var(--cream);
-      border: none; border-radius: var(--radius-sm); padding: 7px 18px;
-      font-size: .82rem; font-weight: 600; cursor: pointer;
-      transition: background .15s;
+      border: none; border-radius: var(--radius-sm); padding: 6px 14px;
+      font-size: .78rem; font-weight: 600; cursor: pointer;
+      transition: background .15s; white-space: nowrap;
     }
-    .da-note-save:hover { background: var(--green-mid); }
+    .da-note-save:hover    { background: var(--green-mid); }
     .da-note-save:disabled { opacity: .5; cursor: not-allowed; }
 
-    .da-coach-badge {
-      font-size: .68rem; font-weight: 800; letter-spacing: .08em;
-      text-transform: uppercase; background: #16a34a; color: #fff;
-      border-radius: 999px; padding: 3px 10px;
+    @media (max-width: 580px) {
+      .da-row { grid-template-columns: 1fr; }
+      .da-left { border-right: none; border-bottom: 1px solid var(--cream3); }
     }
-    /* Hidden in read-only mode; shown only in coach mode */
-    .da-coach-only { display: none; }
 
     /* ── KEY PRINCIPLES ───────────────────────────────── */
     .principle-card {
@@ -1606,13 +1603,8 @@
   (function() {
     const SB_URL = 'https://kclmbxgqiomaffczqgwx.supabase.co';
     const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtjbG1ieGdxaW9tYWZmY3pxZ3d4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQzNjYxNzEsImV4cCI6MjA4OTk0MjE3MX0.2JV2-ZVtZV2EemDdf-GqIq_r93CKHc_UDZRjfBVKfL0';
-    const HEADERS = {
-      'apikey': SB_KEY,
-      'Authorization': 'Bearer ' + SB_KEY,
-      'Content-Type': 'application/json',
-    };
+    const HEADERS = { 'apikey': SB_KEY, 'Authorization': 'Bearer ' + SB_KEY, 'Content-Type': 'application/json' };
 
-    // Coach mode: ?coach=samuel
     const isCoachDA = new URLSearchParams(window.location.search).get('coach') === 'samuel';
 
     const START = new Date('2026-03-25T00:00:00');
@@ -1620,23 +1612,19 @@
     const DAY_NAMES   = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
     const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-    function dayDate(n) {
-      const d = new Date(START);
-      d.setDate(d.getDate() + (n - 1));
-      return d;
-    }
-    function fmtDate(d) {
-      return DAY_NAMES[d.getDay()] + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate();
-    }
-    function todayNum() {
-      return Math.floor((new Date() - START) / 86400000) + 1;
-    }
+    function dayDate(n) { const d = new Date(START); d.setDate(d.getDate() + n - 1); return d; }
+    function fmtDate(d) { return DAY_NAMES[d.getDay()] + ' ' + MONTH_NAMES[d.getMonth()] + ' ' + d.getDate(); }
+    function todayNum()  { return Math.floor((new Date() - START) / 86400000) + 1; }
+    function esc(s)      { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
-    function loadDone() {
-      try { return JSON.parse(localStorage.getItem('daDone')) || []; }
-      catch { return []; }
-    }
-    function saveDone(arr) { localStorage.setItem('daDone', JSON.stringify(arr)); }
+    // ── Day-level completion (Supabase + localStorage) ──────────────────────
+    function loadDone() { try { return JSON.parse(localStorage.getItem('daDone')) || []; } catch { return []; } }
+    function saveDone(a) { localStorage.setItem('daDone', JSON.stringify(a)); }
+
+    // ── Per-task completion (localStorage only) ──────────────────────────────
+    // stored as: daTask_N = [0, 2, 3, ...] (0-based indices of completed tasks)
+    function loadTaskDone(n) { try { return JSON.parse(localStorage.getItem('daTask_' + n)) || []; } catch { return []; } }
+    function saveTaskDone(n, arr) { localStorage.setItem('daTask_' + n, JSON.stringify(arr)); }
 
     let dbRows = {};
 
@@ -1644,34 +1632,32 @@
       const done = loadDone();
       document.getElementById('daDoneCount').textContent = done.length;
       document.getElementById('daBarFill').style.width = (done.length / TOTAL * 100) + '%';
-      // Show Coach View badge
       const badge = document.getElementById('daCoachBadge');
       if (badge) badge.style.display = isCoachDA ? 'inline' : 'none';
     }
 
-    function renderAssignment(text) {
-      // Render numbered lines as a clean list
-      if (!text) return '';
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      if (lines.length <= 1) return esc(text);
-      return '<ol style="margin:0;padding-left:18px;list-style:decimal;">' +
-        lines.map(l => `<li style="margin-bottom:3px;">${esc(l.replace(/^\d+\.\s*/,''))}</li>`).join('') +
-        '</ol>';
+    // Parse assignment text into array of task strings
+    function parseTasks(text) {
+      if (!text) return [];
+      return text.split('\n').map(l => l.trim().replace(/^\d+\.\s*/, '')).filter(Boolean);
     }
 
     function renderRows() {
       const list = document.getElementById('daList');
       if (!list) return;
-      const done  = loadDone();
-      const today = todayNum();
+      const dayDone = loadDone();
+      const today   = todayNum();
 
       list.innerHTML = '';
       for (let n = 1; n <= TOTAL; n++) {
-        const d       = dayDate(n);
-        const row     = dbRows[n] || {};
-        const isDone  = done.includes(n);
-        const isToday = n === today;
-        const isPast  = n < today && !isDone;
+        const d        = dayDate(n);
+        const row      = dbRows[n] || {};
+        const isDone   = dayDone.includes(n);
+        const isToday  = n === today;
+        const isPast   = n < today && !isDone;
+        const tasks    = parseTasks(row.assignment || '');
+        const taskDone = loadTaskDone(n);
+        const notes    = row.coach_notes || '';
 
         const div = document.createElement('div');
         div.className = 'da-row' +
@@ -1680,49 +1666,81 @@
           (isPast  ? ' da-past'  : '');
         div.dataset.day = n;
 
-        const assignment = row.assignment || '';
-        const notes      = row.coach_notes || '';
+        // ── Left: header + tasks ──
+        const tasksHTML = tasks.length
+          ? tasks.map((t, i) => `
+            <div class="da-task-item${taskDone.includes(i) ? ' done' : ''}" data-day="${n}" data-idx="${i}">
+              <input type="checkbox" class="da-task-check" data-day="${n}" data-idx="${i}" ${taskDone.includes(i) ? 'checked' : ''}>
+              <label class="da-task-label">${esc(t)}</label>
+            </div>`).join('')
+          : `<span class="da-empty-label">No assignment yet</span>`;
 
-        // Notes toggle: always show if there are notes; show editable controls only in coach mode
-        const hasNotes = !!notes;
-        const showToggle = hasNotes || isCoachDA;
+        // ── Right: coach notes ──
+        const notesRight = isCoachDA
+          ? `<textarea class="da-note-input" id="da-input-${n}" placeholder="Add coaching notes…">${esc(notes)}</textarea>
+             <button class="da-note-save" data-day="${n}">Save</button>`
+          : (notes
+              ? `<p class="da-notes-text">${esc(notes)}</p>`
+              : `<span class="da-notes-empty">No notes yet</span>`);
 
         div.innerHTML = `
-          <div class="da-main">
-            <input type="checkbox" class="da-check" data-day="${n}" ${isDone ? 'checked' : ''}>
-            <span class="da-badge">Day ${n}</span>
-            ${isToday ? '<span class="da-today-pill">Today</span>' : ''}
-            <span class="da-date">${fmtDate(d)}</span>
-            <span class="da-assignment ${assignment ? '' : 'da-empty'}">${assignment ? renderAssignment(assignment) : 'No assignment yet'}</span>
-            ${showToggle ? `<button class="da-toggle" data-day="${n}">${hasNotes ? '📝 Notes' : '+ Coach Note'}</button>` : ''}
-          </div>
-          <div class="da-notes-area" id="da-notes-${n}">
-            <div class="da-notes-inner">
-              <div class="da-saved-note" id="da-saved-${n}" ${notes ? '' : 'style="display:none"'}>${esc(notes)}</div>
-              ${isCoachDA ? `
-              <textarea class="da-note-input" id="da-input-${n}" placeholder="Add coaching notes for this day…">${esc(notes)}</textarea>
-              <button class="da-note-save" data-day="${n}">Save Note</button>` : ''}
+          <div class="da-left">
+            <div class="da-left-header">
+              <span class="da-badge">Day ${n}</span>
+              ${isToday ? '<span class="da-today-pill">Today</span>' : ''}
+              <span class="da-date">${fmtDate(d)}</span>
             </div>
+            <div class="da-tasks">${tasksHTML}</div>
+          </div>
+          <div class="da-right">
+            <div class="da-notes-label">Coach's Notes</div>
+            ${notesRight}
           </div>`;
         list.appendChild(div);
       }
     }
 
-    function esc(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-
-    async function fetchRows() {
+    async function syncDayComplete(dayNum, checked) {
       try {
-        const r = await fetch(SB_URL + '/rest/v1/daily_assignments?select=*', { headers: HEADERS });
-        if (!r.ok) throw new Error('HTTP ' + r.status);
-        const rows = await r.json();
-        dbRows = {};
-        rows.forEach(row => { dbRows[row.day_number] = row; });
-        const dbDone   = rows.filter(r => r.completed).map(r => r.day_number);
-        const merged   = [...new Set([...loadDone(), ...dbDone])];
-        saveDone(merged);
-      } catch(e) { console.error('DA fetch:', e); }
-      renderRows();
+        await fetch(SB_URL + '/rest/v1/daily_assignments', {
+          method: 'POST',
+          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
+          body: JSON.stringify({ day_number: dayNum, completed: checked, updated_at: new Date().toISOString() }),
+        });
+      } catch(e) { console.error('DA complete sync:', e); }
+    }
+
+    function handleTaskCheck(dayNum, taskIdx, checked) {
+      const taskDone = loadTaskDone(dayNum);
+      const newDone  = checked
+        ? [...new Set([...taskDone, taskIdx])]
+        : taskDone.filter(i => i !== taskIdx);
+      saveTaskDone(dayNum, newDone);
+
+      // Update task item class
+      const item = document.querySelector(`.da-task-item[data-day="${dayNum}"][data-idx="${taskIdx}"]`);
+      if (item) item.classList.toggle('done', checked);
+
+      // Check if all tasks complete → auto-mark day done
+      const tasks = parseTasks((dbRows[dayNum] || {}).assignment || '');
+      if (tasks.length > 0 && newDone.length >= tasks.length) {
+        markDayDone(dayNum, true);
+      } else if (!checked) {
+        markDayDone(dayNum, false);
+      }
+    }
+
+    function markDayDone(dayNum, checked) {
+      let done = loadDone();
+      const wasDone = done.includes(dayNum);
+      if (checked && !wasDone) done.push(dayNum);
+      else if (!checked) done = done.filter(d => d !== dayNum);
+      else return; // no change
+      saveDone(done);
       updateHeader();
+      const row = document.querySelector(`.da-row[data-day="${dayNum}"]`);
+      if (row) row.classList.toggle('da-done', checked);
+      syncDayComplete(dayNum, checked);
     }
 
     async function saveNote(dayNum) {
@@ -1737,62 +1755,32 @@
           body: JSON.stringify({ day_number: dayNum, coach_notes: text, updated_at: new Date().toISOString() }),
         });
         if (!r.ok) throw new Error('HTTP ' + r.status);
-        const saved = document.getElementById('da-saved-' + dayNum);
-        if (saved) { saved.textContent = text; saved.style.display = text ? '' : 'none'; }
-        const toggle = document.querySelector(`.da-toggle[data-day="${dayNum}"]`);
-        if (toggle) toggle.textContent = text ? '📝 Notes' : '+ Coach Note';
         dbRows[dayNum] = { ...(dbRows[dayNum] || {}), coach_notes: text };
-      } catch(e) {
-        alert('Failed to save: ' + e.message);
-      } finally {
-        if (btn) btn.disabled = false;
-      }
-    }
-
-    async function toggleComplete(dayNum, checked) {
-      let done = loadDone();
-      if (checked) { if (!done.includes(dayNum)) done.push(dayNum); }
-      else { done = done.filter(d => d !== dayNum); }
-      saveDone(done);
-      updateHeader();
-      const row = document.querySelector(`.da-row[data-day="${dayNum}"]`);
-      if (row) row.classList.toggle('da-done', checked);
-      try {
-        await fetch(SB_URL + '/rest/v1/daily_assignments', {
-          method: 'POST',
-          headers: { ...HEADERS, 'Prefer': 'resolution=merge-duplicates' },
-          body: JSON.stringify({ day_number: dayNum, completed: checked, updated_at: new Date().toISOString() }),
-        });
-      } catch(e) { console.error('DA complete sync:', e); }
-    }
-
-    function bindEvents() {
-      const list = document.getElementById('daList');
-      if (!list) return;
-      list.addEventListener('change', e => {
-        if (e.target.classList.contains('da-check'))
-          toggleComplete(+e.target.dataset.day, e.target.checked);
-      });
-      list.addEventListener('click', e => {
-        const tog = e.target.closest('.da-toggle');
-        if (tog) {
-          const area = document.getElementById('da-notes-' + tog.dataset.day);
-          if (area) {
-            area.classList.toggle('open');
-            if (area.classList.contains('open') && isCoachDA) {
-              const inp = document.getElementById('da-input-' + tog.dataset.day);
-              if (inp) setTimeout(() => inp.focus(), 60);
-            }
-          }
-          return;
+        // Update display in place without full re-render
+        const right = document.querySelector(`.da-row[data-day="${dayNum}"] .da-right`);
+        if (right && isCoachDA) {
+          const ta = right.querySelector('.da-note-input');
+          if (ta) ta.value = text;
         }
-        const saveBtn = e.target.closest('.da-note-save');
-        if (saveBtn) { saveNote(+saveBtn.dataset.day); return; }
-      });
+      } catch(e) { alert('Failed to save: ' + e.message); }
+      finally { if (btn) btn.disabled = false; }
+    }
+
+    async function fetchRows() {
+      try {
+        const r = await fetch(SB_URL + '/rest/v1/daily_assignments?select=*', { headers: HEADERS });
+        if (!r.ok) throw new Error('HTTP ' + r.status);
+        const rows = await r.json();
+        dbRows = {};
+        rows.forEach(row => { dbRows[row.day_number] = row; });
+        const dbDone = rows.filter(r => r.completed).map(r => r.day_number);
+        saveDone([...new Set([...loadDone(), ...dbDone])]);
+      } catch(e) { console.error('DA fetch:', e); }
+      renderRows();
+      updateHeader();
     }
 
     async function seedDay1() {
-      // Seed Day 1 assignment if not already in DB
       if (dbRows[1] && dbRows[1].assignment) return;
       const assignment = [
         '1. Learn Piece Checkmates I & Checkmate Patterns I',
@@ -1811,6 +1799,19 @@
       } catch(e) { console.error('DA seed day1:', e); }
     }
 
+    function bindEvents() {
+      const list = document.getElementById('daList');
+      if (!list) return;
+      list.addEventListener('change', e => {
+        if (e.target.classList.contains('da-task-check'))
+          handleTaskCheck(+e.target.dataset.day, +e.target.dataset.idx, e.target.checked);
+      });
+      list.addEventListener('click', e => {
+        const saveBtn = e.target.closest('.da-note-save');
+        if (saveBtn) saveNote(+saveBtn.dataset.day);
+      });
+    }
+
     let daLoaded = false;
     function initDA() {
       if (daLoaded) return;
@@ -1827,7 +1828,7 @@
     if (document.getElementById('panel-lessons').classList.contains('active')) initDA();
   })();
 
-  function initLessons() {} // stub — replaced by Daily Assignments above
+  function initLessons() {} // stub — replaced by Daily Assignments
 
   // ── Tabs ───────────────────────────────────────────────────────────────────
   const tabBtns   = document.querySelectorAll('.tab-btn');
