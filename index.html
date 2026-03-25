@@ -1304,77 +1304,16 @@
             </div>
 
             <!-- Task Ratings (dynamic) -->
-            <div class="prog-section">
+            <div class="prog-section" style="margin-bottom:0;">
               <div class="prog-section-title" id="progTaskSectionTitle">Task Ratings</div>
               <div id="progTaskRatings">
                 <div class="prog-task-loading">Select a day to load tasks…</div>
               </div>
             </div>
 
-            <!-- Overall Session -->
-            <div class="prog-section">
-              <div class="prog-section-title">Overall Session</div>
-              <div class="prog-slider-row">
-                <span class="prog-slider-label">Session Rating</span>
-                <div class="prog-slider-wrap">
-                  <input type="range" class="prog-slider" id="sOverall" min="0" max="100" value="50">
-                </div>
-                <span class="prog-slider-val" id="vOverall">50</span>
-              </div>
-              <div class="prog-field">
-                <label for="fStudyTime">Study time (minutes)</label>
-                <input class="prog-input" id="fStudyTime" type="number" min="0" max="600" placeholder="e.g. 45">
-              </div>
-            </div>
-
-            <!-- Free response -->
-            <div class="prog-section">
-              <div class="prog-section-title">Session Notes</div>
-              <div class="prog-field">
-                <label for="fWorkedOn">What did I work on today?</label>
-                <textarea class="prog-textarea" id="fWorkedOn" placeholder="Topics, drills, games played..."></textarea>
-              </div>
-              <div class="prog-field">
-                <label for="fClicked">What clicked for me?</label>
-                <textarea class="prog-textarea" id="fClicked" placeholder="Moments of understanding, patterns I recognized..."></textarea>
-              </div>
-              <div class="prog-field">
-                <label for="fConfused">What am I still confused about?</label>
-                <textarea class="prog-textarea" id="fConfused" placeholder="Questions to ask, concepts to revisit..."></textarea>
-              </div>
-              <div class="prog-field">
-                <label for="fTakeaway">Biggest takeaway from today</label>
-                <textarea class="prog-textarea" id="fTakeaway" placeholder="The one thing I want to remember..."></textarea>
-              </div>
-            </div>
-
-            <!-- Structured fields -->
-            <div class="prog-section">
-              <div class="prog-section-title">Quick Log</div>
-              <div class="prog-field">
-                <label for="fConcepts">Concepts learned</label>
-                <input class="prog-input" id="fConcepts" type="text" placeholder="e.g. pawn structure, rook endgames...">
-              </div>
-              <div class="prog-field">
-                <label for="fStrengths">Strengths I noticed</label>
-                <input class="prog-input" id="fStrengths" type="text" placeholder="e.g. staying patient, calculating before moving...">
-              </div>
-              <div class="prog-field">
-                <label for="fAreas">Areas to work on</label>
-                <input class="prog-input" id="fAreas" type="text" placeholder="e.g. knight maneuvers, time pressure...">
-              </div>
-            </div>
-
-            <!-- Coach notes -->
-            <div class="prog-coach-section">
-              <div class="prog-coach-label">♞ Coach Samuel</div>
-              <div id="progCoachDisplay"></div>
-              <textarea class="prog-textarea" id="fCoachNotes" style="display:none;" placeholder="Notes for this session..."></textarea>
-            </div>
-
             <!-- Save -->
-            <div>
-              <button class="prog-save-btn" id="progSaveBtn">Save Entry</button>
+            <div style="margin-top:22px;">
+              <button class="prog-save-btn" id="progSaveBtn">Save</button>
               <span class="prog-save-status" id="progSaveStatus"></span>
             </div>
           </div>
@@ -2145,11 +2084,14 @@
       const container = document.getElementById('progTaskRatings');
       const titleEl   = document.getElementById('progTaskSectionTitle');
       container.innerHTML = '';
-      const FALLBACK   = ['Confidence','Understanding','Focus','Momentum'];
-      const isFallback = tasks.length === 0;
-      const items      = isFallback ? FALLBACK : tasks;
-      if (titleEl) titleEl.textContent = isFallback ? 'Session Ratings' : 'Task Ratings';
-      items.forEach((name, i) => {
+      if (titleEl) titleEl.textContent = 'Task Ratings';
+
+      if (tasks.length === 0) {
+        container.innerHTML = '<p style="color:var(--muted);font-size:.88rem;margin:0;padding:4px 0;">No assignments yet for this day.</p>';
+        return;
+      }
+
+      tasks.forEach((name, i) => {
         const saved = Array.isArray(savedRatings) ? savedRatings[i] : null;
         const score = saved?.score ?? 50;
         const notes = saved?.notes ?? '';
@@ -2166,9 +2108,8 @@
             <span class="prog-slider-val" id="${id}v">${score}</span>
           </div>
           <div class="prog-task-hint"><span>Struggled</span><span>Nailed it</span></div>
-          ${!isFallback ? `
           <div class="prog-task-notes-label">Personal notes</div>
-          <textarea class="prog-task-notes" id="${id}n" placeholder="How did this task feel?">${esc(notes)}</textarea>` : ''}`;
+          <textarea class="prog-task-notes" id="${id}n" placeholder="How did this task feel?">${esc(notes)}</textarea>`;
         container.appendChild(card);
         const slider = document.getElementById(id + 's');
         const valEl  = document.getElementById(id + 'v');
@@ -2187,19 +2128,10 @@
     }
 
     function getOverallFields() {
-      const ratings    = collectTaskRatings();
-      const FALLBACK   = ['Confidence','Understanding','Focus','Momentum'];
-      const isFallback = ratings.length > 0 && FALLBACK.includes(ratings[0]?.name);
-      if (isFallback) {
-        return {
-          confidence:    ratings[0]?.score ?? 50,
-          understanding: ratings[1]?.score ?? 50,
-          focus:         ratings[2]?.score ?? 50,
-          momentum:      ratings[3]?.score ?? 50,
-        };
-      }
-      const overall = +document.getElementById('sOverall').value;
-      return { confidence: overall, understanding: overall, focus: overall, momentum: overall };
+      const ratings = collectTaskRatings();
+      if (!ratings.length) return { confidence: 50, understanding: 50, focus: 50, momentum: 50 };
+      const avg = Math.round(ratings.reduce((s, r) => s + r.score, 0) / ratings.length);
+      return { confidence: avg, understanding: avg, focus: avg, momentum: avg };
     }
 
     // ── Supabase helpers ──────────────────────────────────────────────────────
@@ -2290,13 +2222,6 @@
       input.style.background = track;
     }
 
-    // Overall session slider init
-    const sOverall = document.getElementById('sOverall');
-    const vOverall = document.getElementById('vOverall');
-    if (sOverall) {
-      sOverall.addEventListener('input', () => updateSlider(sOverall, vOverall));
-      updateSlider(sOverall, vOverall);
-    }
 
     // ── Open day ──────────────────────────────────────────────────────────────
     async function openDay(n) {
@@ -2311,54 +2236,10 @@
       document.getElementById('progEntryDateSub').textContent = fmtDate(d);
       document.getElementById('progTodayTag').style.display   = iso === todayIso ? 'inline-block' : 'none';
 
-      // Overall session slider
-      const so = document.getElementById('sOverall');
-      const vo = document.getElementById('vOverall');
-      if (so) { so.value = e.confidence ?? 50; updateSlider(so, vo); }
-      const ftEl = document.getElementById('fStudyTime');
-      if (ftEl) ftEl.value = e.study_time_minutes ?? '';
-
-      // Fetch tasks → render task ratings (or fallback 4 sliders)
+      // Fetch tasks → render per-task rating cards
       document.getElementById('progTaskRatings').innerHTML = '<div class="prog-task-loading">Loading tasks…</div>';
       const tasks = await fetchDayTasks(n);
-      const isFallback = tasks.length === 0;
-      let savedRatings;
-      if (isFallback) {
-        savedRatings = [
-          { name: 'Confidence',    score: e.confidence    ?? 50, notes: '' },
-          { name: 'Understanding', score: e.understanding ?? 50, notes: '' },
-          { name: 'Focus',         score: e.focus         ?? 50, notes: '' },
-          { name: 'Momentum',      score: e.momentum      ?? 50, notes: '' },
-        ];
-      } else {
-        savedRatings = Array.isArray(e.task_ratings) ? e.task_ratings : null;
-      }
-      renderTaskRatings(tasks, savedRatings);
-
-      // Text fields
-      document.getElementById('fWorkedOn').value  = e.worked_on  || '';
-      document.getElementById('fClicked').value   = e.clicked    || '';
-      document.getElementById('fConfused').value  = e.confused   || '';
-      document.getElementById('fTakeaway').value  = e.takeaway   || '';
-      document.getElementById('fConcepts').value  = e.concepts   || '';
-      document.getElementById('fStrengths').value = e.strengths  || '';
-      document.getElementById('fAreas').value     = e.areas      || '';
-
-      // Coach notes
-      const coachVal = e.coach_notes || '';
-      const coachDisplay = document.getElementById('progCoachDisplay');
-      const coachTA      = document.getElementById('fCoachNotes');
-      if (isCoach) {
-        coachDisplay.style.display = 'none';
-        coachTA.style.display      = 'block';
-        coachTA.value              = coachVal;
-      } else {
-        coachTA.style.display = 'none';
-        coachDisplay.style.display = 'block';
-        coachDisplay.innerHTML = coachVal
-          ? `<p style="font-size:.88rem;line-height:1.65;color:var(--text);">${coachVal.replace(/\n/g,'<br>')}</p>`
-          : '<p class="prog-coach-empty">No notes from Coach Samuel yet.</p>';
-      }
+      renderTaskRatings(tasks, Array.isArray(e.task_ratings) ? e.task_ratings : null);
 
       document.getElementById('progSaveStatus').textContent = '';
 
@@ -2383,22 +2264,13 @@
 
       const overall = getOverallFields();
       const data = {
-        day_number:          currentDay,
-        entry_date:          isoDate(dayDate(currentDay)),
-        confidence:          overall.confidence,
-        understanding:       overall.understanding,
-        focus:               overall.focus,
-        momentum:            overall.momentum,
-        task_ratings:        collectTaskRatings(),
-        study_time_minutes:  +document.getElementById('fStudyTime').value || null,
-        worked_on:     document.getElementById('fWorkedOn').value.trim(),
-        clicked:       document.getElementById('fClicked').value.trim(),
-        confused:      document.getElementById('fConfused').value.trim(),
-        takeaway:      document.getElementById('fTakeaway').value.trim(),
-        concepts:      document.getElementById('fConcepts').value.trim(),
-        strengths:     document.getElementById('fStrengths').value.trim(),
-        areas:         document.getElementById('fAreas').value.trim(),
-        coach_notes:   isCoach ? document.getElementById('fCoachNotes').value.trim() : (entries[currentDay]?.coach_notes || ''),
+        day_number:    currentDay,
+        entry_date:    isoDate(dayDate(currentDay)),
+        confidence:    overall.confidence,
+        understanding: overall.understanding,
+        focus:         overall.focus,
+        momentum:      overall.momentum,
+        task_ratings:  collectTaskRatings(),
       };
 
       try {
